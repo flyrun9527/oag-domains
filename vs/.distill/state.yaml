@@ -1,7 +1,0 @@
-docs_dir: /home/chun/Develop/mypalantir/domains/vs
-output_dir: /home/chun/Develop/mypalantir/domains/vs
-current_phase: 0
-phases:
-  '0':
-    status: completed
-    output: doc_index.yaml
