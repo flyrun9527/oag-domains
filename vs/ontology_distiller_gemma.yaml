@@ -1,0 +1,1385 @@
+name: vs
+description: 领域本体，包含 33 个对象类型（RoadSegment, Bridge, Tunnel, EmergencyDepot, RescueTeam
+  等）
+objects:
+  RoadSegment:
+    summary: 公路路段实体，包含桩号、等级、坐标等基础信息，是灾情定位和抢通作业的基本单元。
+    description: 公路路段实体，包含桩号、等级、坐标等基础信息，是灾情定位和抢通作业的基本单元。
+    properties:
+      road_grade:
+        type: str
+        description: 公路等级，枚举值：高速公路, 一级公路, 二级公路, 三级公路, 四级公路
+      damage_type:
+        type: str
+        description: 路基路面损毁类型，枚举值：沉陷, 垮塌, 断裂, 水毁, 滑坡, 崩塌, 泥石流, 雪崩, 沙埋, 冰雪
+      damage_grade:
+        type: str
+        description: 路基路面受损程度等级，枚举值：I级(轻微破坏/正常通行), II级(中度破坏/限制通行), III级(严重破坏/禁止通行)
+      traffic_control_measure:
+        type: str
+        description: 交通管制措施，枚举值：半幅通行, 单车道居中通行, 限速, 限载, 分时控制, 封闭
+  Bridge:
+    summary: 桥梁设施实体，包含结构形式、跨径、材质、支座类型等详细信息，用于评估桥梁受损情况。
+    description: 桥梁设施实体，包含结构形式、跨径、材质、支座类型等详细信息，用于评估桥梁受损情况。
+    properties:
+      structure_type:
+        type: str
+        description: 桥梁结构形式，枚举值：梁桥, 拱桥, 缆索桥, 斜拉桥, 组合体系桥
+      damage_stability_grade:
+        type: str
+        description: 整体稳定性损伤等级，枚举值：I级(轻微/正常通行), II级(中等/限制通行), III级(严重/禁止通行)
+      damage_capacity_grade:
+        type: str
+        description: 承载能力损伤等级，枚举值：I级(轻微/正常通行), II级(中等/限制通行), III级(严重/禁止通行)
+      damage_passability_grade:
+        type: str
+        description: 通行能力损伤等级，枚举值：I级(轻微/正常通行), II级(中等/限制通行), III级(严重/禁止通行)
+      clearance_technique:
+        type: str
+        description: 抢通技术措施，枚举值：交通管制, 便道, 便桥, 应急修复, 快速补强, 纠偏, 防落梁, 防落石, 防水毁
+      damage_type:
+        type: str
+        description: 桥梁灾损类型，枚举值：沉陷, 坍塌, 水毁, 滑坡, 泥石流, 崩塌, 冰雪, 沙害, 火灾, 气体泄漏, 结构破坏
+  Tunnel:
+    summary: 隧道设施实体，包含洞口位置、衬砌结构、通风设施、长度等基础信息。
+    description: 隧道设施实体，包含洞口位置、衬砌结构、通风设施、长度等基础信息。
+    properties:
+      importance_level:
+        type: str
+        description: 隧道重要等级，枚举值：一级, 二级, 三级
+      clearance_difficulty:
+        type: str
+        description: 隧道抢通难度，枚举值：高难度, 中等难度, 低难度
+      clearance_target_level:
+        type: str
+        description: 隧道抢通目标等级，枚举值：I级(禁止通行并改道), II级(限制性通行/小型机动车), III级(基本抢险车辆通行)
+      min_passage_width:
+        type: float
+        description: 最小通行限界宽度(m)，II级目标为2.3m，III级目标为1.5m
+      min_passage_height:
+        type: float
+        description: 最小通行限界高度(m)，II级目标为2.5m，III级目标为2.0m
+      disaster_type:
+        type: str
+        description: 隧道灾害类型，枚举值：交通事故, 火灾, 爆炸, 有毒有害气体泄漏, 结构破坏, 涌水突泥, 冰冻
+  EmergencyDepot:
+    summary: 应急物资储备点，存储各类应急装备和物资，支持按坐标搜索和库存查询。
+    description: 应急物资储备点，存储各类应急装备和物资，支持按坐标搜索和库存查询。
+    properties:
+      depot_id:
+        type: str
+        description: 储备点唯一标识
+        required: true
+      depot_name:
+        type: str
+        description: 储备点名称，如'河北国家区域性公路交通应急装备物资储备中心'
+      location:
+        type: str
+        description: 储备点位置，如'河北保定'
+      level:
+        type: str
+        description: 储备中心级别，枚举值：'国家区域性'、'省级'、'市级'、'县级'、'公路养护队'
+      storage_mode:
+        type: str
+        description: 储备方式，枚举值：'实物储备'、'协议储备'、'生产能力储备'
+  RescueTeam:
+    summary: 应急救援队伍，包含人员资质、装备配置、当前位置等信息。
+    description: 应急救援队伍，包含人员资质、装备配置、当前位置等信息。
+    properties:
+      team_id:
+        type: str
+        description: 救援队伍唯一标识
+        required: true
+      team_name:
+        type: str
+        description: 救援队伍名称
+      organization_level:
+        type: str
+        description: 所属组织级别，如'省局'、'州市局'、'分局'、'公路养护队'
+      communication_equipment:
+        type: str
+        description: 配备的通信设备，如'卫星电话'、'北斗手持终端'、'短波电台'等
+  EquipmentStock:
+    summary: 应急装备库存记录，关联储备点和具体装备类型（如挖掘机、起重机等）。
+    description: 应急装备库存记录，关联储备点和具体装备类型（如挖掘机、起重机等）。
+    properties:
+      equipment_type:
+        type: str
+        description: 装备类型名称，如'履带式挖掘机'、'汽车起重机'、'无人机'等
+      operation_type:
+        type: str
+        description: 作业类型，如'挖'、'装载'、'推土'、'破碎'、'提升'、'除雪'、'排水'、'灭火'等
+      weight_class:
+        type: str
+        description: 重量等级，枚举值：'微型'、'轻型'、'中型'、'重型'
+      deployment_method:
+        type: str
+        description: 部署方式，枚举值：'自行式运输'、'陆地运输'、'人力携行'、'空中型运输'
+      environment_condition:
+        type: str
+        description: 适用环境条件，如'常规地形'、'低承载'、'全地形'、'高低温'、'山地陡坡'等
+      capability_level:
+        type: str
+        description: 作业能力等级，枚举值：'等级 1'、'等级 2'、'等级 3'，具体含义见各附表说明
+      capability_metric:
+        type: str
+        description: 能力指标描述，如'起重重量<20t'、'清雪效率90km/h'、'流量1500m³/h'等
+      depot_id:
+        type: str
+        description: 储备点唯一标识
+  MaterialStock:
+    summary: 应急物资库存记录，关联储备点和具体物资类型（如融雪剂、编织袋等）。
+    description: 应急物资库存记录，关联储备点和具体物资类型（如融雪剂、编织袋等）。
+    properties:
+      material_name:
+        type: str
+        description: 物资名称，如'融雪剂'、'编织袋'、'水泥'、'单人帐篷'、'抢险救援头盔'等
+      material_category:
+        type: str
+        description: 物资类别，枚举值：'交通应急处置物资'、'人员生存保障类物资'、'人员处置防护类物资'
+      applicable_disaster_types:
+        type: str
+        description: 适用灾害类型，枚举值：'交通事故'、'冰雪及其次生灾害'、'风沙灾害及其次生灾害'、'水灾及其次生灾害'、'火灾及其次生灾害'、'地震地质及其次生灾害'
+      depot_id:
+        type: str
+        description: 储备点唯一标识
+  EventLevelStandard:
+    summary: 公路交通突发事件分级标准，根据影响范围、抢修时间、伤亡人数等条件映射到 I~IV 级。
+    description: 公路交通突发事件分级标准，根据影响范围、抢修时间、伤亡人数等条件映射到 I~IV 级。
+    properties:
+      level:
+        type: str
+        description: 事件级别，枚举值：I级(特别重大), II级(重大), III级(较大), IV级(一般)
+        required: true
+      repair_time_threshold:
+        type: str
+        description: 抢修处置时间阈值，如：24小时以上, 12小时以上, 6小时以上
+      impact_scope:
+        type: str
+        description: 影响范围描述，如：影响周边省份, 国家干线公路, 省级干线公路
+  RoadDamageGradeStandard:
+    summary: 路基路面受损程度分级标准，根据损毁特征映射到 I/II/III 级，并给出通行建议（正常/限制/禁止）。
+    description: 路基路面受损程度分级标准，根据损毁特征映射到 I/II/III 级，并给出通行建议（正常/限制/禁止）。
+    properties:
+      grade:
+        type: str
+        description: 损毁等级，枚举值：I, II, III
+        required: true
+      damage_degree:
+        type: str
+        description: 受损程度，枚举值：轻微破坏, 中度破坏, 严重破坏或毁坏
+      passability:
+        type: str
+        description: 可否通行，枚举值：正常通行, 限制通行, 禁止通行
+      facility_type:
+        type: str
+        description: 设施类型，枚举值：路基本体, 边坡, 支挡结构
+  BridgeDamageGradeStandard:
+    summary: 桥涵受损程度分级标准，分为整体稳定性、承载能力、通行能力三个维度，映射到 I/II/III 级。
+    description: 桥涵受损程度分级标准，分为整体稳定性、承载能力、通行能力三个维度，映射到 I/II/III 级。
+    properties:
+      grade:
+        type: str
+        description: 损伤等级，枚举值：I级, II级, III级
+        required: true
+      dimension:
+        type: str
+        description: 评估维度，枚举值：整体稳定性, 承载能力, 通行能力
+      damage_degree:
+        type: str
+        description: 损伤程度，枚举值：轻微损伤, 中等损伤, 严重损伤或坍塌
+      passability:
+        type: str
+        description: 可否通行，枚举值：正常通行, 限制通行, 禁止通行
+  TunnelImportanceLevel:
+    summary: 隧道重要等级分级表，根据道路等级和年日均交通量映射到一级/二级/三级。
+    description: 隧道重要等级分级表，根据道路等级和年日均交通量映射到一级/二级/三级。
+    properties:
+      level:
+        type: str
+        description: 重要等级，枚举值：一级, 二级, 三级
+        required: true
+      road_grade:
+        type: str
+        description: 道路等级，枚举值：高速及一级公路, 二级公路, 三级公路, 四级公路
+      traffic_volume:
+        type: str
+        description: 年日均交通量范围(pcu/d/ln)，如：≥10001, 5001~10000, ≤5000
+  SecondaryDisasterRiskStandard:
+    summary: 次生灾害风险等级标准，包含发生可能性概率表和损失程度表，用于计算风险等级。
+    description: 次生灾害风险等级标准，包含发生可能性概率表和损失程度表，用于计算风险等级。
+    properties:
+      probability_level:
+        type: str
+        description: 发生可能性等级，枚举值：不可能的, 罕见的, 偶尔的, 可能的, 频繁的
+      probability_value:
+        type: str
+        description: 概率或频率值范围，如：<0.0001, 0.0001~0.001, 0.001~0.01, 0.01~0.1, >0.1
+      loss_level:
+        type: str
+        description: 损失程度等级，枚举值：可忽略的, 需考虑的, 严重的, 非常严重的, 灾难性的
+      risk_grade:
+        type: str
+        description: 风险等级，枚举值：I级(极高), II级(可采取措施), III级(可容忍边缘), IV级(可容忍)
+  TunnelClearanceDifficultyMatrix:
+    summary: 隧道抢通难度矩阵，根据抢通时长评级和次生灾害风险等级映射到高/中/低难度。
+    description: 隧道抢通难度矩阵，根据抢通时长评级和次生灾害风险等级映射到高/中/低难度。
+    properties:
+      duration_rating:
+        type: str
+        description: 抢通时长评级，枚举值：A(太长不可接受), B(较长勉强接受), C(基本满足), D(很短)
+      risk_grade:
+        type: str
+        description: 次生灾害风险等级，枚举值：I级, II级, III级, IV级
+      difficulty_level:
+        type: str
+        description: 抢通难度，枚举值：高难度, 中等难度, 低难度
+  TunnelClearanceTargetMatrix:
+    summary: 隧道抢通目标矩阵，根据抢通难度和隧道重要等级映射到 I/II/III 级抢通目标。
+    description: 隧道抢通目标矩阵，根据抢通难度和隧道重要等级映射到 I/II/III 级抢通目标。
+    properties:
+      difficulty_level:
+        type: str
+        description: 抢通难度，枚举值：高难度, 中等难度, 低难度
+      importance_level:
+        type: str
+        description: 隧道重要等级，枚举值：一级, 二级, 三级
+      target_level:
+        type: str
+        description: 抢通目标等级，枚举值：I级, II级, III级
+  ClearanceTechniqueRule:
+    summary: 抢通技术选用规则，根据设施类型（路基/桥梁/隧道）和灾损类型（沉陷/坍塌/火灾等）映射到推荐技术措施。
+    description: 抢通技术选用规则，根据设施类型（路基/桥梁/隧道）和灾损类型（沉陷/坍塌/火灾等）映射到推荐技术措施。
+    properties:
+      facility_type:
+        type: str
+        description: 设施类型，枚举值：路基, 路面, 桥梁, 隧道
+      disaster_type:
+        type: str
+        description: 灾损类型，枚举值：沉陷, 坍塌, 水毁, 滑坡, 泥石流, 崩塌, 冰雪, 沙害, 火灾, 气体泄漏, 结构破坏
+      recommended_technique:
+        type: str
+        description: 推荐技术措施，如：机械回填, 注浆加固, 便道, 便桥, 临时支撑, 防护台车, 通风
+  TrafficControlRule:
+    summary: 交通管制措施规则，根据受损等级或抢通目标映射到具体的管制措施（如半幅通行、限速、封闭等）。
+    description: 交通管制措施规则，根据受损等级或抢通目标映射到具体的管制措施（如半幅通行、限速、封闭等）。
+    properties:
+      damage_grade:
+        type: str
+        description: 受损等级，枚举值：I级, II级, III级
+      control_measure:
+        type: str
+        description: 管制措施，枚举值：半幅通行, 单车道居中通行, 限速, 限载, 分时控制, 封闭
+  AccidentLevelStandard:
+    summary: 道路交通事故等级标准，根据伤亡人数、经济损失、交通影响映射到 I~IV 级。
+    description: 道路交通事故等级标准，根据伤亡人数、经济损失、交通影响映射到 I~IV 级。
+    properties:
+      level:
+        type: str
+        description: 事故等级，枚举值：I级(特大), II级(重大), III级(较大), IV级(一般)
+        required: true
+      casualty_criteria:
+        type: str
+        description: 人员伤亡判定条件，如：4人以上死亡, 3人死亡, 2人死亡, 1人死亡
+      economic_loss_criteria:
+        type: str
+        description: 经济损失判定条件，如：5000万元以上, 1000-5000万元, 500-1000万元, 500万元以下
+  AccidentHandlingTimeRule:
+    summary: 事故应急处理时限规则，根据事故等级映射到预计处理时长和终止条件。
+    description: 事故应急处理时限规则，根据事故等级映射到预计处理时长和终止条件。
+    properties:
+      accident_level:
+        type: str
+        description: 事故等级，枚举值：I级, II级, III级, IV级
+      handling_time_limit:
+        type: str
+        description: 处理时限，如：>=12小时, 6~12小时, 3~6小时, <=3小时
+      termination_condition:
+        type: str
+        description: 终止条件，如：完成车辆转移、路面障碍物清理、救援装备撤出与整理、信息上报、手续交接、装备人员归建
+  EquipmentSelectionRule:
+    summary: 应急装备选型规则，根据作业场景、环境条件、灾害类型映射到推荐的装备类型和配置。
+    description: 应急装备选型规则，根据作业场景、环境条件、灾害类型映射到推荐的装备类型和配置。
+    properties:
+      scenario:
+        type: str
+        description: 作业场景，如：土方作业, 破碎, 桩工, 混凝土, 起重吊装, 运输, 侦测, 抢通
+      equipment_type:
+        type: str
+        description: 装备类型，枚举值：通用装备, 专用装备
+      weight_class:
+        type: str
+        description: 重量等级，枚举值：微型(<1t), 轻型(1-12t), 中型(12-30t), 重型(>30t)
+      transport_mode:
+        type: str
+        description: 运达方式，枚举值：人力携行, 自行运输, 陆地运输, 空中运输
+  MaterialAllocationRule:
+    summary: 应急物资分配规则，根据灾害类型（冰雪/水灾/火灾等）映射到所需的物资清单。
+    description: 应急物资分配规则，根据灾害类型（冰雪/水灾/火灾等）映射到所需的物资清单。
+    properties:
+      disaster_type:
+        type: str
+        description: 灾害类型，枚举值：冰雪, 沙害, 泥石流, 水灾, 火灾
+      material_list:
+        type: str
+        description: 所需物资清单，如：融雪剂, 防滑材料, 沙袋, 片石, 泡沫轻质土, 灭火器
+  FacilityInspection:
+    summary: 设施应急调查记录，记录调查时间、人员、受损部位、损毁等级、照片编号等。
+    description: 设施应急调查记录，记录调查时间、人员、受损部位、损毁等级、照片编号等。
+    properties:
+      inspection_method:
+        type: str
+        description: 调查方法，枚举值：人工调查, 遥感调查, 航拍调查, 无人机调查
+      inspection_content:
+        type: str
+        description: 调查内容，如：灾害类型, 规模, 分布位置, 严重程度, 次生灾害风险
+  FacilityAssessment:
+    summary: 设施应急评估记录，记录评估结论（正常/限制/禁止通行）、风险等级、抢通建议等。
+    description: 设施应急评估记录，记录评估结论（正常/限制/禁止通行）、风险等级、抢通建议等。
+    properties:
+      assessment_conclusion:
+        type: str
+        description: 评估结论，枚举值：正常通行, 限制通行, 禁止通行
+      risk_level:
+        type: str
+        description: 风险等级，枚举值：I级, II级, III级, IV级
+  ClearancePlan:
+    summary: 抢通方案记录，包含方案类型、技术措施、资源需求、状态（候选/执行/完成）等。
+    description: 抢通方案记录，包含方案类型、技术措施、资源需求、状态（候选/执行/完成）等。
+    properties:
+      plan_type:
+        type: str
+        description: 方案类型，枚举值：便道, 便桥, 应急修复, 快速补强, 纠偏, 防落梁, 防落石, 防水毁
+      status:
+        type: str
+        description: 状态，枚举值：候选, 执行, 完成
+  ResourceDispatch:
+    summary: 资源调度单，记录调度的队伍、装备、物资、出发时间、预计到达时间等。
+    description: 资源调度单，记录调度的队伍、装备、物资、出发时间、预计到达时间等。
+    properties:
+      resource_type:
+        type: str
+        description: 资源类型，枚举值：队伍, 装备, 物资
+      dispatch_reason:
+        type: str
+        description: 调度原因，如：突发事件类型, 救援需求
+  TrafficControl:
+    summary: 交通管制执行记录，记录管制措施、实施时间、解除时间、执行人员等。
+    description: 交通管制执行记录，记录管制措施、实施时间、解除时间、执行人员等。
+    properties:
+      control_type:
+        type: str
+        description: 管制类型，枚举值：半幅通行, 单车道居中通行, 限速, 限载, 分时控制, 封闭
+      implementation_time:
+        type: str
+        description: 实施时间
+      release_time:
+        type: str
+        description: 解除时间
+  AccidentHandlingRecord:
+    summary: 事故处理记录，记录事故类型、处理措施、耗时、人员装备使用情况等。
+    description: 事故处理记录，记录事故类型、处理措施、耗时、人员装备使用情况等。
+    properties:
+      accident_type:
+        type: str
+        description: 事故类型，枚举值：抛锚, 碰撞, 碾压, 翻车, 坠车, 落水, 烧毁, 货物散落
+      handling_method:
+        type: str
+        description: 处理措施，枚举值：牵拉, 起吊, 扶正, 拖运, 撑涨破拆, 消防
+      handling_duration:
+        type: str
+        description: 处理耗时
+      accident_level:
+        type: str
+        description: 事故等级，枚举值：I级, II级, III级, IV级
+  EventReport:
+    summary: 灾情信息报告，包含首报、续报、终报，记录事件进展、处置情况、影响范围等。
+    description: 灾情信息报告，包含首报、续报、终报，记录事件进展、处置情况、影响范围等。
+    properties:
+      report_type:
+        type: str
+        description: 报告类型，枚举值：首报, 续报, 终报
+      report_content:
+        type: str
+        description: 报告内容要素，如：时间, 地点, 起因, 性质, 后果, 影响范围, 采取措施
+  MonitoringRecord:
+    summary: 监测巡查记录，记录监测时间、项目（沉降/收敛/位移等）、数值、风险预警等。
+    description: 监测巡查记录，记录监测时间、项目（沉降/收敛/位移等）、数值、风险预警等。
+    properties:
+      monitoring_item:
+        type: str
+        description: 监测项目，枚举值：拱顶下沉, 周边收敛, 隧底隆起, 水平位移, 竖向位移, 气体浓度
+      monitoring_method:
+        type: str
+        description: 监测手段，枚举值：巡视监测, 仪器监测, 非接触变形监测
+      warning_level:
+        type: str
+        description: 风险预警等级
+  AccidentType:
+    summary: 道路交通事故类型定义，包含事故致因和现场特征。
+    description: 道路交通事故类型定义，包含事故致因和现场特征。
+    properties:
+      type_name:
+        type: str
+        description: 事故类型名称，枚举值：抛锚, 碰撞, 碾压, 翻车, 坠车, 落水, 烧毁, 货物散落
+        required: true
+      cause:
+        type: str
+        description: 事故致因描述
+      feature:
+        type: str
+        description: 现场特征描述
+  EquipmentCategory:
+    summary: 应急处置装备分类定义，包含通用装备和专用装备。
+    description: 应急处置装备分类定义，包含通用装备和专用装备。
+    properties:
+      category:
+        type: str
+        description: 装备类别，枚举值：通用装备, 专用装备
+        required: true
+      type_name:
+        type: str
+        description: 装备类型名称，如：土方装备, 破碎装备, 应急侦测装备, 路基路面抢通装备等
+        required: true
+      function:
+        type: str
+        description: 作业功能描述
+  TunnelDamageAssessment:
+    summary: 隧道技术状况评定标准，基于JTG H12-2015。
+    description: 隧道技术状况评定标准，基于JTG H12-2015。
+    properties:
+      part:
+        type: str
+        description: 评定部位，枚举值：隧道洞口, 隧道洞门, 衬砌结构, 路面, 吊顶预埋件
+        required: true
+      condition_class:
+        type: str
+        description: 技术状况评定类别，枚举值：1~3类(好至中等), 4类(严重破损), 5类(危险状态)
+      damage_description:
+        type: str
+        description: 技术状况描述
+  EmergencyEvent:
+    summary: 公路交通突发事件记录，包含事件类型、级别、位置、时间等信息。
+    description: 公路交通突发事件记录，包含事件类型、级别、位置、时间等信息。
+    properties:
+      event_id:
+        type: str
+        description: 事件唯一标识
+        required: true
+      event_type:
+        type: str
+        description: 事件类型，枚举值：'交通事故'、'冰雪及其次生灾害'、'风沙灾害及其次生灾害'、'水灾及其次生灾害'、'火灾及其次生灾害'、'地震地质及其次生灾害'
+      event_level:
+        type: str
+        description: 突发事件级别，枚举值：'I级'、'II级'、'III级'、'IV级'，I级为最高级别
+      location:
+        type: str
+        description: 事件发生位置描述
+      occurrence_time:
+        type: str
+        description: 事件发生时间
+      is_blocked:
+        type: bool
+        description: 是否造成交通阻断，true=是，false=否
+  CommunicationDevice:
+    summary: 应急通信设备记录，包含设备类型、通信方式、核心功能等。
+    description: 应急通信设备记录，包含设备类型、通信方式、核心功能等。
+    properties:
+      device_id:
+        type: str
+        description: 设备唯一标识
+        required: true
+      device_name:
+        type: str
+        description: 设备名称，如'轻型综合指挥车'、'卫星电话'、'北斗手持终端'等
+      communication_method:
+        type: str
+        description: 通信方式，枚举值：'公网通信'、'专网通信'、'卫星通信'、'短波通信'、'无线通信'
+      core_function:
+        type: str
+        description: 核心功能，枚举值：'综合指挥'、'现场通信'、'指挥通信'、'信息安全'
+      assigned_department:
+        type: str
+        description: 配置部门，如'各级指挥中心救援队'、'救援队'
+links:
+  road_segment_has_damage_grade_standard:
+    source: RoadSegment
+    target: RoadDamageGradeStandard
+    join:
+      source_key: damage_grade
+      target_key: grade
+    description: 公路路段的受损程度等级引用路基路面受损程度分级标准。技术定义：RoadSegment 的 damage_grade 字段（如 I级,
+      II级, III级）对应 RoadDamageGradeStandard 的 grade 字段。
+  road_segment_has_traffic_control_rule:
+    source: RoadSegment
+    target: TrafficControlRule
+    join:
+      source_key: damage_grade
+      target_key: damage_grade
+    description: 公路路段根据受损等级确定交通管制措施规则。技术定义：RoadSegment 的 damage_grade 字段对应 TrafficControlRule
+      的 damage_grade 字段，从而确定 control_measure。
+  bridge_has_damage_stability_standard:
+    source: Bridge
+    target: BridgeDamageGradeStandard
+    join:
+      source_key: damage_stability_grade
+      target_key: grade
+    description: 桥梁的整体稳定性损伤等级引用桥涵受损程度分级标准。技术定义：Bridge 的 damage_stability_grade 字段对应
+      BridgeDamageGradeStandard 的 grade 字段，且 dimension 为 '整体稳定性'。
+  bridge_has_damage_capacity_standard:
+    source: Bridge
+    target: BridgeDamageGradeStandard
+    join:
+      source_key: damage_capacity_grade
+      target_key: grade
+    description: 桥梁的承载能力损伤等级引用桥涵受损程度分级标准。技术定义：Bridge 的 damage_capacity_grade 字段对应
+      BridgeDamageGradeStandard 的 grade 字段，且 dimension 为 '承载能力'。
+  bridge_has_damage_passability_standard:
+    source: Bridge
+    target: BridgeDamageGradeStandard
+    join:
+      source_key: damage_passability_grade
+      target_key: grade
+    description: 桥梁的通行能力损伤等级引用桥涵受损程度分级标准。技术定义：Bridge 的 damage_passability_grade 字段对应
+      BridgeDamageGradeStandard 的 grade 字段，且 dimension 为 '通行能力'。
+  bridge_has_clearance_technique_rule:
+    source: Bridge
+    target: ClearanceTechniqueRule
+    join:
+      source_key: damage_type
+      target_key: disaster_type
+    description: 桥梁根据灾损类型确定抢通技术规则。技术定义：Bridge 的灾损类型（需补充字段或从上下文推断）对应 ClearanceTechniqueRule
+      的 disaster_type，且 facility_type 为 '桥梁'。
+  tunnel_has_importance_level_standard:
+    source: Tunnel
+    target: TunnelImportanceLevel
+    join:
+      source_key: importance_level
+      target_key: level
+    description: 隧道的重要等级引用隧道重要等级分级表。技术定义：Tunnel 的 importance_level 字段对应 TunnelImportanceLevel
+      的 level 字段。
+  tunnel_has_clearance_difficulty_matrix:
+    source: Tunnel
+    target: TunnelClearanceDifficultyMatrix
+    join:
+      source_key: clearance_difficulty
+      target_key: difficulty_level
+    description: 隧道的抢通难度引用隧道抢通难度矩阵。技术定义：Tunnel 的 clearance_difficulty 字段对应 TunnelClearanceDifficultyMatrix
+      的 difficulty_level 字段。
+  tunnel_has_clearance_target_matrix:
+    source: Tunnel
+    target: TunnelClearanceTargetMatrix
+    join:
+      source_key: clearance_target_level
+      target_key: target_level
+    description: 隧道的抢通目标等级引用隧道抢通目标矩阵。技术定义：Tunnel 的 clearance_target_level 字段对应 TunnelClearanceTargetMatrix
+      的 target_level 字段。
+  tunnel_has_clearance_technique_rule:
+    source: Tunnel
+    target: ClearanceTechniqueRule
+    join:
+      source_key: disaster_type
+      target_key: disaster_type
+    description: 隧道根据灾害类型确定抢通技术规则。技术定义：Tunnel 的 disaster_type 字段对应 ClearanceTechniqueRule
+      的 disaster_type，且 facility_type 为 '隧道'。
+  emergency_event_has_level_standard:
+    source: EmergencyEvent
+    target: EventLevelStandard
+    join:
+      source_key: event_level
+      target_key: level
+    description: 突发事件的级别引用公路交通突发事件分级标准。技术定义：EmergencyEvent 的 event_level 字段对应 EventLevelStandard
+      的 level 字段。
+  emergency_event_has_material_allocation_rule:
+    source: EmergencyEvent
+    target: MaterialAllocationRule
+    join:
+      source_key: event_type
+      target_key: disaster_type
+    description: 突发事件根据类型确定应急物资分配规则。技术定义：EmergencyEvent 的 event_type 字段（如 '冰雪及其次生灾害'）对应
+      MaterialAllocationRule 的 disaster_type 字段（如 '冰雪'）。
+  emergency_event_has_equipment_selection_rule:
+    source: EmergencyEvent
+    target: EquipmentSelectionRule
+    join:
+      source_key: event_type
+      target_key: scenario
+    description: 突发事件根据类型确定应急装备选型规则。技术定义：EmergencyEvent 的 event_type 字段对应 EquipmentSelectionRule
+      的 scenario 字段（如 '抢通'）。
+  accident_handling_record_has_accident_type:
+    source: AccidentHandlingRecord
+    target: AccidentType
+    join:
+      source_key: accident_type
+      target_key: type_name
+    description: 事故处理记录引用道路交通事故类型定义。技术定义：AccidentHandlingRecord 的 accident_type 字段对应
+      AccidentType 的 type_name 字段。
+  accident_handling_record_has_handling_time_rule:
+    source: AccidentHandlingRecord
+    target: AccidentHandlingTimeRule
+    join:
+      source_key: accident_level
+      target_key: accident_level
+    description: 事故处理记录根据事故等级引用应急处理时限规则。技术定义：AccidentHandlingRecord 的 accident_level
+      字段对应 AccidentHandlingTimeRule 的 accident_level 字段。
+  accident_handling_record_has_accident_level_standard:
+    source: AccidentHandlingRecord
+    target: AccidentLevelStandard
+    join:
+      source_key: accident_level
+      target_key: level
+    description: 事故处理记录引用道路交通事故等级标准。技术定义：AccidentHandlingRecord 的 accident_level 字段对应
+      AccidentLevelStandard 的 level 字段。
+  equipment_stock_belongs_to_emergency_depot:
+    source: EquipmentStock
+    target: EmergencyDepot
+    join:
+      source_key: depot_id
+      target_key: depot_id
+    description: 应急装备库存记录属于某个应急物资储备点。技术定义：EquipmentStock 的 depot_id 字段对应 EmergencyDepot
+      的 depot_id 字段。
+  material_stock_belongs_to_emergency_depot:
+    source: MaterialStock
+    target: EmergencyDepot
+    join:
+      source_key: depot_id
+      target_key: depot_id
+    description: 应急物资库存记录属于某个应急物资储备点。技术定义：MaterialStock 的 depot_id 字段对应 EmergencyDepot
+      的 depot_id 字段。
+  equipment_stock_has_equipment_category:
+    source: EquipmentStock
+    target: EquipmentCategory
+    join:
+      source_key: equipment_type
+      target_key: type_name
+    description: 应急装备库存记录引用应急处置装备分类定义。技术定义：EquipmentStock 的 equipment_type 字段对应 EquipmentCategory
+      的 type_name 字段。
+  rescue_team_has_communication_device:
+    source: RescueTeam
+    target: CommunicationDevice
+    join:
+      source_key: communication_equipment
+      target_key: device_name
+    description: 应急救援队伍配备应急通信设备。技术定义：RescueTeam 的 communication_equipment 字段对应 CommunicationDevice
+      的 device_name 字段。
+  facility_inspection_has_monitoring_record:
+    source: FacilityInspection
+    target: MonitoringRecord
+    join:
+      source_key: inspection_method
+      target_key: monitoring_method
+    description: 设施应急调查记录关联监测巡查记录。技术定义：FacilityInspection 的 inspection_method 字段对应
+      MonitoringRecord 的 monitoring_method 字段。
+  facility_assessment_has_secondary_disaster_risk_standard:
+    source: FacilityAssessment
+    target: SecondaryDisasterRiskStandard
+    join:
+      source_key: risk_level
+      target_key: risk_grade
+    description: 设施应急评估记录引用次生灾害风险等级标准。技术定义：FacilityAssessment 的 risk_level 字段对应 SecondaryDisasterRiskStandard
+      的 risk_grade 字段。
+  clearance_plan_has_clearance_technique_rule:
+    source: ClearancePlan
+    target: ClearanceTechniqueRule
+    join:
+      source_key: plan_type
+      target_key: recommended_technique
+    description: 抢通方案引用抢通技术选用规则。技术定义：ClearancePlan 的 plan_type 字段对应 ClearanceTechniqueRule
+      的 recommended_technique 字段。
+  traffic_control_has_traffic_control_rule:
+    source: TrafficControl
+    target: TrafficControlRule
+    join:
+      source_key: control_type
+      target_key: control_measure
+    description: 交通管制执行记录引用交通管制措施规则。技术定义：TrafficControl 的 control_type 字段对应 TrafficControlRule
+      的 control_measure 字段。
+  tunnel_damage_assessment_has_tunnel_importance_level:
+    source: TunnelDamageAssessment
+    target: TunnelImportanceLevel
+    join:
+      source_key: condition_class
+      target_key: level
+    description: 隧道技术状况评定引用隧道重要等级分级表。技术定义：TunnelDamageAssessment 的 condition_class
+      字段（如 1~3类）对应 TunnelImportanceLevel 的 level 字段（如 一级）。
+functions:
+  get_road_segment:
+    summary: 根据路段ID查询公路路段实体详情，包括桩号、等级、损毁类型及等级、交通管制措施。
+    group: 设施查询
+    description: 根据 road_segment_id 查询 RoadSegment 对象，返回其基础信息、损毁类型(damage_type)、损毁等级(damage_grade)及当前交通管制措施(traffic_control_measure)。
+    depends_on: []
+    hint: 返回 RoadSegment 对象的基础信息（road_grade 等）及当前状态（damage_type, damage_grade, traffic_control_measure）。
+    params:
+      road_segment_id:
+        type: str
+        description: 公路路段唯一标识
+  get_bridge:
+    summary: 查询桥梁设施实体详情，包括结构形式、各维度损伤等级及抢通技术。
+    group: 设施查询
+    description: 根据桥梁ID查询Bridge对象，返回其结构信息、整体稳定性/承载能力/通行能力损伤等级、灾损类型及推荐的抢通技术。
+    depends_on: []
+    hint: 'R1: 根据 bridge_id 查询 Bridge 对象。
+
+      R2: 返回结构信息（structure_type）、整体稳定性损伤等级（damage_stability_grade）、承载能力损伤等级（damage_capacity_grade）、通行能力损伤等级（damage_passability_grade）、灾损类型（damage_type）及推荐的抢通技术（clearance_technique）。'
+    params:
+      bridge_id:
+        type: str
+        description: 桥梁唯一标识
+  get_tunnel:
+    summary: 根据隧道ID查询隧道实体详情，返回重要等级、抢通难度、目标等级、最小通行限界及灾害类型。
+    group: 设施查询
+    description: 根据 tunnel_id 查询 Tunnel 对象，返回其重要等级、抢通难度、抢通目标等级、最小通行限界及灾害类型。
+    depends_on: []
+    hint: 返回 Tunnel 对象的基础属性，包括 importance_level(重要等级)、clearance_difficulty(抢通难度)、clearance_target_level(抢通目标等级)、min_passage_width(最小通行限界宽度)、min_passage_height(最小通行限界高度)
+      及 disaster_type(灾害类型)。
+    params:
+      tunnel_id:
+        type: str
+        description: 隧道唯一标识
+  get_emergency_event:
+    summary: 根据事件ID查询公路交通突发事件记录，返回事件类型、级别、位置、时间及是否阻断。
+    group: 事件查询
+    description: 根据事件唯一标识(event_id)查询EmergencyEvent对象，返回事件类型(event_type)、突发事件级别(event_level)、事件发生位置(location)、事件发生时间(occurrence_time)及是否造成交通阻断(is_blocked)。
+    depends_on: []
+    hint: '根据 event_id 查询 EmergencyEvent 对象。
+
+      返回: event_type(事件类型)、event_level(突发事件级别)、location(事件发生位置描述)、occurrence_time(事件发生时间)、is_blocked(是否造成交通阻断)。'
+    params:
+      event_id:
+        type: str
+        description: 事件唯一标识
+  get_emergency_depot:
+    summary: 根据ID查询应急物资储备点详情，包括名称、位置、级别及储备方式。
+    group: 资源查询
+    description: 根据储备点唯一标识(depot_id)查询EmergencyDepot对象，返回其名称、位置、级别及储备方式。
+    depends_on: []
+    hint: 根据 depot_id 查询 EmergencyDepot 对象。返回字段包括：depot_name(储备点名称)、location(储备点位置)、level(储备中心级别)、storage_mode(储备方式)。
+    params:
+      depot_id:
+        type: str
+        description: 储备点唯一标识
+  get_rescue_team:
+    summary: 查询应急救援队伍详情，包括名称、组织级别及通信设备配置。
+    group: 资源查询
+    description: 根据救援队伍唯一标识 (team_id) 查询 RescueTeam 对象，返回其名称、所属组织级别及配备的通信设备。
+    depends_on: []
+    hint: 'R1: 根据 team_id 查询 RescueTeam 对象。
+
+      R2: 返回 team_name(队伍名称)、organization_level(所属组织级别)、communication_equipment(配备的通信设备)。'
+    params:
+      team_id:
+        type: str
+        description: 救援队伍唯一标识
+  get_equipment_stock:
+    summary: 根据库存ID或储备点ID查询应急装备的静态属性（类型、作业能力、重量、部署方式及适用环境）。
+    group: 资源查询
+    description: 输入 stock_id 或 depot_id，从 EquipmentStock 对象中检索并返回装备的详细属性，包括装备类型、作业类型、重量等级、部署方式、适用环境条件及能力指标。无副作用。
+    depends_on: []
+    hint: 'R1: 根据 stock_id 或 depot_id 查询 EquipmentStock 对象。
+
+      R2: 返回装备类型(equipment_type)、作业类型(operation_type)、重量等级(weight_class)、部署方式(deployment_method)、适用环境(environment_condition)及能力指标(capability_metric)。
+
+      注意: 此函数仅用于获取静态装备属性，不涉及装备调度或可用性判断。'
+    params:
+      stock_id:
+        type: str
+        description: 装备库存记录ID
+      depot_id:
+        type: str
+        description: 储备点ID，用于查询该点所有装备
+  get_material_stock:
+    summary: 根据库存ID或储备点ID查询应急物资库存详情，包括物资名称、类别及适用灾害类型。
+    group: 资源查询
+    description: 输入 stock_id 或 depot_id，查询并返回 MaterialStock 对象，包含物资名称、类别、适用灾害类型及所属储备点信息。
+    depends_on: []
+    hint: 'R1: 根据 stock_id 或 depot_id 查询 MaterialStock 对象。
+
+      R2: 返回物资名称 (material_name)、类别 (material_category)、适用灾害类型 (applicable_disaster_types)
+      及所属储备点 (depot_id)。
+
+      注意: 此为纯数据查询函数，无业务逻辑判断或副作用。'
+    params:
+      stock_id:
+        type: str
+        description: 物资库存记录ID
+      depot_id:
+        type: str
+        description: 储备点ID，用于查询该点所有物资
+  lookup_event_level_standard:
+    summary: 根据抢修时间阈值和影响范围查询公路交通突发事件分级标准，返回对应的事件级别（I-IV级）。
+    group: 规则查询
+    description: 根据抢修处置时间阈值（如'24小时以上'）和影响范围描述（如'影响周边省份'），查询 EventLevelStandard 规则表，返回对应的事件级别（I-IV级）。
+    depends_on: []
+    hint: 'R1: 根据 repair_time_threshold 和 impact_scope 查询 EventLevelStandard 表。
+
+      R2: 返回匹配的事件级别 level (I-IV级)。'
+    params:
+      repair_time_threshold:
+        type: str
+        description: 抢修处置时间阈值，如'24小时以上'
+      impact_scope:
+        type: str
+        description: 影响范围描述，如'影响周边省份'
+  lookup_road_damage_grade_standard:
+    summary: 根据设施类型和受损程度查询路基路面损毁等级及通行建议标准
+    group: 规则查询
+    description: 根据设施类型（路基本体/边坡/支挡结构）和受损程度（轻微/中度/严重），查询 RoadDamageGradeStandard 规则表，返回对应的损毁等级（I/II/III）及通行建议（正常/限制/禁止）。
+    depends_on: []
+    hint: '根据 facility_type 和 damage_degree 查询 RoadDamageGradeStandard 表。
+
+      返回: grade(损毁等级)、passability(通行建议)。'
+    params:
+      facility_type:
+        type: str
+        description: 设施类型，如'路基本体'
+      damage_degree:
+        type: str
+        description: 受损程度，如'轻微破坏'
+  lookup_bridge_damage_grade_standard:
+    summary: 查询桥涵受损程度分级标准，根据评估维度和损伤程度确定等级和通行建议。
+    group: 规则查询
+    description: 根据评估维度（整体稳定性/承载能力/通行能力）和损伤程度（轻微/中等/严重），查询 BridgeDamageGradeStandard，返回损伤等级（I/II/III）及通行建议。
+    depends_on: []
+    hint: '根据 dimension（评估维度）和 damage_degree（损伤程度）查询 BridgeDamageGradeStandard 表。
+
+      返回: grade（损伤等级）、passability（可否通行）。'
+    params:
+      dimension:
+        type: str
+        description: 评估维度，如'整体稳定性'
+      damage_degree:
+        type: str
+        description: 损伤程度，如'轻微损伤'
+  lookup_tunnel_importance_level:
+    summary: 根据道路等级和年日均交通量范围，查询隧道重要等级（一级/二级/三级）。
+    group: 规则查询
+    description: 根据输入的道路等级（road_grade）和年日均交通量范围（traffic_volume），查询 TunnelImportanceLevel
+      规则表，返回对应的隧道重要等级（level）。
+    depends_on: []
+    hint: 'R1: 根据 road_grade 和 traffic_volume 查询 TunnelImportanceLevel 表。
+
+      R2: 返回 level 字段（枚举值：一级, 二级, 三级）。
+
+      注意: 特殊重要隧道或起控制作用的隧道可直接定为一级，但本函数仅执行标准查表逻辑。'
+    params:
+      road_grade:
+        type: str
+        description: 道路等级，如'高速及一级公路'
+      traffic_volume:
+        type: str
+        description: 年日均交通量范围，如'≥10001'
+  lookup_secondary_disaster_risk_standard:
+    summary: 根据次生灾害发生可能性和损失程度，查询标准表确定风险等级（I-IV级）。
+    group: 规则查询
+    description: 输入发生可能性等级（如'频繁的'）和损失程度等级（如'灾难性的'），查询 SecondaryDisasterRiskStandard
+      表，返回对应的风险等级（risk_grade）。
+    depends_on: []
+    hint: 'R1: 根据输入的发生可能性等级（probability_level）和损失程度等级（loss_level），在 SecondaryDisasterRiskStandard
+      规则表中查询对应的风险等级（risk_grade）。
+
+      R2: 返回字段 risk_grade 的枚举值包括：I级(极高)、II级(可采取措施)、III级(可容忍边缘)、IV级(可容忍)。'
+    params:
+      probability_level:
+        type: str
+        description: 发生可能性等级，如'频繁的'
+      loss_level:
+        type: str
+        description: 损失程度等级，如'灾难性的'
+  lookup_tunnel_clearance_difficulty_matrix:
+    summary: 根据抢通时长评级和次生灾害风险等级，查询隧道抢通难度矩阵以确定难度等级。
+    group: 规则查询
+    description: 根据抢通时长评级（A/B/C/D）和次生灾害风险等级（I-IV级），查询 TunnelClearanceDifficultyMatrix
+      规则表，返回对应的抢通难度（高/中/低）。
+    depends_on: []
+    hint: 'R1: 根据输入的 duration_rating（抢通时长评级）和 risk_grade（次生灾害风险等级）查询 TunnelClearanceDifficultyMatrix
+      表。
+
+      R2: 返回 difficulty_level（抢通难度，枚举值：高难度/中等难度/低难度）。'
+    params:
+      duration_rating:
+        type: str
+        description: 抢通时长评级，如'A'
+      risk_grade:
+        type: str
+        description: 次生灾害风险等级，如'I级'
+  lookup_tunnel_clearance_target_matrix:
+    summary: 根据隧道抢通难度和重要等级，查询矩阵确定抢通目标等级（I/II/III级）。
+    group: 规则查询
+    description: 根据输入的抢通难度（高/中/低）和隧道重要等级（一/二/三级），查询 TunnelClearanceTargetMatrix 规则表，返回对应的抢通目标等级（I/II/III级）。
+    depends_on: []
+    hint: 'R1: 根据 difficulty_level（抢通难度）和 importance_level（隧道重要等级）查询 TunnelClearanceTargetMatrix
+      表。
+
+      R2: 返回 target_level（抢通目标等级，枚举值：I级, II级, III级）。'
+    params:
+      difficulty_level:
+        type: str
+        description: 抢通难度，如'高难度'
+      importance_level:
+        type: str
+        description: 隧道重要等级，如'一级'
+  lookup_clearance_technique_rule:
+    summary: 根据设施类型和灾损类型查询推荐的抢通技术措施。
+    group: 规则查询
+    description: 根据设施类型（路基/桥梁/隧道）和灾损类型（沉陷/坍塌/火灾等），查询 ClearanceTechniqueRule，返回推荐的技术措施（如机械回填/便道/通风）。
+    depends_on: []
+    hint: '根据 facility_type 和 disaster_type 查询 ClearanceTechniqueRule 表。
+
+      返回: recommended_technique(推荐技术措施)。'
+    params:
+      facility_type:
+        type: str
+        description: 设施类型，如'桥梁'
+      disaster_type:
+        type: str
+        description: 灾损类型，如'坍塌'
+  lookup_traffic_control_rule:
+    summary: 根据受损等级（I/II/III级）查询并返回对应的交通管制措施（如半幅通行、封闭等）。
+    group: 规则查询
+    description: 输入受损等级（damage_grade），查询 TrafficControlRule 规则表，返回对应的交通管制措施（control_measure）。
+    depends_on: []
+    hint: 'R1: 根据输入参数 damage_grade（如''I级''、''II级''、''III级''）查询 TrafficControlRule
+      规则表。
+
+      R2: 返回对应的 control_measure（管制措施），如半幅通行、单车道居中通行、限速、限载、分时控制、封闭等。
+
+      注意: 具体映射关系存储在 TrafficControlRule 对象中，无需在 hint 中罗列。'
+    params:
+      damage_grade:
+        type: str
+        description: 受损等级，如'II级'
+  lookup_accident_level_standard:
+    summary: 根据伤亡和经济损失条件查询道路交通事故等级标准，返回 I-IV 级事故等级。
+    group: 规则查询
+    description: 根据人员伤亡判定条件（如'4人以上死亡'）和经济损失判定条件（如'5000万元以上'），查询 AccidentLevelStandard
+      规则表，返回对应的事故等级（I-IV级）。
+    depends_on: []
+    hint: '根据 casualty_criteria（人员伤亡判定条件）和 economic_loss_criteria（经济损失判定条件）查询 AccidentLevelStandard
+      表。
+
+      返回: level（事故等级，枚举值：I级(特大), II级(重大), III级(较大), IV级(一般)）。'
+    params:
+      casualty_criteria:
+        type: str
+        description: 人员伤亡判定条件，如'4人以上死亡'
+      economic_loss_criteria:
+        type: str
+        description: 经济损失判定条件，如'5000万元以上'
+  lookup_accident_handling_time_rule:
+    summary: 根据事故等级查询对应的应急处理时限和终止条件规则。
+    group: 规则查询
+    description: 根据事故等级（I-IV级），查询AccidentHandlingTimeRule，返回处理时限和终止条件。
+    depends_on: []
+    hint: '根据 accident_level 查询 AccidentHandlingTimeRule 表。
+
+      返回: handling_time_limit(处理时限)、termination_condition(终止条件)。'
+    params:
+      accident_level:
+        type: str
+        description: 事故等级，如'I级'
+  lookup_equipment_selection_rule:
+    summary: 根据作业场景和环境条件查询应急装备选型规则，推荐装备类型、重量等级及运达方式。
+    group: 规则查询
+    description: 根据作业场景（如土方作业/抢通）和环境条件，查询 EquipmentSelectionRule，返回推荐的装备类型、重量等级及运达方式。
+    depends_on: []
+    hint: '根据 scenario(作业场景) 和 environment_condition(环境条件) 查询 EquipmentSelectionRule
+      表。
+
+      返回: equipment_type(装备类型)、weight_class(重量等级)、transport_mode(运达方式)。'
+    params:
+      scenario:
+        type: str
+        description: 作业场景，如'抢通'
+      environment_condition:
+        type: str
+        description: 环境条件，如'山地陡坡'
+  lookup_material_allocation_rule:
+    summary: 根据灾害类型（冰雪/水灾/火灾等）查询应急物资分配规则，返回所需物资清单。
+    group: 规则查询
+    description: 根据输入的灾害类型（disaster_type），查询 MaterialAllocationRule 规则表，返回对应的应急物资清单（material_list）。
+    depends_on: []
+    hint: '根据 disaster_type 查询 MaterialAllocationRule 表。
+
+      返回: material_list(所需物资清单)。'
+    params:
+      disaster_type:
+        type: str
+        description: 灾害类型，如'冰雪'
+  inspect_facility:
+    summary: 执行设施（路段/桥梁/隧道）应急调查，记录调查方法、内容及初步受损评估，生成调查记录。
+    group: 应急调查
+    description: 输入：event_id, facility_id, facility_type, inspection_method, inspection_content。处理：根据设施类型调用对应规范（路基4.4/桥梁7.1/隧道8.2）进行灾情侦测，结合
+      lookup 函数初步判定损伤等级或抢通目标。输出：写入 FacilityInspection 实体。
+    depends_on:
+    - get_road_segment
+    - get_bridge
+    - get_tunnel
+    hint: 'R1: 根据 facility_type 选择对应的调查重点：
+
+      - RoadSegment: 依据 4.4 节，侦测沉陷/垮塌/断裂程度、边坡滑坡/崩塌、支挡结构损毁、路面覆盖/掩埋/湿滑程度。
+
+      - Bridge: 依据 7.1 节，调查整体稳定性（坍塌/落梁）、承载能力（支座/墩台/基础）、通行能力（桥面/伸缩缝/引道）。
+
+      - Tunnel: 依据 8.2 节，调查洞口掩埋/边仰坡失稳、衬砌开裂/坍塌、涌水突泥、有毒有害气体泄漏。
+
+      R2: 调查方法选择：大范围/危险环境优先使用无人机/遥感（4.3 节）；近距离/细节使用人工/便携仪器（4.4/4.5/4.6 节）。
+
+      R3: 初步受损程度判定：
+
+      - RoadSegment: 调用 lookup_road_damage_grade_standard 获取路基/边坡/支挡/路面损伤等级。
+
+      - Bridge: 调用 lookup_bridge_damage_grade_standard 获取稳定性/承载能力/通行能力损伤等级。
+
+      - Tunnel: 依据 8.3/8.4 节，结合重要等级、抢通难度、次生灾害风险确定抢通目标等级（I/II/III）。
+
+      R4: 副作用：生成 FacilityInspection 记录，包含 inspection_method, inspection_content 及初步判定的损伤等级或抢通目标。'
+    params:
+      event_id:
+        type: str
+        description: 关联的突发事件ID
+      facility_id:
+        type: str
+        description: 设施ID（路段/桥梁/隧道）
+      facility_type:
+        type: str
+        description: 设施类型，如'RoadSegment'
+      inspection_method:
+        type: str
+        description: 调查方法，如'无人机调查'
+      inspection_content:
+        type: str
+        description: 调查内容描述，如'灾害类型, 规模, 分布位置'
+  assess_facility:
+    summary: 基于调查记录，结合损伤标准或风险标准，评估设施通行结论（正常/限制/禁止）及风险等级，并生成评估记录。
+    group: 应急评估
+    description: 输入 inspection_id 关联调查记录，根据设施类型调用 lookup_road_damage_grade_standard、lookup_bridge_damage_grade_standard
+      或 lookup_secondary_disaster_risk_standard 获取判定依据，计算 assessment_conclusion 和
+      risk_level，最终写入 FacilityAssessment 对象。
+    depends_on:
+    - inspect_facility
+    - lookup_road_damage_grade_standard
+    - lookup_bridge_damage_grade_standard
+    - lookup_secondary_disaster_risk_standard
+    hint: 'R1: 根据设施类型（路基/桥梁/隧道）调用对应的 lookup 函数获取损伤等级标准或风险标准。
+
+      R2: 路基/桥梁评估：若各部位损伤等级中存在 III 级，则 assessment_conclusion=''禁止通行''；若存在 II 级且无 III
+      级，则 assessment_conclusion=''限制通行''；若全为 I 级，则 assessment_conclusion=''正常通行''。
+
+      R3: 隧道评估：若发生有毒有害气体泄漏或瓦斯超标，assessment_conclusion=''禁止通行''；否则根据抢通目标等级确定结论（I级->禁止通行,
+      II级->限制通行, III级->正常通行）。
+
+      R4: 风险等级确定：结合次生灾害发生概率和损失程度，调用 lookup_secondary_disaster_risk_standard 确定 risk_level（I级~IV级）。
+
+      R5: 副作用：写入 FacilityAssessment 记录。'
+    params:
+      inspection_id:
+        type: str
+        description: 关联的调查记录ID
+      assessment_conclusion:
+        type: str
+        description: 评估结论，如'限制通行'
+      risk_level:
+        type: str
+        description: 风险等级，如'II级'
+  generate_clearance_plan:
+    summary: 基于设施评估结果和抢通技术规则，生成包含技术措施和状态（候选）的抢通方案记录。
+    group: 抢通方案
+    description: 输入 assessment_id 获取评估结论和风险等级，结合 plan_type 调用 lookup_clearance_technique_rule
+      获取推荐技术，生成 ClearancePlan 记录（含技术措施、资源需求、状态）。
+    depends_on:
+    - assess_facility
+    - lookup_clearance_technique_rule
+    hint: 'R1: 根据 assessment_id 获取 FacilityAssessment 记录，读取 assessment_conclusion
+      和 risk_level。
+
+      R2: 调用 lookup_clearance_technique_rule，传入评估结论、风险等级及 plan_type，获取推荐的技术措施。
+
+      R3: 生成 ClearancePlan 记录，包含 plan_type、技术措施、资源需求，状态设为 status（默认''候选''）。
+
+      注意: 若评估结论为''禁止通行''或风险等级为''III级''/''IV级''，需优先选择便道、便桥或改线绕行等隔离/替代方案；若为''限制通行''，可选择应急修复或快速补强。'
+    params:
+      assessment_id:
+        type: str
+        description: 关联的评估记录ID
+      plan_type:
+        type: str
+        description: 方案类型，如'便道'
+      status:
+        type: str
+        description: 状态，默认为'候选'
+        default: 候选
+  dispatch_resources:
+    summary: 根据抢通方案需求和库存情况，生成资源调度单，调度应急队伍、装备或物资。
+    group: 资源调度
+    description: '输入: plan_id(抢通方案ID), resource_type(资源类型), resource_id(资源ID), dispatch_reason(调度原因)。处理:
+      结合 ClearancePlan 需求、EquipmentStock/MaterialStock 库存及 lookup 规则，生成 ResourceDispatch
+      记录。输出: ResourceDispatch 对象。副作用: 写入 ResourceDispatch 表。'
+    depends_on:
+    - generate_clearance_plan
+    - get_equipment_stock
+    - get_material_stock
+    - lookup_equipment_selection_rule
+    - lookup_material_allocation_rule
+    hint: 'R1: 根据 ClearancePlan 的资源需求，调用 lookup_equipment_selection_rule 和 lookup_material_allocation_rule
+      确定所需装备和物资类型。
+
+      R2: 调用 get_equipment_stock 和 get_material_stock 获取当前库存情况。
+
+      R3: 结合方案需求与库存可用性，生成 ResourceDispatch 记录，包含 resource_type、dispatch_reason 等字段。
+
+      注意: 资源调度需遵循属地管理原则，优先调用就近储备点资源。'
+    params:
+      plan_id:
+        type: str
+        description: 关联的抢通方案ID
+      resource_type:
+        type: str
+        description: 资源类型，如'装备'
+      resource_id:
+        type: str
+        description: 资源ID（队伍/装备/物资）
+      dispatch_reason:
+        type: str
+        description: 调度原因，如'突发事件类型'
+  execute_traffic_control:
+    summary: 根据设施评估结论或隧道抢通目标，查询并执行相应的交通管制措施，生成管制记录。
+    group: 交通管制
+    description: 输入 assessment_id 获取评估结论，结合 control_type 和 implementation_time，依据规范确定具体管制措施（如半幅通行、限速等），生成
+      TrafficControl 执行记录。
+    depends_on:
+    - assess_facility
+    - lookup_traffic_control_rule
+    hint: 'R1: 根据 FacilityAssessment 的 assessment_conclusion 或 Tunnel 的抢通目标，调用 lookup_traffic_control_rule
+      确定管制措施。
+
+      R2: 对限制通行路段，在限制通行期间应派专人定点指挥，控制车辆交通，维持行车秩序。
+
+      R3: 对限制通行路段，可采取半幅通行、单车道居中通行、限速、限载行驶、分时控制等限制措施。
+
+      R4: 应及时通过广播、电视、电台发布交通管制信息，并在距离机动车入口的适当位置设置交通管制信息牌。
+
+      副作用: 写入 TrafficControl 记录，包含 control_type 和 implementation_time。'
+    params:
+      assessment_id:
+        type: str
+        description: 关联的评估记录ID
+      control_type:
+        type: str
+        description: 管制类型，如'封闭'
+      implementation_time:
+        type: str
+        description: 实施时间
+  handle_accident:
+    summary: 处理交通事故，确定事故类型与等级，执行处理措施并生成处理记录。
+    group: 事故处理
+    description: 根据事故现场情况确定事故类型，调用 lookup_accident_level_standard 确定事故等级，调用 lookup_accident_handling_time_rule
+      确定处理时限，执行相应的处理措施（如牵拉、起吊、拖运等），记录处理耗时，并生成 AccidentHandlingRecord。
+    depends_on:
+    - lookup_accident_level_standard
+    - lookup_accident_handling_time_rule
+    hint: 'R1: 根据事故现场情况确定 accident_type（如抛锚、碰撞等）。
+
+      R2: 调用 lookup_accident_level_standard 确定 accident_level。
+
+      R3: 调用 lookup_accident_handling_time_rule 确定处理时限。
+
+      R4: 根据事故类型和等级执行相应的 handling_method（如牵拉、起吊、拖运等）。
+
+      R5: 记录 handling_duration。
+
+      副作用: 写入 AccidentHandlingRecord 记录。'
+    params:
+      event_id:
+        type: str
+        description: 关联的突发事件ID
+      accident_type:
+        type: str
+        description: 事故类型，如'碰撞'
+      handling_method:
+        type: str
+        description: 处理措施，如'拖运'
+      handling_duration:
+        type: str
+        description: 处理耗时
+      accident_level:
+        type: str
+        description: 事故等级，如'II级'
+  generate_event_report:
+    summary: 汇总突发事件、设施评估、清障计划及资源调度信息，生成灾情信息报告（首报/续报/终报）。
+    group: 信息报告
+    description: 输入 event_id、report_type 和 report_content，关联查询 EmergencyEvent 及相关处置记录，汇总事件进展与处置情况，生成并写入
+      EventReport 记录。
+    depends_on:
+    - get_emergency_event
+    - assess_facility
+    - generate_clearance_plan
+    - dispatch_resources
+    hint: 'R1: 根据 event_id 获取 EmergencyEvent 信息（包括 event_type, event_level, location,
+      occurrence_time, is_blocked）。
+
+      R2: 汇总 FacilityAssessment、ClearancePlan、ResourceDispatch 等相关处置进展信息。
+
+      R3: 根据 report_type（首报/续报/终报）和 report_content 要素（时间、地点、起因、性质、后果、影响范围、采取措施等）组装报告内容。
+
+      R4: 生成 EventReport 记录并写入系统。'
+    params:
+      event_id:
+        type: str
+        description: 关联的突发事件ID
+      report_type:
+        type: str
+        description: 报告类型，如'首报'
+      report_content:
+        type: str
+        description: 报告内容要素，如'时间, 地点, 采取措施'
+  record_monitoring:
+    summary: 记录隧道或边坡抢通过程中的监测数据（项目、手段、预警等级），生成监测记录。
+    group: 监测巡查
+    description: 在抢通过程中，对隧道或边坡进行监测，记录监测项目（如拱顶下沉、位移等）、监测手段（如仪器监测、巡视监测）及风险预警等级，生成 MonitoringRecord
+      实体。
+    depends_on:
+    - inspect_facility
+    hint: 'R1: 监测手段应包含巡视监测和仪器监测，优先采用非接触变形监测。
+
+      R2: 监测项目包括拱顶下沉、周边收敛、隧底隆起、边仰坡水平位移及竖向位移，具体项目根据隧道变形破坏特征确定。
+
+      R3: 监测频率宜根据现场风险情况而定。
+
+      R4: 须指派专人开展巡视工作，及时上报巡查结果。
+
+      R5: 须采取必要措施保证监测作业人员及巡查人员的安全。
+
+      副作用: 写入 MonitoringRecord 记录。'
+    params:
+      facility_id:
+        type: str
+        description: 关联的设施ID
+      monitoring_item:
+        type: str
+        description: 监测项目，如'拱顶下沉'
+      monitoring_method:
+        type: str
+        description: 监测手段，如'仪器监测'
+      warning_level:
+        type: str
+        description: 风险预警等级
+  get_facility_inspection:
+    summary: 获取设施应急调查记录的详细信息
+    group: 数据获取
+    description: 根据标识查询 FacilityInspection 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      facility_inspection_id:
+        type: str
+        description: FacilityInspection 的唯一标识
+  get_facility_assessment:
+    summary: 获取设施应急评估记录的详细信息
+    group: 数据获取
+    description: 根据标识查询 FacilityAssessment 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      facility_assessment_id:
+        type: str
+        description: FacilityAssessment 的唯一标识
+  get_clearance_plan:
+    summary: 获取抢通方案记录的详细信息
+    group: 数据获取
+    description: 根据标识查询 ClearancePlan 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      clearance_plan_id:
+        type: str
+        description: ClearancePlan 的唯一标识
+  get_resource_dispatch:
+    summary: 获取资源调度单的详细信息
+    group: 数据获取
+    description: 根据标识查询 ResourceDispatch 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      resource_dispatch_id:
+        type: str
+        description: ResourceDispatch 的唯一标识
+  get_traffic_control:
+    summary: 获取交通管制执行记录的详细信息
+    group: 数据获取
+    description: 根据标识查询 TrafficControl 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      traffic_control_id:
+        type: str
+        description: TrafficControl 的唯一标识
+  get_accident_handling_record:
+    summary: 获取事故处理记录的详细信息
+    group: 数据获取
+    description: 根据标识查询 AccidentHandlingRecord 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      accident_handling_record_id:
+        type: str
+        description: AccidentHandlingRecord 的唯一标识
+  get_event_report:
+    summary: 获取灾情信息报告的详细信息
+    group: 数据获取
+    description: 根据标识查询 EventReport 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      event_report_id:
+        type: str
+        description: EventReport 的唯一标识
+  get_monitoring_record:
+    summary: 获取监测巡查记录的详细信息
+    group: 数据获取
+    description: 根据标识查询 MonitoringRecord 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      monitoring_record_id:
+        type: str
+        description: MonitoringRecord 的唯一标识
+  get_accident_type:
+    summary: 获取道路交通事故类型定义的详细信息
+    group: 数据获取
+    description: 根据标识查询 AccidentType 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      type_name:
+        type: str
+        description: 事故类型名称，枚举值：抛锚, 碰撞, 碾压, 翻车, 坠车, 落水, 烧毁, 货物散落
+  get_equipment_category:
+    summary: 获取应急处置装备分类定义的详细信息
+    group: 数据获取
+    description: 根据标识查询 EquipmentCategory 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      category:
+        type: str
+        description: 装备类别，枚举值：通用装备, 专用装备
+  get_tunnel_damage_assessment:
+    summary: 获取隧道技术状况评定标准的详细信息
+    group: 数据获取
+    description: 根据标识查询 TunnelDamageAssessment 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      part:
+        type: str
+        description: 评定部位，枚举值：隧道洞口, 隧道洞门, 衬砌结构, 路面, 吊顶预埋件
+  get_communication_device:
+    summary: 获取应急通信设备记录的详细信息
+    group: 数据获取
+    description: 根据标识查询 CommunicationDevice 的完整记录
+    depends_on: []
+    hint: ''
+    params:
+      device_id:
+        type: str
+        description: 设备唯一标识

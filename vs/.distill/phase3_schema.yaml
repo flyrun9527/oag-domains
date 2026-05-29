@@ -1,0 +1,1489 @@
+RoadSegment:
+  summary: 路段/路基路面(公路基本单元，按桩号/坐标搜)
+  category: entity
+  source: 公路交通应急处置技术规范.md 6.1/6.2
+  properties:
+    road_class:
+      type: str
+      required: false
+      description: 公路等级，枚举值：高速公路、一级公路、二级公路、三级公路、四级公路
+    road_name:
+      type: str
+      required: false
+      description: 路段名称
+    start_pile_number:
+      type: str
+      required: false
+      description: 起始桩号
+    end_pile_number:
+      type: str
+      required: false
+      description: 终止桩号
+    direction:
+      type: str
+      required: false
+      description: 运行方向
+    road_width:
+      type: float
+      required: false
+      description: 道路宽度(m)
+    surface_condition:
+      type: str
+      required: false
+      description: 路面状况
+Bridge:
+  summary: 桥梁(含桥涵，按bridge_id查，含结构形式/跨径/材质)
+  category: entity
+  source: 公路交通应急处置技术规范.md 7.1/7.2
+  properties:
+    structure_type:
+      type: str
+      required: false
+      description: 结构形式，枚举值：梁桥、拱桥、缆索桥、斜拉桥等
+    span_length:
+      type: float
+      required: false
+      description: 跨径(m)
+    material:
+      type: str
+      required: false
+      description: 材质，枚举值：混凝土、钢结构、组合结构
+    bearing_type:
+      type: str
+      required: false
+      description: 支座类型
+    pier_count:
+      type: int
+      required: false
+      description: 桥墩数量
+    abutment_type:
+      type: str
+      required: false
+      description: 桥台类型
+    foundation_type:
+      type: str
+      required: false
+      description: 基础类型
+    expansion_joint_type:
+      type: str
+      required: false
+      description: 伸缩缝类型
+Tunnel:
+  summary: 隧道(按tunnel_id查，含通风/消防/结构参数)
+  category: entity
+  source: 公路交通应急处置技术规范.md 8.2/8.3
+  properties:
+    ventilation_type:
+      type: str
+      required: false
+      description: 通风方式
+    fire_protection_level:
+      type: str
+      required: false
+      description: 消防等级
+    cross_passage_type:
+      type: str
+      required: false
+      description: 横通道类型，枚举值：人行横通道、车行横通道
+    lining_type:
+      type: str
+      required: false
+      description: 衬砌类型
+    ceiling_type:
+      type: str
+      required: false
+      description: 吊顶类型
+    embedded_parts_status:
+      type: str
+      required: false
+      description: 预埋件状况
+EmergencyDepot:
+  summary: 应急储备中心(国家/省/市/县四级，按坐标搜)
+  category: entity
+  source: 公路交通应急处置技术规范.md 10.3.6
+  properties:
+    administrative_level:
+      type: str
+      required: false
+      description: 行政级别，枚举值：国家、省、市、县
+RescueTeam:
+  summary: 救援队伍(按坐标/专业能力搜，含编制与装备配置)
+  category: entity
+  source: 公路交通应急处置技术规范.md 5.5/10.2
+  properties:
+    team_type:
+      type: str
+      required: false
+      description: 队伍类型，如：应急救援施工队伍、应急救援专家、社会应急救援力量
+    specialty:
+      type: str
+      required: false
+      description: 专业能力/专长，如：隧道抢通、桥涵抢通、事故处理、危化品处置
+    personnel_count:
+      type: int
+      required: false
+      description: 编制人数
+    equipment_list:
+      type: str
+      required: false
+      description: 配备的应急装备清单，如：土方装备、破碎装备、侦测装备等
+    location:
+      type: str
+      required: false
+      description: 驻扎或部署位置
+EquipmentStock:
+  summary: 装备库存(储备点→装备清单，含重量/环境/智能化等级)
+  category: entity
+  source: 公路交通应急处置技术规范.md 10.2.4~10.2.21
+  properties:
+    equipment_category:
+      type: str
+      required: false
+      description: 装备类别，枚举值：通用装备、专用装备
+    function_type:
+      type: str
+      required: false
+      description: 作业功能，枚举值：土方、破碎、桩工、混凝土、起重吊装、运输、生存保障、应急侦测、路基路面抢通、桥涵抢通、隧道抢通、事故处置、冰雪沙泥水火灾害处置
+    weight_class:
+      type: str
+      required: false
+      description: 重量等级，枚举值：微型(<1t)、轻型(1-12t)、中型(12-30t)、重型(>30t)
+    transport_mode:
+      type: str
+      required: false
+      description: 运达方式，枚举值：人力携行、自行运输、陆地运输、空中运输
+    environment_adaptability:
+      type: str
+      required: false
+      description: 环境适应性，枚举值：全地形、高海拔等
+MaterialStock:
+  summary: 物资库存(储备点→物资清单，含适用灾害类型)
+  category: entity
+  source: 公路交通应急处置技术规范.md 10.3.2~10.3.4
+  properties:
+    material_type:
+      type: str
+      required: false
+      description: 物资类型，枚举值：融雪材料、防滑材料、防沙材料、填充材料等
+    applicable_disaster:
+      type: str
+      required: false
+      description: 适用灾害类型，枚举值：冰雪、沙害、水毁、泥石流等
+Organization:
+  summary: 应急组织机构(指挥调度/管养单位，含层级与职责)
+  category: entity
+  source: 公路交通应急处置技术规范.md 5.1/5.3
+  properties:
+    org_level:
+      type: str
+      required: false
+      description: 组织层级，枚举值：交通运输部、省级、市级、县级、企事业单位
+    responsibility_scope:
+      type: str
+      required: false
+      description: 职责范围
+DisasterEvent:
+  summary: 自然灾害事件(地震/滑坡/泥石流/水毁等，含发生时间地点)
+  category: entity
+  source: 公路交通应急处置技术规范.md 2.0.1/4.2
+  properties:
+    disaster_type:
+      type: str
+      required: false
+      description: 灾害类型，枚举值：地震、滑坡、泥石流、水毁、冰雪、风沙、火灾等
+    occurrence_time:
+      type: str
+      required: false
+      description: 发生时间
+    location:
+      type: str
+      required: false
+      description: 发生地点
+    impact_scope:
+      type: str
+      required: false
+      description: 影响范围
+    severity_level:
+      type: str
+      required: false
+      description: 事件级别，枚举值：I级(特别重大)、II级(重大)、III级(较大)、IV级(一般)
+    estimated_recovery_time:
+      type: float
+      required: false
+      description: 预计抢修处置时间(小时)
+AccidentEvent:
+  summary: 交通事故事件(碰撞/翻车/危化品泄漏等，含报警信息)
+  category: entity
+  source: 公路交通应急处置技术规范.md 9.1/9.2
+  properties:
+    accident_type:
+      type: str
+      required: false
+      description: 事故类型，枚举值：抛锚、碰撞、碾压、翻车、坠车、落水、烧毁、货物散落
+    vehicle_type:
+      type: str
+      required: false
+      description: 涉事车辆类型，枚举值：客车、货车、轿车、特种车等
+    has_hazardous_materials:
+      type: bool
+      required: false
+      description: 是否涉及危化品
+    casualty_count:
+      type: int
+      required: false
+      description: 伤亡人数
+    economic_loss:
+      type: float
+      required: false
+      description: 直接经济损失(万元)
+    accident_level:
+      type: str
+      required: false
+      description: 事故等级，枚举值：I级(特大)、II级(重大)、III级(较大)、IV级(一般)
+    response_level:
+      type: str
+      required: false
+      description: 响应等级，枚举值：I级、II级、III级、IV级
+WeatherData:
+  summary: 气象水文数据(实时/预报，含温度/降水/风速/能见度)
+  category: entity
+  source: 公路交通应急处置技术规范.md 4.2/10.6.2
+  properties:
+    temperature:
+      type: float
+      required: false
+      description: 温度(℃)
+    weather_condition:
+      type: str
+      required: false
+      description: 天气状况，枚举值：雾、冰雪、霜、雨、大风等
+    visibility:
+      type: float
+      required: false
+      description: 能见度(m)
+    wind_speed:
+      type: float
+      required: false
+      description: 风速(m/s)
+    wind_level:
+      type: int
+      required: false
+      description: 风力等级
+GeologicalData:
+  summary: 地质地形资料(岩土类型/坡度/水文地质/勘察文件)
+  category: entity
+  source: 公路交通应急处置技术规范.md 4.2/6.1
+  properties:
+    geomorphology_type:
+      type: str
+      required: false
+      description: 地貌类型
+    rock_soil_type:
+      type: str
+      required: false
+      description: 岩土体类型
+    geological_structure:
+      type: str
+      required: false
+      description: 地质构造
+    hydrogeology:
+      type: str
+      required: false
+      description: 水文地质
+    slope_gradient:
+      type: float
+      required: false
+      description: 地形坡度(°)
+TrafficData:
+  summary: 交通运行数据(断面流量/车速/拥堵状态，按桩号查)
+  category: entity
+  source: 公路交通应急处置技术规范.md 10.6.2
+  properties:
+    traffic_volume:
+      type: int
+      required: false
+      description: 断面流量(pcu/d)
+    congestion_status:
+      type: str
+      required: false
+      description: 拥堵状态
+    average_speed:
+      type: float
+      required: false
+      description: 平均车速(km/h)
+MonitoringData:
+  summary: 结构监测数据(位移/应力/气体浓度/视频图像)
+  category: entity
+  source: 公路交通应急处置技术规范.md 4.4~4.6/8.5.2
+  properties:
+    displacement_value:
+      type: float
+      required: false
+      description: 位移值(mm)
+    stress_value:
+      type: float
+      required: false
+      description: 应力值(MPa)
+    gas_concentration:
+      type: float
+      required: false
+      description: 气体浓度(ppm或cm³/m³)
+    gas_type:
+      type: str
+      required: false
+      description: 气体类型，枚举值：一氧化碳、氯气、氮氧化物等
+    monitoring_frequency:
+      type: str
+      required: false
+      description: 监测频次
+DetourRoute:
+  summary: 绕行分流路线(替代交通路径，含距离/路况/承载能力)
+  category: entity
+  source: 公路交通应急处置技术规范.md 8.4.5
+  properties:
+    route_length:
+      type: float
+      required: false
+      description: 路线长度(km)
+    road_condition:
+      type: str
+      required: false
+      description: 路况
+    load_capacity:
+      type: float
+      required: false
+      description: 承载能力(t)
+    max_gradient:
+      type: float
+      required: false
+      description: 最大纵坡(%)
+    min_curve_radius:
+      type: float
+      required: false
+      description: 最小平曲线半径(m)
+EventLevelStandard:
+  summary: 突发事件分级标准(公路等级+中断时间+影响范围→I-IV级)
+  category: rule
+  source: 公路交通应急处置技术规范.md 5.2.1
+  properties:
+    highway_class:
+      type: str
+      required: true
+      description: 公路等级，枚举值：国家干线、省级干线
+    interruption_time:
+      type: float
+      required: true
+      description: 中断时间(小时)
+    impact_scope:
+      type: str
+      required: true
+      description: 影响范围，枚举值：周边省份、省内、市内
+    event_level:
+      type: str
+      required: false
+      description: 事件级别，枚举值：I级、II级、III级、IV级
+ReportTimeRule:
+  summary: 信息上报时效规则(事件级别→上报时限/流程/要素)
+  category: rule
+  source: 公路交通应急处置技术规范.md 5.3.2
+  properties:
+    event_level:
+      type: str
+      required: true
+      description: 事件级别，枚举值：I级、II级、III级、IV级
+    report_time_limit:
+      type: float
+      required: false
+      description: 上报时限(小时)
+    report_method:
+      type: str
+      required: false
+      description: 上报方式，枚举值：电话、书面、电子邮件
+CommandDispatchRule:
+  summary: 指挥调度程序(事件级别→指挥层级/联动机制/求援条件)
+  category: rule
+  source: 公路交通应急处置技术规范.md 5.1.3/5.4
+  properties:
+    event_level:
+      type: str
+      required: true
+      description: 事件级别，枚举值：I级、II级、III级、IV级
+    command_level:
+      type: str
+      required: false
+      description: 指挥层级，枚举值：交通运输部、省级、市级、县级
+    linkage_mechanism:
+      type: str
+      required: false
+      description: 联动机制
+ResourceDispatchRule:
+  summary: 资源调度原则(事件类型/位置→调度路径/优先级/补偿原则)
+  category: rule
+  source: 公路交通应急处置技术规范.md 5.5/10.3.7
+  properties:
+    event_type:
+      type: str
+      required: true
+      description: 事件类型
+    location:
+      type: str
+      required: true
+      description: 位置
+    dispatch_path:
+      type: str
+      required: false
+      description: 调度路径
+    priority:
+      type: str
+      required: false
+      description: 优先级
+ResponseTerminationRule:
+  summary: 响应终止条件(处置状态/清理完成度→终止/扩大应急判定)
+  category: rule
+  source: 公路交通应急处置技术规范.md 5.4.5/9.2.5
+  properties:
+    disposal_status:
+      type: str
+      required: true
+      description: 处置状态
+    cleanup_completion:
+      type: str
+      required: true
+      description: 清理完成度
+    termination_decision:
+      type: str
+      required: false
+      description: 终止/扩大应急判定
+SubgradeDamageStandard:
+  summary: 路基受损分级标准(损毁特征→I-III级及正常/限制/禁止通行)
+  category: rule
+  source: 公路交通应急处置技术规范.md 6.2.2
+  properties:
+    damage_feature:
+      type: str
+      required: true
+      description: 损毁特征
+    damage_grade:
+      type: str
+      required: false
+      description: 损毁等级，枚举值：I级、II级、III级
+    access_decision:
+      type: str
+      required: false
+      description: 通行建议，枚举值：正常通行、限制通行、禁止通行
+SlopeDamageStandard:
+  summary: 边坡受损分级标准(滑坡/崩塌特征→I-III级及通行建议)
+  category: rule
+  source: 公路交通应急处置技术规范.md 6.2.3
+  properties:
+    damage_feature:
+      type: str
+      required: true
+      description: 损毁特征
+    damage_grade:
+      type: str
+      required: false
+      description: 损毁等级，枚举值：I级、II级、III级
+    access_decision:
+      type: str
+      required: false
+      description: 通行建议，枚举值：正常通行、限制通行、禁止通行
+RetainingStructureDamageStandard:
+  summary: 支挡结构受损分级标准(挡墙/护坡特征→I-III级及通行建议)
+  category: rule
+  source: 公路交通应急处置技术规范.md 6.2.4
+  properties:
+    damage_feature:
+      type: str
+      required: true
+      description: 损毁特征
+    damage_grade:
+      type: str
+      required: false
+      description: 损毁等级，枚举值：I级、II级、III级
+    access_decision:
+      type: str
+      required: false
+      description: 通行建议，枚举值：正常通行、限制通行、禁止通行
+SubgradeClearanceRule:
+  summary: 路基抢通技术选用(灾害类型+地质条件→回填/拓宽/注浆/改线)
+  category: rule
+  source: 公路交通应急处置技术规范.md 6.4.2~6.4.7
+  properties:
+    disaster_type:
+      type: str
+      required: true
+      description: 灾害类型
+    geological_condition:
+      type: str
+      required: true
+      description: 地质条件
+    clearance_technique:
+      type: str
+      required: false
+      description: 抢通技术，枚举值：机械回填、路基拓宽、注浆加固、全部填土、拦边填土、换填泡沫轻质土、凹形竖曲线通过法、改移线位法
+TrafficControlRule:
+  summary: 交通管制措施规则(损伤等级→半幅/限速/分时/封闭管制)
+  category: rule
+  source: 公路交通应急处置技术规范.md 6.3/7.3.3
+  properties:
+    damage_grade:
+      type: str
+      required: true
+      description: 损伤等级，枚举值：I级、II级、III级
+    control_measure:
+      type: str
+      required: false
+      description: 管制措施，枚举值：半幅通行、单车道居中通行、限速、限载、分时控制、封闭
+SecondaryDisasterWarningRule:
+  summary: 次生灾害预警要求(变形趋势/巡查频次→预警级别与处置)
+  category: rule
+  source: 公路交通应急处置技术规范.md 6.4.1
+  properties:
+    deformation_trend:
+      type: str
+      required: true
+      description: 变形趋势
+    inspection_frequency:
+      type: str
+      required: true
+      description: 巡查频次
+    warning_level:
+      type: str
+      required: false
+      description: 预警级别
+BridgeInspectionRule:
+  summary: 桥涵调查重点规则(灾害类型→调查部位/内容/设备清单)
+  category: rule
+  source: 公路交通应急处置技术规范.md 7.1.4
+  properties:
+    disaster_type:
+      type: str
+      required: true
+      description: 灾害类型
+    inspection_part:
+      type: str
+      required: false
+      description: 调查部位，枚举值：上部结构、下部结构、基础、桥面、伸缩缝、引道
+    inspection_content:
+      type: str
+      required: false
+      description: 调查内容
+    equipment_list:
+      type: str
+      required: false
+      description: 设备清单
+BridgeStabilityStandard:
+  summary: 桥涵稳定性评估标准(整体偏位/坍塌→I-III级及通行结论)
+  category: rule
+  source: 公路交通应急处置技术规范.md 7.2-1/附录2-1
+  properties:
+    damage_feature:
+      type: str
+      required: true
+      description: 损毁特征
+    damage_grade:
+      type: str
+      required: false
+      description: 损伤等级，枚举值：I级、II级、III级
+    access_decision:
+      type: str
+      required: false
+      description: 通行结论，枚举值：正常通行、限制通行、禁止通行
+BridgeCapacityStandard:
+  summary: 桥涵承载力评估标准(构件开裂/变形→I-III级及通行结论)
+  category: rule
+  source: 公路交通应急处置技术规范.md 7.2-2/附录2-2~2-6
+  properties:
+    damage_feature:
+      type: str
+      required: true
+      description: 损毁特征
+    damage_grade:
+      type: str
+      required: false
+      description: 损伤等级，枚举值：I级、II级、III级
+    access_decision:
+      type: str
+      required: false
+      description: 通行结论，枚举值：正常通行、限制通行、禁止通行
+BridgePassabilityStandard:
+  summary: 桥涵通行能力评估标准(桥面高差/障碍→I-III级及通行结论)
+  category: rule
+  source: 公路交通应急处置技术规范.md 7.2-3/附录2-7~2-9
+  properties:
+    damage_feature:
+      type: str
+      required: true
+      description: 损毁特征
+    damage_grade:
+      type: str
+      required: false
+      description: 损伤等级，枚举值：I级、II级、III级
+    access_decision:
+      type: str
+      required: false
+      description: 通行结论，枚举值：正常通行、限制通行、禁止通行
+BridgeClearanceRule:
+  summary: 桥涵抢通技术选用(损毁程度+地形→便道/便桥/修复/加固)
+  category: rule
+  source: 公路交通应急处置技术规范.md 7.3.1~7.3.14
+  properties:
+    damage_degree:
+      type: str
+      required: true
+      description: 损毁程度
+    terrain_condition:
+      type: str
+      required: true
+      description: 地形条件
+    clearance_technique:
+      type: str
+      required: false
+      description: 抢通技术，枚举值：便道、便桥、修复、加固、桥改路
+TemporaryBridgeRule:
+  summary: 便桥技术选用规则(跨径+水流+承载→桥型/时效/保障能力)
+  category: rule
+  source: 公路交通应急处置技术规范.md 附录3
+  properties:
+    span_length:
+      type: float
+      required: true
+      description: 跨径(m)
+    water_flow:
+      type: float
+      required: true
+      description: 水流速度(m/s)
+    load_capacity:
+      type: float
+      required: true
+      description: 承载能力(t)
+    bridge_type:
+      type: str
+      required: false
+      description: 桥型，枚举值：机械化桥、装配式公路钢桥、舟桥、应急轻便桥、索道桥
+    service_life:
+      type: str
+      required: false
+      description: 时效
+BridgeReinforcementRule:
+  summary: 永久加固技术要求(损伤类型→加固工艺/监测要求/材料)
+  category: rule
+  source: 公路交通应急处置技术规范.md 7.3.14/8.5.1
+  properties:
+    damage_type:
+      type: str
+      required: true
+      description: 损伤类型
+    reinforcement_process:
+      type: str
+      required: false
+      description: 加固工艺，枚举值：外包钢管套、外缠纤维、顶升复位
+    monitoring_requirement:
+      type: str
+      required: false
+      description: 监测要求
+    material:
+      type: str
+      required: false
+      description: 材料
+TunnelInspectionRule:
+  summary: 隧道调查内容要求(灾害类型→调查部位/气体/火灾排查清单)
+  category: rule
+  source: 公路交通应急处置技术规范.md 8.2.3/8.2.6
+  properties:
+    disaster_type:
+      type: str
+      required: true
+      description: 灾害类型
+    inspection_part:
+      type: str
+      required: false
+      description: 调查部位，枚举值：洞口、洞门、衬砌、路面、吊顶预埋件
+    gas_check_list:
+      type: str
+      required: false
+      description: 气体排查清单
+    fire_check_list:
+      type: str
+      required: false
+      description: 火灾排查清单
+TunnelImportanceLevel:
+  summary: 隧道重要等级分级(道路等级+交通量→一/二/三级)
+  category: rule
+  source: 公路交通应急处置技术规范.md 8.3.2
+  properties:
+    road_class:
+      type: str
+      required: true
+      description: 道路等级，枚举值：高速及一级、二级、三级、四级
+    traffic_volume:
+      type: int
+      required: true
+      description: 年日均交通量(pcu/d/ln)
+    importance_level:
+      type: str
+      required: false
+      description: 重要等级，枚举值：一级、二级、三级
+SecondaryRiskLevel:
+  summary: 次生事故风险等级(发生概率+损失程度→I-IV级)
+  category: rule
+  source: 公路交通应急处置技术规范.md 8.3.4/8.3.5
+  properties:
+    occurrence_probability:
+      type: str
+      required: true
+      description: 发生概率，枚举值：不可能的、罕见的、偶尔的、可能的、频繁的
+    loss_degree:
+      type: str
+      required: true
+      description: 损失程度，枚举值：可忽略的、需考虑的、严重的、非常严重的、灾难性的
+    risk_level:
+      type: str
+      required: false
+      description: 风险等级，枚举值：I级、II级、III级、IV级
+ClearanceDifficultyMatrix:
+  summary: 抢通难度等级矩阵(抢通时长+风险等级→高/中/低难度)
+  category: rule
+  source: 公路交通应急处置技术规范.md 8.3.6/8.3.7
+  properties:
+    clearance_duration:
+      type: str
+      required: true
+      description: 抢通时长评级，枚举值：A、B、C、D
+    risk_level:
+      type: str
+      required: true
+      description: 风险等级，枚举值：I级、II级、III级、IV级
+    difficulty_level:
+      type: str
+      required: false
+      description: 难度等级，枚举值：高难度、中等难度、低难度
+TunnelTargetMatrix:
+  summary: 隧道抢通目标矩阵(难度+重要等级→I-III级目标)
+  category: rule
+  source: 公路交通应急处置技术规范.md 8.4.1
+  properties:
+    difficulty_level:
+      type: str
+      required: true
+      description: 难度等级，枚举值：高难度、中等难度、低难度
+    importance_level:
+      type: str
+      required: true
+      description: 重要等级，枚举值：一级、二级、三级
+    target_level:
+      type: str
+      required: false
+      description: 抢通目标等级，枚举值：I级、II级、III级
+TunnelClearanceLimit:
+  summary: 最小通行限界表(抢通目标等级→宽高限界m)
+  category: rule
+  source: 公路交通应急处置技术规范.md 8.6-1
+  properties:
+    target_level:
+      type: str
+      required: true
+      description: 抢通目标等级，枚举值：I级、II级、III级
+    min_width:
+      type: float
+      required: false
+      description: 最小宽度(m)
+    min_height:
+      type: float
+      required: false
+      description: 最小高度(m)
+TunnelClearanceRule:
+  summary: 隧道抢通技术要求(灾害类型→支护/排水/通风/灭火措施)
+  category: rule
+  source: 公路交通应急处置技术规范.md 8.5.3~8.5.7
+  properties:
+    disaster_type:
+      type: str
+      required: true
+      description: 灾害类型
+    clearance_measure:
+      type: str
+      required: false
+      description: 抢通措施，枚举值：支护、排水、通风、灭火、防护台车、脚手架
+AccidentInspectionRule:
+  summary: 事故调查流程安全(现场环境→警戒范围/防护等级/疏散要求)
+  category: rule
+  source: 公路交通应急处置技术规范.md 9.1.3
+  properties:
+    site_environment:
+      type: str
+      required: true
+      description: 现场环境
+    warning_range:
+      type: float
+      required: false
+      description: 警戒范围(m)
+    protection_level:
+      type: str
+      required: false
+      description: 防护等级
+    evacuation_requirement:
+      type: str
+      required: false
+      description: 疏散要求
+AccidentTypeRule:
+  summary: 交通事故类型分类(致因+形态→抛锚/碰撞/翻车/坠车等)
+  category: rule
+  source: 公路交通应急处置技术规范.md 9.2.2
+  properties:
+    cause:
+      type: str
+      required: true
+      description: 致因
+    form:
+      type: str
+      required: true
+      description: 形态
+    accident_type:
+      type: str
+      required: false
+      description: 事故类型，枚举值：抛锚、碰撞、碾压、翻车、坠车、落水、烧毁、货物散落
+AccidentLevelStandard:
+  summary: 事故等级划分标准(伤亡+损失+影响→I-IV级及响应等级)
+  category: rule
+  source: 公路交通应急处置技术规范.md 9.2.3/9.2.4
+  properties:
+    casualty_count:
+      type: int
+      required: true
+      description: 伤亡人数
+    economic_loss:
+      type: float
+      required: true
+      description: 经济损失(万元)
+    impact_scope:
+      type: str
+      required: true
+      description: 影响范围
+    accident_level:
+      type: str
+      required: false
+      description: 事故等级，枚举值：I级、II级、III级、IV级
+    response_level:
+      type: str
+      required: false
+      description: 响应等级，枚举值：I级、II级、III级、IV级
+AccidentEquipmentRule:
+  summary: 事故装备选型原则(车辆吨位+作业方式→清障/起重/破拆装备)
+  category: rule
+  source: 公路交通应急处置技术规范.md 9.3.3
+  properties:
+    vehicle_tonnage:
+      type: float
+      required: true
+      description: 车辆吨位(t)
+    operation_mode:
+      type: str
+      required: true
+      description: 作业方式，枚举值：牵拉、起吊、扶正、拖运、撑涨破拆、消防、侦检
+    equipment_type:
+      type: str
+      required: false
+      description: 装备类型，枚举值：平板型清障车、拖吊型清障车、汽车起重机、叉车、液压剪切器等
+AccidentHandlingRule:
+  summary: 事故处理流程规范(事故类型→牵拉/起吊/扶正/拖运步骤)
+  category: rule
+  source: 公路交通应急处置技术规范.md 9.3.4
+  properties:
+    accident_type:
+      type: str
+      required: true
+      description: 事故类型
+    handling_steps:
+      type: str
+      required: false
+      description: 处理步骤，枚举值：牵拉、起吊、扶正、拖运
+SafetyDistanceRule:
+  summary: 作业安全距离规范(高压线电压/环境→最小安全距离m)
+  category: rule
+  source: 公路交通应急处置技术规范.md 9.3.6
+  properties:
+    voltage:
+      type: float
+      required: true
+      description: 高压线电压(kV)
+    environment:
+      type: str
+      required: true
+      description: 环境
+    min_safe_distance:
+      type: float
+      required: false
+      description: 最小安全距离(m)
+EventReport:
+  summary: 事件上报记录(首报/续报/终报信息链，含时间/地点/措施)
+  category: process
+  source: 公路交通应急处置技术规范.md 5.3
+  properties:
+    report_type:
+      type: str
+      required: false
+      description: 报告类型，枚举值：首报、续报、终报
+    report_time:
+      type: str
+      required: false
+      description: 报告时间
+    location:
+      type: str
+      required: false
+      description: 地点
+    measures_taken:
+      type: str
+      required: false
+      description: 已采取措施
+    next_steps:
+      type: str
+      required: false
+      description: 下一步工作计划
+    contact_person:
+      type: str
+      required: false
+      description: 联系人
+    contact_phone:
+      type: str
+      required: false
+      description: 联系电话
+EventGradingRecord:
+  summary: 事件分级记录(判定级别/依据数据/启动预案版本)
+  category: process
+  source: 公路交通应急处置技术规范.md 5.2/5.4
+  properties:
+    determined_level:
+      type: str
+      required: false
+      description: 判定级别，枚举值：I级、II级、III级、IV级
+    basis_data:
+      type: str
+      required: false
+      description: 依据数据
+    plan_version:
+      type: str
+      required: false
+      description: 启动预案版本
+PlanActivationRecord:
+  summary: 预案启动记录(指挥机构/能力评估/求援状态)
+  category: process
+  source: 公路交通应急处置技术规范.md 5.4
+  properties:
+    command_org:
+      type: str
+      required: false
+      description: 指挥机构
+    capability_assessment:
+      type: str
+      required: false
+      description: 能力评估
+    request_status:
+      type: str
+      required: false
+      description: 求援状态
+ResourceDispatchRecord:
+  summary: 资源调度记录(队伍/装备/物资调拨单，含路径/状态)
+  category: process
+  source: 公路交通应急处置技术规范.md 5.5
+  properties:
+    resource_type:
+      type: str
+      required: false
+      description: 资源类型，枚举值：队伍、装备、物资
+    dispatch_path:
+      type: str
+      required: false
+      description: 调度路径
+    status:
+      type: str
+      required: false
+      description: 状态，枚举值：已调拨、在途、已到位
+ResponseTerminationRecord:
+  summary: 处置终止记录(终止条件满足情况/总结评估/整改建议)
+  category: process
+  source: 公路交通应急处置技术规范.md 5.4.5/9.2.6
+  properties:
+    termination_conditions_met:
+      type: str
+      required: false
+      description: 终止条件满足情况
+    summary_evaluation:
+      type: str
+      required: false
+      description: 总结评估
+    improvement_suggestions:
+      type: str
+      required: false
+      description: 整改建议
+ReconReport:
+  summary: 应急侦测报告(宏观遥感/无人机/现场初勘数据汇总)
+  category: process
+  source: 公路交通应急处置技术规范.md 4.3/4.4
+  properties:
+    recon_method:
+      type: str
+      required: false
+      description: 侦测手段，枚举值：卫星遥感、航空摄影、无人机、现场专业人员
+    data_summary:
+      type: str
+      required: false
+      description: 数据汇总
+SubgradeAssessmentRecord:
+  summary: 路基路面评估表(损毁等级/通行建议/处治措施/照片编号)
+  category: process
+  source: 公路交通应急处置技术规范.md 附录1
+  properties:
+    damage_grade:
+      type: str
+      required: false
+      description: 损毁等级，枚举值：I级、II级、III级
+    access_suggestion:
+      type: str
+      required: false
+      description: 通行建议，枚举值：正常通行、限制通行、禁止通行
+    treatment_measure:
+      type: str
+      required: false
+      description: 处治措施
+    photo_id:
+      type: str
+      required: false
+      description: 照片编号
+ClearancePlan:
+  summary: 抢通方案记录(技术选型/施工步骤/状态流转candidate→completed)
+  category: process
+  source: 公路交通应急处置技术规范.md 6.4
+  properties:
+    technology_selection:
+      type: str
+      required: false
+      description: 技术选型
+    construction_steps:
+      type: str
+      required: false
+      description: 施工步骤
+    status:
+      type: str
+      required: false
+      description: 状态，枚举值：candidate、completed
+TrafficControlRecord:
+  summary: 交通管制记录(管制措施/实施时间/解除条件/责任人)
+  category: process
+  source: 公路交通应急处置技术规范.md 6.3
+  properties:
+    control_measure:
+      type: str
+      required: false
+      description: 管制措施
+    implementation_time:
+      type: str
+      required: false
+      description: 实施时间
+    release_condition:
+      type: str
+      required: false
+      description: 解除条件
+    responsible_person:
+      type: str
+      required: false
+      description: 责任人
+SecondaryDisasterMonitorRecord:
+  summary: 次生灾害监测记录(巡查频次/变形数据/预警触发/处置)
+  category: process
+  source: 公路交通应急处置技术规范.md 6.4.1
+  properties:
+    inspection_frequency:
+      type: str
+      required: false
+      description: 巡查频次
+    deformation_data:
+      type: str
+      required: false
+      description: 变形数据
+    warning_trigger:
+      type: str
+      required: false
+      description: 预警触发
+    disposal_action:
+      type: str
+      required: false
+      description: 处置
+BridgeInspectionRecord:
+  summary: 桥涵调查记录(重点部位检查清单/影像/初步判定)
+  category: process
+  source: 公路交通应急处置技术规范.md 7.1
+  properties:
+    inspection_checklist:
+      type: str
+      required: false
+      description: 重点部位检查清单
+    image_data:
+      type: str
+      required: false
+      description: 影像
+    preliminary_judgment:
+      type: str
+      required: false
+      description: 初步判定
+BridgeAssessmentRecord:
+  summary: 桥涵评估表(稳定性/承载力/通行能力综合评级/通行结论)
+  category: process
+  source: 公路交通应急处置技术规范.md 附录2
+  properties:
+    stability_grade:
+      type: str
+      required: false
+      description: 稳定性评级，枚举值：I级、II级、III级
+    capacity_grade:
+      type: str
+      required: false
+      description: 承载力评级，枚举值：I级、II级、III级
+    passability_grade:
+      type: str
+      required: false
+      description: 通行能力评级，枚举值：I级、II级、III级
+    access_conclusion:
+      type: str
+      required: false
+      description: 通行结论，枚举值：正常通行、限制通行、禁止通行
+BridgeClearancePlan:
+  summary: 桥涵抢通方案(便桥/修复/加固方案/实施记录/状态流转)
+  category: process
+  source: 公路交通应急处置技术规范.md 7.3
+  properties:
+    clearance_scheme:
+      type: str
+      required: false
+      description: 抢通方案，枚举值：便桥、修复、加固
+    implementation_record:
+      type: str
+      required: false
+      description: 实施记录
+    status:
+      type: str
+      required: false
+      description: 状态流转
+BridgeConstructionMonitorRecord:
+  summary: 施工监测记录(应力/位移监测/超限处置/永久加固进度)
+  category: process
+  source: 公路交通应急处置技术规范.md 7.3.4/7.3.14
+  properties:
+    stress_monitoring:
+      type: str
+      required: false
+      description: 应力监测
+    displacement_monitoring:
+      type: str
+      required: false
+      description: 位移监测
+    limit_exceedance_action:
+      type: str
+      required: false
+      description: 超限处置
+    reinforcement_progress:
+      type: str
+      required: false
+      description: 永久加固进度
+TunnelReconReport:
+  summary: 隧道侦测报告(洞口/洞身/气体/火灾初勘数据/疏散状态)
+  category: process
+  source: 公路交通应急处置技术规范.md 8.2
+  properties:
+    portal_data:
+      type: str
+      required: false
+      description: 洞口初勘数据
+    body_data:
+      type: str
+      required: false
+      description: 洞身初勘数据
+    gas_data:
+      type: str
+      required: false
+      description: 气体初勘数据
+    fire_data:
+      type: str
+      required: false
+      description: 火灾初勘数据
+    evacuation_status:
+      type: str
+      required: false
+      description: 疏散状态
+TunnelAssessmentReport:
+  summary: 隧道评估报告(重要等级/风险等级/难度评级/综合结论)
+  category: process
+  source: 公路交通应急处置技术规范.md 8.3
+  properties:
+    importance_level:
+      type: str
+      required: false
+      description: 重要等级，枚举值：一级、二级、三级
+    risk_level:
+      type: str
+      required: false
+      description: 风险等级，枚举值：I级、II级、III级、IV级
+    difficulty_level:
+      type: str
+      required: false
+      description: 难度评级，枚举值：高难度、中等难度、低难度
+    comprehensive_conclusion:
+      type: str
+      required: false
+      description: 综合结论
+TunnelTargetDecision:
+  summary: 抢通目标决策(目标等级/通行限界/改道方案/调整记录)
+  category: process
+  source: 公路交通应急处置技术规范.md 8.4
+  properties:
+    target_level:
+      type: str
+      required: false
+      description: 目标等级，枚举值：I级、II级、III级
+    passage_limit:
+      type: str
+      required: false
+      description: 通行限界
+    detour_plan:
+      type: str
+      required: false
+      description: 改道方案
+    adjustment_record:
+      type: str
+      required: false
+      description: 调整记录
+TunnelClearanceRecord:
+  summary: 隧道抢通实施记录(支护/排水/通风/灭火作业/状态流转)
+  category: process
+  source: 公路交通应急处置技术规范.md 8.5
+  properties:
+    disaster_type:
+      type: str
+      required: false
+      description: 灾害类型，如：普通交通事故、火灾、爆炸、有毒气体泄漏、结构破坏、地震、泥石流、冰冻雨雪
+    damage_severity:
+      type: str
+      required: false
+      description: 灾害严重程度/结构破损评定等级，如：1~3类(好至中等)、4类(严重破损)、5类(危险状态)
+    clearance_target_level:
+      type: str
+      required: false
+      description: 抢通目标等级，枚举：I级(禁止通行并改道)、II级(限制性通行)、III级(基本抢险车辆通行)
+    clearance_difficulty_level:
+      type: str
+      required: false
+      description: 抢通难度等级，枚举：高难度、中等难度、低难度
+    tunnel_importance_level:
+      type: str
+      required: false
+      description: 隧道重要等级，枚举：一级、二级、三级
+    secondary_risk_level:
+      type: str
+      required: false
+      description: 次生事故风险等级，枚举：I级(极高)、II级(可采取措施)、III级(可容忍边缘)、IV级(可容忍)
+    estimated_duration_rating:
+      type: str
+      required: false
+      description: 抢通时长评级，枚举：A(太长不可接受)、B(较长勉强接受)、C(基本满足)、D(很短)
+    min_passage_width:
+      type: float
+      required: false
+      description: 最小通行限界宽度(m)，如：1.5m(III级), 2.3m(II级)
+    min_passage_height:
+      type: float
+      required: false
+      description: 最小通行限界高度(m)，如：2m(III级), 2.5m(II级)
+    gas_leak_detected:
+      type: bool
+      required: false
+      description: 是否检测到有毒有害气体泄漏
+    fire_detected:
+      type: bool
+      required: false
+      description: 是否发生火灾
+    status:
+      type: str
+      required: false
+      description: 当前状态，如：应急侦测、应急调查、应急评估、应急实施、抢通完成、永久修复中
+AccidentInspectionRecord:
+  summary: 事故调查记录(现场警戒/危化品探测/环境评估/防护配置)
+  category: process
+  source: 公路交通应急处置技术规范.md 9.1
+  properties:
+    accident_type:
+      type: str
+      required: false
+      description: 事故类型，枚举：抛锚、碰撞、碾压、翻车、坠车、落水、烧毁、货物散落
+    vehicle_type:
+      type: str
+      required: false
+      description: 涉事车辆类型，如：客车、普通货车、危化品运输车
+    hazardous_material_type:
+      type: str
+      required: false
+      description: 危化品类型，如：爆炸性、易燃性、毒害性、放射性、腐蚀性
+    casualty_count:
+      type: int
+      required: false
+      description: 人员伤亡数量
+    vehicle_damage_count:
+      type: int
+      required: false
+      description: 车辆损失数量
+    weather_condition:
+      type: str
+      required: false
+      description: 气象状况，如：雾、冰雪、霜、雨、大风
+    road_blockage_status:
+      type: str
+      required: false
+      description: 道路阻隔情况
+    alert_zone_set:
+      type: bool
+      required: false
+      description: 是否已设置警戒区域
+    status:
+      type: str
+      required: false
+      description: 调查状态，如：现场警戒、危化品探测、环境评估、防护配置
+AccidentLevelRecord:
+  summary: 事故等级评估(伤亡/损失/响应等级/处理需求判定)
+  category: process
+  source: 公路交通应急处置技术规范.md 9.2
+  properties:
+    accident_level:
+      type: str
+      required: false
+      description: 事故等级，枚举：I级(特大)、II级(重大)、III级(较大)、IV级(一般)
+    response_level:
+      type: str
+      required: false
+      description: 响应等级，枚举：I级、II级、III级、IV级
+    handling_difficulty:
+      type: str
+      required: false
+      description: 处理难度，枚举：难度极大、难度较大、难度不大、容易
+    coordination_level:
+      type: str
+      required: false
+      description: 需求等级/协调层级，如：交通运输部组织协调、省级、市级、县级
+    estimated_handling_time:
+      type: str
+      required: false
+      description: 应急处理时限，如：>=12小时、6~12小时、3~6小时、<=3小时
+    economic_loss_range:
+      type: str
+      required: false
+      description: 直接经济损失范围，如：5000万元以上、1000-5000万元、500-1000万元、500万元以下
+    status:
+      type: str
+      required: false
+      description: 评估状态，如：伤亡统计、损失评估、响应等级判定
+AccidentEquipmentDispatch:
+  summary: 装备调度记录(清障/起重/破拆装备调拨/到位状态)
+  category: process
+  source: 公路交通应急处置技术规范.md 9.3.3
+  properties:
+    equipment_type:
+      type: str
+      required: false
+      description: 装备类型，如：清障救援车、起重机、破拆工具、侦测设备
+    equipment_category:
+      type: str
+      required: false
+      description: 装备分类，枚举：通用装备、专用装备
+    weight_class:
+      type: str
+      required: false
+      description: 重量等级，枚举：微型(<1t)、轻型(1-12t)、中型(12-30t)、重型(>30t)
+    deployment_method:
+      type: str
+      required: false
+      description: 部署方式，枚举：人力携行、自行运输、陆地运输、空中运输
+    arrival_status:
+      type: str
+      required: false
+      description: 到位状态，如：已调度、运输中、已到位、作业中、已撤出
+    status:
+      type: str
+      required: false
+      description: 调度记录状态
+AccidentHandlingRecord:
+  summary: 事故处置作业记录(牵拉/起吊/扶正/拖运执行/现场恢复)
+  category: process
+  source: 公路交通应急处置技术规范.md 9.3.4~9.3.7
+  properties:
+    accident_type:
+      type: str
+      required: false
+      description: 事故类型，枚举值：抛锚、碰撞、碾压、翻车、坠车、落水、烧毁、货物散落
+    accident_level:
+      type: str
+      required: false
+      description: 事故等级，枚举值：I级(特大)、II级(重大)、III级(较大)、IV级(一般)
+    response_level:
+      type: str
+      required: false
+      description: 响应等级，枚举值：I级、II级、III级、IV级
+    handling_method:
+      type: str
+      required: false
+      description: 主要处置作业方式，枚举值：牵拉、起吊、扶正、拖运、撑涨破拆、消防、侦检、现场抢修
+    vehicle_type:
+      type: str
+      required: false
+      description: 事故车辆类型，如：小型客车、中型货车、重型半挂、电动汽车等
+    has_hazardous_materials:
+      type: bool
+      required: false
+      description: 是否涉及危化品泄漏或火灾爆炸风险
+    personnel_trapped:
+      type: bool
+      required: false
+      description: 是否有人员被困
+    start_time:
+      type: str
+      required: false
+      description: 处置开始时间
+    end_time:
+      type: str
+      required: false
+      description: 处置结束时间
+    duration_hours:
+      type: float
+      required: false
+      description: 处置耗时（小时），用于对比应急处理时限标准
+    status:
+      type: str
+      required: false
+      description: 处置状态，枚举值：进行中、已完成、已终止
+DetourPlanRecord:
+  summary: 绕行分流方案记录(替代路线/管制措施/信息发布/状态)
+  category: process
+  source: 公路交通应急处置技术规范.md 8.4.5
+  properties:
+    control_measure_type:
+      type: str
+      required: false
+      description: 交通管制措施类型，枚举值：半幅通行、单车道居中通行、限速限载、分时控制、封闭道路、单向间隔管制
+    detour_route_description:
+      type: str
+      required: false
+      description: 绕行路线描述或替代路线名称
+    info_release_channels:
+      type: str
+      required: false
+      description: 信息发布渠道，枚举值：广播、电视、电台、交通信息牌、APP推送
+    warning_sign_distance:
+      type: int
+      required: false
+      description: 警示标志设置距离（米），如白天150m，夜间200m
+    is_traffic_resumed:
+      type: bool
+      required: false
+      description: 交通是否已恢复
+    status:
+      type: str
+      required: false
+      description: 方案状态，枚举值：制定中、执行中、已解除

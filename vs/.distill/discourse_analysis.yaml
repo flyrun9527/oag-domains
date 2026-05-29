@@ -1,0 +1,1005 @@
+documents:
+- file: 公路交通应急处置技术规范.md
+  doc_type: standard
+  core_topics:
+  - 公路交通突发事件
+  - 应急侦测
+  - 指挥调度
+  - 抢通保障
+  - 应急救援装备物资
+  chapter_roles:
+  - section: JTG
+    role: background
+  - section: 公路交通应急处置技术规范
+    role: background
+  - section: 前    言
+    role: background
+  - section: 目 次
+    role: enumeration
+  - section: 1  总则
+    role: background
+  - section: 2 术语
+    role: definition
+  - section: 2.0.1 公路交通突发事件
+    role: definition
+  - section: 2.0.2 隧道应急调查
+    role: definition
+  - section: 2.0.3 隧道应急评估
+    role: definition
+  - section: 2.0.4 次生事故风险等级
+    role: definition
+  - section: 2.0.5 隧道应急评估
+    role: definition
+  - section: 2.0.6 公路隧道受损程度
+    role: definition
+  - section: 2.0.7 隧道抢通目标
+    role: definition
+  - section: 2.0.8 交通应急救援装备
+    role: definition
+  - section: 2.0.9 交通应急救援物资
+    role: definition
+  - section: 2.0.10 典型交通灾害事故
+    role: definition
+  - section: 2.0.11 电力保障
+    role: definition
+  - section: 2.0.12 生存保障装备
+    role: definition
+  - section: 2.0.13 应急侦测侦检装备
+    role: definition
+  - section: 3 基本规定
+    role: rule
+  - section: 4  应急侦测
+    role: procedure
+  - section: 4.1 一般规定
+    role: rule
+  - section: 4.2 应急侦测灾情信息、 基础资料获取
+    role: procedure
+  - section: 4.3 宏观灾情侦测
+    role: procedure
+  - section: 4.4 路基路面现场应急侦测
+    role: procedure
+  - section: 4.5 桥涵现场应急侦测
+    role: procedure
+  - section: 4.6 隧道现场应急侦测
+    role: procedure
+  - section: 4.7 事故现场侦测
+    role: procedure
+  - section: 5 指挥调度
+    role: procedure
+  - section: 5.1 一般规定
+    role: rule
+chunks:
+- doc: 公路交通应急处置技术规范.md
+  section: 公路交通应急处置技术规范
+  discourse_type: background
+  topic: 标题信息
+  keywords:
+  - 征求意见
+  - disposal
+  - technical
+  - traffic
+  - specification
+- doc: 公路交通应急处置技术规范.md
+  section: 前    言
+  discourse_type: background
+  topic: 编制前言
+  keywords:
+  - 交通运输
+  - '2018'
+  - 下达
+  - 研究院
+  - 参编
+- doc: 公路交通应急处置技术规范.md
+  section: 目 次
+  discourse_type: enumeration
+  topic: 目录结构
+  keywords:
+  - 应急
+  - '10'
+  - '77'
+  - 附录
+  - 保障
+- doc: 公路交通应急处置技术规范.md
+  section: 1  总则
+  discourse_type: background
+  topic: 总则范围
+  keywords:
+  - 应急
+  - 公路交通
+  - 处置
+  - 抢通
+  - 公路
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.1 公路交通突发事件
+  discourse_type: definition
+  topic: 突发事件
+  keywords:
+  - 公路交通
+  - 紧急事件
+  - 自然灾害
+  - 阻断
+  - 原因
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.2 隧道应急调查
+  discourse_type: definition
+  topic: 应急调查
+  keywords:
+  - 隧道
+  - 调查
+  - 因素
+  - 灾害
+  - 科学合理
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.3 隧道应急评估
+  discourse_type: definition
+  topic: 应急评估
+  keywords:
+  - 隧道
+  - 对确
+  - 评估
+  - 灾区
+  - 资料
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.4 次生事故风险等级
+  discourse_type: definition
+  topic: 次生灾害
+  keywords:
+  - 灾害
+  - 原生
+  - 称为
+  - 次生
+  - 发生
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.5 隧道应急评估
+  discourse_type: definition
+  topic: 抢通评估
+  keywords:
+  - 隧道
+  - 就行
+  - 评估
+  - 调查结果
+  - 险情
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.6 公路隧道受损程度
+  discourse_type: definition
+  topic: 受损等级
+  keywords:
+  - 损伤
+  - 程度
+  - 受损
+  - 隧道
+  - 损部
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.7 隧道抢通目标
+  discourse_type: definition
+  topic: 抢通目标
+  keywords:
+  - 隧道
+  - 抢通
+  - 程度
+  - 制定
+  - 难度
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.10 典型交通灾害事故
+  discourse_type: definition
+  topic: 典型灾害
+  keywords:
+  - 由此
+  - 灾害
+  - 风沙
+  - 频次
+  - 水灾
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.11 电力保障
+  discourse_type: definition
+  topic: 电力保障
+  keywords:
+  - 电力
+  - 驱动
+  - 支持
+  - 照明设备
+  - 现场
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.12 生存保障装备
+  discourse_type: definition
+  topic: 生存装备
+  keywords:
+  - 生存
+  - 后勤保障
+  - 生活
+  - 装备
+  - 饮水
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.13 应急侦测侦检装备
+  discourse_type: definition
+  topic: 侦测装备
+  keywords:
+  - 检测
+  - 概况
+  - 装备
+  - 侦测
+  - 侦检
+- doc: 公路交通应急处置技术规范.md
+  section: 3 基本规定
+  discourse_type: rule
+  topic: 基本规定
+  keywords:
+  - 应急
+  - 突发事件
+  - 管养
+  - 开展
+  - 公路
+- doc: 公路交通应急处置技术规范.md
+  section: 4.1 一般规定
+  discourse_type: definition
+  topic: 应急侦测
+  keywords:
+  - 侦测
+  - 专业
+  - 本章
+  - 灾害
+  - 遥感技术
+- doc: 公路交通应急处置技术规范.md
+  section: 4.2 应急侦测灾情信息、 基础资料获取
+  discourse_type: enumeration
+  topic: 资料获取
+  keywords:
+  - 获取
+  - 灾情
+  - 受灾
+  - 气象
+  - 地质
+- doc: 公路交通应急处置技术规范.md
+  section: 4.3 宏观灾情侦测
+  discourse_type: enumeration
+  topic: 宏观侦测
+  keywords:
+  - 侦测
+  - 灾情
+  - 无人机
+  - 遥感
+  - 相机
+- doc: 公路交通应急处置技术规范.md
+  section: 4.4 路基路面现场应急侦测
+  discourse_type: rule
+  topic: 路基侦测
+  keywords:
+  - 侦测
+  - 仪器
+  - 程度
+  - 影响
+  - 回传
+- doc: 公路交通应急处置技术规范.md
+  section: 4.5 桥涵现场应急侦测
+  discourse_type: rule
+  topic: 桥涵侦测
+  keywords:
+  - 侦测
+  - 程度
+  - 微波
+  - 检测
+  - 雷达
+- doc: 公路交通应急处置技术规范.md
+  section: 4.6 隧道现场应急侦测
+  discourse_type: rule
+  topic: 隧道侦测
+  keywords:
+  - 侦测
+  - 洞口
+  - 错台
+  - 隧道
+  - 开裂
+- doc: 公路交通应急处置技术规范.md
+  section: 4.7 事故现场侦测
+  discourse_type: rule
+  topic: 事故侦测
+  keywords:
+  - 侦测
+  - 事故
+  - 以及
+  - 涉事
+  - 交通状况
+- doc: 公路交通应急处置技术规范.md
+  section: 5.1 一般规定
+  discourse_type: rule
+  topic: 指挥调度
+  keywords:
+  - 调度
+  - 应急
+  - 程序
+  - 指挥
+  - 建立
+- doc: 公路交通应急处置技术规范.md
+  section: 5.2 事件分级
+  discourse_type: definition
+  topic: 事件分级
+  keywords:
+  - 突发事件
+  - 干线
+  - 中断
+  - 预计
+  - 毁坏
+- doc: 公路交通应急处置技术规范.md
+  section: 5.3 信息上报
+  discourse_type: procedure
+  topic: 信息上报
+  keywords:
+  - 上报
+  - 交通运输
+  - 协调组
+  - 事件
+  - 县区
+- doc: 公路交通应急处置技术规范.md
+  section: 5.4 应急指挥
+  discourse_type: procedure
+  topic: 应急指挥
+  keywords:
+  - 应急
+  - 处置
+  - 突发事件
+  - 预案
+  - 启动
+- doc: 公路交通应急处置技术规范.md
+  section: 5.5 资源调度
+  discourse_type: rule
+  topic: 资源调度
+  keywords:
+  - 资源
+  - 调度
+  - 应急
+  - 管理机构
+  - 方式
+- doc: 公路交通应急处置技术规范.md
+  section: 6.1 路基路面应急调查
+  discourse_type: procedure
+  topic: 应急调查
+  keywords:
+  - 调查
+  - 特征
+  - 主要
+  - 结构
+  - 基岩
+- doc: 公路交通应急处置技术规范.md
+  section: 6.2 路基路面应急评估
+  discourse_type: definition
+  topic: 受损分级
+  keywords:
+  - 路基
+  - 受损
+  - 路面
+  - 明显
+  - 鼓胀
+- doc: 公路交通应急处置技术规范.md
+  section: 6.2.3 边坡受损程度评价标准如表 6.2-2 所示。
+  discourse_type: definition
+  topic: 边坡分级
+  keywords:
+  - 受损
+  - 边坡
+  - 通行
+  - 现象
+  - 防护
+- doc: 公路交通应急处置技术规范.md
+  section: 6.3 交通管制措施
+  discourse_type: rule
+  topic: 交通管制
+  keywords:
+  - 限制
+  - 措施
+  - 交通管制
+  - 通行
+  - 控制
+- doc: 公路交通应急处置技术规范.md
+  section: 6.4.1 次生灾害监测与预警
+  discourse_type: rule
+  topic: 灾害监测
+  keywords:
+  - 灾害
+  - 发育
+  - 巡查
+  - 持续
+  - 变形
+- doc: 公路交通应急处置技术规范.md
+  section: 6.4.2 路基沉陷应急处置技术
+  discourse_type: rule
+  topic: 沉陷处置
+  keywords:
+  - 路基
+  - 沉陷
+  - 路段
+  - 处理
+  - 回填
+- doc: 公路交通应急处置技术规范.md
+  section: 6.4.3 路基坍塌应急处置技术
+  discourse_type: rule
+  topic: 坍塌处置
+  keywords:
+  - 坍塌
+  - 填土
+  - 取土
+  - 路基
+  - 措施
+- doc: 公路交通应急处置技术规范.md
+  section: 3 全部填土法应遵循以下操作原则：
+  discourse_type: rule
+  topic: 填土原则
+  keywords:
+  - 拦边
+  - 轻质
+  - 填土
+  - 内侧
+  - 边坡
+- doc: 公路交通应急处置技术规范.md
+  section: 6.4.4 路基水毁应急处置技术
+  discourse_type: rule
+  topic: 水毁处置
+  keywords:
+  - 路基
+  - 抢修
+  - 片石
+  - 砂袋
+  - 坡脚
+- doc: 公路交通应急处置技术规范.md
+  section: 6.4.5 滑坡体堵塞路面应急处置技术
+  discourse_type: rule
+  topic: 滑坡处置
+  keywords:
+  - 阻塞
+  - 边坡
+  - 滑坡体
+  - 重机
+  - 坍体
+- doc: 公路交通应急处置技术规范.md
+  section: 6 改线绕行应遵循以下操作原则：
+  discourse_type: rule
+  topic: 改线绕行
+  keywords:
+  - 选线
+  - 尽量减少
+  - 路线
+  - 道路
+  - 因素
+- doc: 公路交通应急处置技术规范.md
+  section: 6.4.6 泥石流堵塞路面应急处置技术
+  discourse_type: rule
+  topic: 泥石流处置
+  keywords:
+  - 爆破
+  - 采用
+  - 堆积体
+  - 清除
+  - 泥石流
+- doc: 公路交通应急处置技术规范.md
+  section: 6.4.8 路面应急处置技术
+  discourse_type: background
+  topic: 路面破坏
+  keywords:
+  - 路面
+  - 适用
+  - 器材
+  - 铺筑
+  - 钢板
+- doc: 公路交通应急处置技术规范.md
+  section: 6.4.10 冰雪灾害中的路面应急处置技术
+  discourse_type: rule
+  topic: 冰雪处置
+  keywords:
+  - 积雪
+  - 冰雪
+  - 清除
+  - 机械
+  - 灾害
+- doc: 公路交通应急处置技术规范.md
+  section: 7.1 桥涵应急调查
+  discourse_type: rule
+  topic: 桥涵调查
+  keywords:
+  - 调查
+  - 桥涵
+  - 开裂
+  - 混凝土
+  - 整体
+- doc: 公路交通应急处置技术规范.md
+  section: 7.2 桥涵应急评估
+  discourse_type: procedure
+  topic: 桥涵评估
+  keywords:
+  - 损伤
+  - 评估
+  - 通行
+  - 桥涵
+  - 结构
+- doc: 公路交通应急处置技术规范.md
+  section: 7.3 桥涵抢通技术
+  discourse_type: rule
+  topic: 桥涵抢通
+  keywords:
+  - 临时
+  - 桥涵
+  - 支撑
+  - 技术
+  - 结构
+- doc: 公路交通应急处置技术规范.md
+  section: 8.1 一般规定
+  discourse_type: rule
+  topic: 隧道总则
+  keywords:
+  - 隧道
+  - 抢通
+  - 应急
+  - 调查
+  - 救援
+- doc: 公路交通应急处置技术规范.md
+  section: 8.2 隧道应急调查
+  discourse_type: rule
+  topic: 隧道调查
+  keywords:
+  - 隧道
+  - 调查
+  - 灾区
+  - 灾害
+  - 方案
+- doc: 公路交通应急处置技术规范.md
+  section: （1） 普通的交通事故
+  discourse_type: definition
+  topic: 事故分类
+  keywords:
+  - 隧道
+  - 结构
+  - 破损
+  - 出现
+  - 严重
+- doc: 公路交通应急处置技术规范.md
+  section: 8.3 隧道应急评估
+  discourse_type: definition
+  topic: 隧道评估
+  keywords:
+  - 风险
+  - 次生
+  - 万元
+  - 事故
+  - 一级
+- doc: 公路交通应急处置技术规范.md
+  section: 8.3.7 隧道抢通难度等级按照表 8.3-7 确定。
+  discourse_type: definition
+  topic: 难度等级
+  keywords:
+  - 难度
+  - 中等
+  - 高难度
+  - 分析法
+  - 等级
+- doc: 公路交通应急处置技术规范.md
+  section: 8.4 隧道抢通目标
+  discourse_type: definition
+  topic: 抢通目标
+  keywords:
+  - 目标
+  - 抢通
+  - 难度
+  - 等级
+  - 隧道
+- doc: 公路交通应急处置技术规范.md
+  section: 8.5.1 隧道应急抢通要求
+  discourse_type: rule
+  topic: 抢通要求
+  keywords:
+  - 隧道
+  - 抢通
+  - 目标
+  - 加固
+  - 设计规范
+- doc: 公路交通应急处置技术规范.md
+  section: 8.5.2 监测与巡查
+  discourse_type: rule
+  topic: 监测巡查
+  keywords:
+  - 监测
+  - 巡查
+  - 巡视
+  - 开展
+  - 快速
+- doc: 公路交通应急处置技术规范.md
+  section: 条文说明：
+  discourse_type: background
+  topic: 监测说明
+  keywords:
+  - 监测点
+  - 监测
+  - 隧道
+  - 环境
+  - 埋设
+- doc: 公路交通应急处置技术规范.md
+  section: 8.5.3 隧道洞门及洞口边仰坡应急抢通
+  discourse_type: rule
+  topic: 洞口抢通
+  keywords:
+  - 洞口
+  - 台车
+  - 洞门
+  - 防护
+  - 防护网
+- doc: 公路交通应急处置技术规范.md
+  section: 8.5.4 隧道洞身应急抢通
+  discourse_type: rule
+  topic: 洞身抢通
+  keywords:
+  - 洞身
+  - 隧道
+  - 防护
+  - 车上
+  - 当洞
+- doc: 公路交通应急处置技术规范.md
+  section: 8.5.5 隧道路面应急抢通
+  discourse_type: rule
+  topic: 路面抢通
+  keywords:
+  - 水突
+  - 隔离
+  - 车道
+  - 泥及
+  - 涌水
+- doc: 公路交通应急处置技术规范.md
+  section: 8.5.6 隧道内有毒、有害气体泄漏抢通
+  discourse_type: procedure
+  topic: 气体泄漏
+  keywords:
+  - 有害
+  - 气体
+  - 有毒
+  - 浓度
+  - 封道
+- doc: 公路交通应急处置技术规范.md
+  section: 8.5.7 隧道内火灾、 爆炸应急抢通
+  discourse_type: enumeration
+  topic: 火灾爆炸
+  keywords:
+  - 火灾
+  - 灭火
+  - 难度
+  - 隧道
+  - 爆炸
+- doc: 公路交通应急处置技术规范.md
+  section: 9.1 事故应急调查
+  discourse_type: procedure
+  topic: 事故调查
+  keywords:
+  - 调查
+  - 事故
+  - 清单
+  - 包括
+  - 事发
+- doc: 公路交通应急处置技术规范.md
+  section: 9.2 事故应急评估
+  discourse_type: procedure
+  topic: 事故评估
+  keywords:
+  - 作业
+  - 事故
+  - 构成
+  - 处理
+  - 安全
+- doc: 公路交通应急处置技术规范.md
+  section: 表 9.2.2 道路交通事故类型
+  discourse_type: definition
+  topic: 事故类型
+  keywords:
+  - 能否
+  - 是否
+  - 处理
+  - 事故
+  - 车辆
+- doc: 公路交通应急处置技术规范.md
+  section: 9.3 事故应急处理
+  discourse_type: rule
+  topic: 处理原则
+  keywords:
+  - 有关
+  - 处理
+  - 作业
+  - 事故
+  - 安全
+- doc: 公路交通应急处置技术规范.md
+  section: 9.3.2 事故处理准备工作应包括：
+  discourse_type: procedure
+  topic: 处理准备
+  keywords:
+  - 事故
+  - 车辆
+  - 救援车
+  - 清障
+  - 作业
+- doc: 公路交通应急处置技术规范.md
+  section: 10.1 一般规定
+  discourse_type: rule
+  topic: 装备物资
+  keywords:
+  - 物资
+  - 装备
+  - 公路交通
+  - 应急
+  - 配置
+- doc: 公路交通应急处置技术规范.md
+  section: 10.2.1 装备选型原则
+  discourse_type: rule
+  topic: 装备选型
+  keywords:
+  - 装备
+  - 作业
+  - 环境
+  - 功能
+  - 工程量
+- doc: 公路交通应急处置技术规范.md
+  section: 10.2.2 装备配置原则
+  discourse_type: rule
+  topic: 配置原则
+  keywords:
+  - 装备
+  - 通用
+  - 专用
+  - 作业
+  - 配置
+- doc: 公路交通应急处置技术规范.md
+  section: 2 作业装备群组的组合数尽量少
+  discourse_type: rule
+  topic: 群组组合
+  keywords:
+  - 尽量少
+  - 组合
+  - 装备
+  - 场所
+  - 群组
+- doc: 公路交通应急处置技术规范.md
+  section: 3 分阶段动态配置
+  discourse_type: rule
+  topic: 动态配置
+  keywords:
+  - 抢通
+  - 动态
+  - 配置
+  - 装备
+  - 作业量
+- doc: 公路交通应急处置技术规范.md
+  section: 10.2.3 装备调配流程
+  discourse_type: procedure
+  topic: 调配流程
+  keywords:
+  - 装备
+  - '10'
+  - 环境
+  - 重型
+  - 配置
+- doc: 公路交通应急处置技术规范.md
+  section: 10.3 物资保障
+  discourse_type: enumeration
+  topic: 物资配备
+  keywords:
+  - 储备
+  - 物资
+  - 及其
+  - 次生
+  - 灾害
+- doc: 公路交通应急处置技术规范.md
+  section: 10.4 通信保障
+  discourse_type: rule
+  topic: 通信保障
+  keywords:
+  - 通信
+  - 救援队
+  - 卫星通信
+  - 中心
+  - 指挥
+- doc: 公路交通应急处置技术规范.md
+  section: 10.5 电力保障
+  discourse_type: rule
+  topic: 电力保障
+  keywords:
+  - 供电
+  - 电源
+  - 级保
+  - 电力
+  - 应急
+- doc: 公路交通应急处置技术规范.md
+  section: 10.6 数据保障
+  discourse_type: enumeration
+  topic: 数据来源
+  keywords:
+  - 数据
+  - 运行
+  - 数据库
+  - 突发事件
+  - 公路交通
+- doc: 公路交通应急处置技术规范.md
+  section: 10.6.3 数据保障准确度与时效要求见表 10.5.3。
+  discourse_type: rule
+  topic: 数据要求
+  keywords:
+  - 数据
+  - 北斗
+  - 准确度
+  - 时间
+  - 图像
+- doc: 公路交通应急处置技术规范.md
+  section: 路基路面应急调查评估表
+  discourse_type: enumeration
+  topic: 路基评估
+  keywords:
+  - 防护
+  - 评估
+  - 结构
+  - 大部分
+  - 滑移
+- doc: 公路交通应急处置技术规范.md
+  section: 桥涵应急调查评估表
+  discourse_type: enumeration
+  topic: 桥涵评估
+  keywords:
+  - iii
+  - 桥梁
+  - ii
+  - 受损
+  - 评估
+- doc: 公路交通应急处置技术规范.md
+  section: 2.1 典型桥梁结构整体稳定性评估分级标准见表 2-1。
+  discourse_type: definition
+  topic: 稳定分级
+  keywords:
+  - 开裂
+  - 明显
+  - 塌陷
+  - 地基基础
+  - 滑移
+- doc: 公路交通应急处置技术规范.md
+  section: 2.2 桥梁结构结构承载能力相关的评估分级标准见表 2-2\~2-9。
+  discourse_type: definition
+  topic: 承载分级
+  keywords:
+  - 明显
+  - 裂缝
+  - 损伤
+  - 开裂
+  - 外露
+- doc: 公路交通应急处置技术规范.md
+  section: 2.3 桥面通行能力评估分级标准见表 2-7\~2-9。
+  discourse_type: definition
+  topic: 通行分级
+  keywords:
+  - 河川
+  - 宽度
+  - 障碍
+  - 跨越
+  - 超过
+- doc: 公路交通应急处置技术规范.md
+  section: 附录 4
+  discourse_type: enumeration
+  topic: 储备库表
+  keywords:
+  - 运输
+  - 自行式
+  - 等级
+  - 重型
+  - 中型
+- doc: 公路交通应急处置技术规范.md
+  section: JTG
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 中华人民共和国
+  - 行业标准
+  - jtg
+- doc: 公路交通应急处置技术规范.md
+  section: 2 术语
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 术语
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.8 交通应急救援装备
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 救援
+  - 装备
+  - 交通
+  - 各类
+  - 用于
+- doc: 公路交通应急处置技术规范.md
+  section: 2.0.9 交通应急救援物资
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 物资
+  - 救援
+  - 交通
+  - 器材
+  - 各类
+- doc: 公路交通应急处置技术规范.md
+  section: 4  应急侦测
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 侦测
+  - 应急
+- doc: 公路交通应急处置技术规范.md
+  section: 5 指挥调度
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 调度
+  - 指挥
+- doc: 公路交通应急处置技术规范.md
+  section: 6 路基路面抢通
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 路基
+  - 路面
+  - 抢通
+- doc: 公路交通应急处置技术规范.md
+  section: 6.4 路基路面应急处置技术
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 路基
+  - 路面
+  - 技术
+  - 处置
+  - 应急
+- doc: 公路交通应急处置技术规范.md
+  section: 7 桥涵抢通
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 桥涵
+  - 抢通
+- doc: 公路交通应急处置技术规范.md
+  section: 8 隧道抢通
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 隧道
+  - 抢通
+- doc: 公路交通应急处置技术规范.md
+  section: 8.5 隧道应急抢通技术
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 技术
+  - 隧道
+  - 抢通
+  - 应急
+- doc: 公路交通应急处置技术规范.md
+  section: 9 事故处理
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 处理
+  - 事故
+- doc: 公路交通应急处置技术规范.md
+  section: 10 应急保障
+  discourse_type: background
+  topic: ''
+  keywords:
+  - '10'
+  - 保障
+  - 应急
+- doc: 公路交通应急处置技术规范.md
+  section: 10.2 装备保障
+  discourse_type: background
+  topic: ''
+  keywords:
+  - '10'
+  - 装备
+  - 保障
+- doc: 公路交通应急处置技术规范.md
+  section: 附录 1
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 附录
+- doc: 公路交通应急处置技术规范.md
+  section: 附录 2
+  discourse_type: background
+  topic: ''
+  keywords:
+  - 附录

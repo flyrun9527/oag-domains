@@ -1,0 +1,317 @@
+domain_scope: 公路交通突发事件（自然灾害、事故等）的应急侦测、指挥调度、设施抢通（路基路面/桥涵/隧道）、事故处理及应急保障的全流程处置领域。
+workflows:
+- name: 突发事件分级与指挥调度
+  trigger: 接报公路交通突发事件信息
+  steps:
+  - name: 信息核实与上报
+    action: 收集事件时间、地点、起因、后果及影响范围，按级别逐级上报
+    queries_entities:
+    - 突发事件信息
+    - 组织机构信息
+    consults_rules:
+    - 信息上报流程与时效要求
+    produces_record: 事件上报记录
+    decision: null
+    source: '5.3'
+  - name: 事件分级判定
+    action: 根据事件对公路的影响程度、中断时间、影响范围判定事件级别
+    queries_entities:
+    - 公路等级信息
+    - 交通中断数据
+    consults_rules:
+    - 公路交通突发事件分级标准
+    produces_record: 事件分级记录
+    decision: 判定事件级别(I-IV级)，决定启动相应级别预案
+    source: '5.2'
+  - name: 预案启动与指挥
+    action: 启动应急预案，建立指挥体系，开展先期处置与交通管控
+    queries_entities:
+    - 应急预案库
+    - 指挥调度机构
+    consults_rules:
+    - 应急指挥调度程序
+    produces_record: 预案启动记录
+    decision: 判断处置能力是否充足，不足则向上级求援
+    source: '5.4'
+  - name: 应急资源调度
+    action: 根据事件类型和救援需求，分类调度通用/专用装备、物资及队伍
+    queries_entities:
+    - 应急资源库
+    - 装备物资库存
+    - 救援队伍信息
+    consults_rules:
+    - 资源调度原则与路径优化规则
+    produces_record: 资源调度记录
+    decision: 选择最快运输方式与调运路径
+    source: '5.5'
+  - name: 处置评估与响应终止
+    action: 事态控制后解除警戒，清理现场，开展灾后总结评估
+    queries_entities:
+    - 现场处置数据
+    - 损毁统计信息
+    consults_rules:
+    - 应急响应终止条件
+    produces_record: 处置终止与总结评估记录
+    decision: 判断事态是否得到控制，决定是否扩大应急或终止响应
+    source: 5.4, 3.0.7
+- name: 路基路面应急调查与抢通
+  trigger: 灾害导致路基路面损毁或通行受阻
+  steps:
+  - name: 现场应急侦测
+    action: 利用遥感、无人机或专业人员快速获取灾情概况与损毁范围
+    queries_entities:
+    - 地质地形资料
+    - 气象水文数据
+    - 遥感影像
+    consults_rules:
+    - 宏观与现场侦测技术规范
+    produces_record: 应急侦测报告
+    decision: null
+    source: 4.4, 6.1
+  - name: 应急调查与评估
+    action: 实地调查路基本体、边坡、支挡结构损毁特征，进行受损程度分级
+    queries_entities:
+    - 勘察设计文件
+    - 养护管理资料
+    - 现场测量数据
+    consults_rules:
+    - 路基/边坡/支挡结构受损程度分级标准
+    produces_record: 路基路面应急调查评估表
+    decision: 根据评估等级(I-III级)判定可否通行及危险程度
+    source: '6.2'
+  - name: 抢通技术选用与实施
+    action: 根据损毁类型(沉陷/坍塌/水毁/滑坡等)和环境条件选择抢通技术并施工
+    queries_entities:
+    - 现场地质条件
+    - 可用材料库存
+    - 施工装备状态
+    consults_rules:
+    - 路基路面应急处置技术选用原则
+    produces_record: 抢通方案与施工记录
+    decision: 匹配灾害特征与工程量，选择机械回填/拓宽/注浆/改线等技术
+    source: '6.4'
+  - name: 交通管制与次生监测
+    action: 实施限速/限载/半幅通行等管制措施，持续监测次生灾害风险
+    queries_entities:
+    - 交通运行数据
+    - 位移监测数据
+    consults_rules:
+    - 交通管制措施规则
+    - 次生灾害监测预警要求
+    produces_record: 交通管制与监测记录
+    decision: 根据变形发展趋势调整管制级别或触发预警
+    source: 6.3, 6.4.1
+- name: 桥涵应急调查与抢通
+  trigger: 桥涵发生结构损毁、落梁或通行能力下降
+  steps:
+  - name: 桥涵应急侦测与调查
+    action: 宏观航拍结合现场抵近调查，检查整体稳定性、承载能力与通行能力
+    queries_entities:
+    - 桥梁设计资料
+    - 结构监测数据
+    - 现场损伤影像
+    consults_rules:
+    - 桥涵应急调查重点部位与内容
+    produces_record: 桥涵应急调查记录
+    decision: null
+    source: '7.1'
+  - name: 桥涵应急评估
+    action: 依据调查数据对桥涵损伤进行分级，给出通行结论
+    queries_entities:
+    - 结构变形数据
+    - 裂缝/位移测量值
+    consults_rules:
+    - 桥涵整体稳定性/承载力/通行能力评估标准
+    produces_record: 桥涵应急调查评估表
+    decision: 按最差构件打分法确定整体等级(I-III级)，判定正常/限制/禁止通行
+    source: '7.2'
+  - name: 抢通方案制定与实施
+    action: 根据评估结果选择交通管制、便道便桥、应急修复或快速补强技术
+    queries_entities:
+    - 周边地形水文
+    - 制式桥梁库存
+    - 加固材料
+    consults_rules:
+    - 桥涵抢通技术选用原则
+    - 便桥技术选用规则
+    produces_record: 桥涵抢通方案记录
+    decision: 综合时效性、地形地质与装备条件，选定便桥类型或修复工艺
+    source: '7.3'
+  - name: 施工监测与永久加固
+    action: 抢通期间布设监测设备，完成后进行永久性加固恢复
+    queries_entities:
+    - 结构应力/位移监测数据
+    consults_rules:
+    - 应急监测与永久加固技术要求
+    produces_record: 施工监测与加固记录
+    decision: 监测数据超限时立即停止通行并启动加固
+    source: 7.3.4, 8.5.2
+- name: 隧道应急调查与抢通
+  trigger: 隧道内发生结构破坏、火灾、气体泄漏或自然灾害
+  steps:
+  - name: 应急疏散与侦测
+    action: 立即疏散人员，开展远程遥感与现场快速侦测，掌握灾害类型与规模
+    queries_entities:
+    - 隧道运营资料
+    - 通风系统状态
+    - 气体浓度数据
+    consults_rules:
+    - 隧道应急调查内容要求
+    produces_record: 隧道应急侦测报告
+    decision: null
+    source: 8.1, 8.2
+  - name: 隧道应急评估
+    action: 评估隧道重要等级、抢通难度及次生事故风险等级
+    queries_entities:
+    - 道路等级
+    - 交通量数据
+    - 灾害损失预估
+    consults_rules:
+    - 隧道重要等级分级表
+    - 次生事故风险等级表
+    - 抢通难度等级表
+    produces_record: 隧道应急评估报告
+    decision: 综合概率与损失程度计算风险等级，结合时长评定抢通难度
+    source: '8.3'
+  - name: 确定抢通目标
+    action: 根据重要等级与抢通难度匹配抢通目标等级(I-III级)
+    queries_entities:
+    - 替代交通分流方案
+    consults_rules:
+    - 隧道抢通目标等级表
+    - 最小通行限界表
+    produces_record: 抢通目标决策记录
+    decision: 判定目标等级(禁止通行改道/限制通行/基本抢险通行)
+    source: '8.4'
+  - name: 抢通实施与监测
+    action: 按目标等级选用洞门防护、衬砌支撑、路面排水或气体处置技术
+    queries_entities:
+    - 支护装备库存
+    - 排水/通风设备
+    consults_rules:
+    - 隧道应急抢通技术要求
+    produces_record: 隧道抢通实施记录
+    decision: 根据气体浓度或结构变形动态调整通行状态
+    source: '8.5'
+- name: 交通事故应急调查与处置
+  trigger: 接到公路交通事故处理请求
+  steps:
+  - name: 事故信息收集与现场警戒
+    action: 核实事故车辆、货物、被困人员信息，划定警戒区并疏散
+    queries_entities:
+    - 事故报警信息
+    - 现场气象环境
+    - 危化品探测数据
+    consults_rules:
+    - 事故应急调查流程与安全要求
+    produces_record: 事故现场调查记录
+    decision: 识别危化品/火灾风险，决定疏散范围与防护等级
+    source: '9.1'
+  - name: 事故类型与等级评估
+    action: 判定事故类型(抛锚/碰撞/翻车等)及规模等级(I-IV级)
+    queries_entities:
+    - 车辆损毁形态
+    - 人员伤亡数据
+    - 财产损失评估
+    consults_rules:
+    - 道路交通事故类型分类
+    - 事故等级划分标准
+    produces_record: 事故等级评估记录
+    decision: 根据伤亡、损失、交通影响确定事故等级与响应级别
+    source: '9.2'
+  - name: 装备选型与调度
+    action: 根据事故类型、车重、作业空间选择清障救援装备
+    queries_entities:
+    - 清障救援车库存
+    - 起重/破拆装备状态
+    consults_rules:
+    - 事故应急处理装备选型原则
+    produces_record: 装备调度记录
+    decision: 匹配车辆吨位与作业方式(牵拉/起吊/扶正/拖运)
+    source: 9.3.3
+  - name: 实施处置与现场恢复
+    action: 按规范执行起吊、扶正、拖运等作业，清理现场并恢复交通
+    queries_entities:
+    - 作业空间数据
+    - 高压线/桥梁限制条件
+    consults_rules:
+    - 各类事故处理流程
+    - 作业安全距离与操作规范
+    produces_record: 事故处置作业记录
+    decision: 根据现场环境(隧道/桥梁/高压线)调整作业顺序与安全措施
+    source: 9.3.4, 9.3.6
+rule_tables:
+- name: 公路交通突发事件分级标准
+  pattern: 干线/省级公路中断阻塞时间、影响范围 → 事件级别(I-IV级)
+  source: 表 5.2.1
+  dimensions:
+  - 公路等级
+  - 中断/阻塞时间
+  - 影响范围
+  result: 事件级别(I级特别重大至IV级一般)
+- name: 路基路面受损程度分级标准
+  pattern: 路基本体/边坡/支挡结构损毁特征 → 损毁等级(I-III级)与通行结论
+  source: 表 6.2-1 ~ 6.2-3
+  dimensions:
+  - 损毁部位
+  - 破坏特征描述
+  - 危险性
+  result: 损毁等级(I轻微/II中度/III严重)及可否通行(正常/限制/禁止)
+- name: 桥涵应急评估分级标准
+  pattern: 整体稳定性/承载能力/通行能力损伤状况 → 损伤等级(I-III级)与通行结论
+  source: 表 7.2-1 ~ 7.2-3 及附录表2-1~2-9
+  dimensions:
+  - 评估维度(稳定性/承载力/通行能力)
+  - 损害状况描述
+  - 危险性
+  result: 损伤等级及通行结论(正常/限制/禁止)
+- name: 隧道重要等级与抢通目标判定规则
+  pattern: 交通量/道路等级 → 重要等级；概率/损失 → 风险等级；时长/难度 → 抢通目标等级
+  source: 表 8.3-1, 8.3-4, 8.3-7, 8.4-1
+  dimensions:
+  - 年日均交通量
+  - 道路等级
+  - 次生事故概率
+  - 损失程度
+  - 抢通时长评级
+  result: 隧道重要等级(一/二/三级)、风险等级(I-IV级)、抢通目标等级(I-III级)
+- name: 交通事故等级与响应时限标准
+  pattern: 复杂程度/交通影响/人员伤亡/经济损失 → 事故等级(I-IV级)与处理时限
+  source: 表 9.2.3 ~ 9.2.5
+  dimensions:
+  - 人员伤亡数量
+  - 直接经济损失
+  - 交通影响范围
+  result: 事故等级、响应等级、处理需求等级、应急处理时限(≤3h至≥12h)
+- name: 应急便桥技术选用规则
+  pattern: 跨越障碍宽度/场景 → 可选便桥技术、保障能力与架设时效
+  source: 附录 3
+  dimensions:
+  - 使用场景(跨越宽度)
+  - 水流/深度条件
+  - 承载需求
+  result: 推荐便桥类型(机械化桥/装配式钢桥/舟桥等)、通行保障能力、抢通时效
+- name: 抢通技术选用原则
+  pattern: 灾害类型/损毁特征/环境条件/工程量 → 推荐处置技术与操作原则
+  source: 6.4.x, 7.3.x, 8.5.x 各节
+  dimensions:
+  - 灾害类型(沉陷/坍塌/水毁/滑坡/泥石流等)
+  - 现场地质/水文条件
+  - 可用资源
+  result: 适用抢通技术(机械回填/注浆/改线/便道/临时支撑等)及施工注意事项
+entities:
+- name: 公路基础设施
+  description: 包含路段(路基/路面)、桥梁、隧道、桥涵附属设施的设计参数、养护记录与实时运行状态。
+  source: 4.2, 6.1, 7.1, 8.2
+- name: 应急资源库
+  description: 各级储备中心(国家/省/市/县)的应急装备(通用/专用)、物资、救援队伍及通信/电力保障设备库存与位置信息。
+  source: 5.5, 10.2, 10.3, 10.4
+- name: 灾害与事故信息
+  description: 突发事件类型、发生时间地点、灾害规模、损毁范围、交通事故形态、危化品属性及人员伤亡数据。
+  source: 4.2, 9.1, 9.2
+- name: 环境与监测数据
+  description: 气象水文预报、地质地形资料、交通运行数据(流量/速度)、视频图像、结构位移/应力监测数据及气体浓度数据。
+  source: 4.2, 6.4.1, 8.5.2, 10.6
+- name: 预案与组织机构
+  description: 各级公路管养单位应急预案、指挥调度体系、协作机制及信息上报流程。
+  source: 3.0.3, 5.1, 5.3

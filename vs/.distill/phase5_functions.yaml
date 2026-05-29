@@ -1,0 +1,1098 @@
+functions:
+- name: report_event_info
+  function_type: business
+  summary: 核实突发事件信息并生成首报/续报记录
+  group: 指挥调度
+  description: 输入突发事件ID与组织机构ID → 校验信息完整性 → 调用 lookup_report_time_rule 获取上报时限与流程 →
+    写入 EventReport
+  depends_on: []
+  writes_to:
+  - EventReport
+  params:
+  - name: event_id
+    type: str
+    description: 突发事件唯一标识
+    default: null
+  - name: org_id
+    type: str
+    description: 上报组织机构ID
+    default: null
+  involves_objects:
+  - DisasterEvent
+  - Organization
+  - ReportTimeRule
+  - EventReport
+  source: 公路交通应急处置技术规范.md 5.3
+  hint: 调用 lookup_report_time_rule 获取上报时限、方式与要素要求，不硬编码上报流程
+- name: grade_event_level
+  function_type: business
+  summary: 判定突发事件级别并记录分级依据
+  group: 指挥调度
+  description: 输入事件ID、公路等级、中断时间、影响范围 → 调用 lookup_event_level_standard 匹配分级标准 → 判定I-IV级
+    → 写入 EventGradingRecord
+  depends_on:
+  - report_event_info
+  writes_to:
+  - EventGradingRecord
+  params:
+  - name: event_id
+    type: str
+    description: 突发事件唯一标识
+    default: null
+  - name: highway_class
+    type: str
+    description: 公路等级
+    default: null
+  - name: interruption_time
+    type: float
+    description: 预计中断/阻塞时间(小时)
+    default: null
+  - name: impact_scope
+    type: str
+    description: 影响范围
+    default: null
+  involves_objects:
+  - RoadSegment
+  - TrafficData
+  - EventLevelStandard
+  - EventGradingRecord
+  source: 公路交通应急处置技术规范.md 5.2
+  hint: 调用 lookup_event_level_standard 获取分级阈值，依据公路等级+中断时间+影响范围动态判定级别
+- name: activate_emergency_plan
+  function_type: business
+  summary: 启动应急预案并记录指挥调度信息
+  group: 指挥调度
+  description: 输入事件级别与指挥机构ID → 调用 lookup_command_dispatch_rule 获取指挥层级与联动机制 → 评估处置能力
+    → 写入 PlanActivationRecord
+  depends_on:
+  - grade_event_level
+  writes_to:
+  - PlanActivationRecord
+  params:
+  - name: event_id
+    type: str
+    description: 突发事件唯一标识
+    default: null
+  - name: event_level
+    type: str
+    description: 判定事件级别
+    default: null
+  - name: command_org_id
+    type: str
+    description: 指挥调度机构ID
+    default: null
+  involves_objects:
+  - Organization
+  - CommandDispatchRule
+  - PlanActivationRecord
+  source: 公路交通应急处置技术规范.md 5.4
+  hint: 调用 lookup_command_dispatch_rule 获取指挥层级、联动机制与求援条件，不硬编码预案启动逻辑
+- name: dispatch_emergency_resources
+  function_type: business
+  summary: 调度应急队伍、装备与物资并生成调拨单
+  group: 指挥调度
+  description: 输入事件类型、位置、资源需求 → 调用 lookup_resource_dispatch_rule 优化路径与优先级 → 匹配储备中心与队伍
+    → 写入 ResourceDispatchRecord
+  depends_on:
+  - activate_emergency_plan
+  writes_to:
+  - ResourceDispatchRecord
+  params:
+  - name: event_id
+    type: str
+    description: 突发事件唯一标识
+    default: null
+  - name: event_type
+    type: str
+    description: 事件类型
+    default: null
+  - name: location
+    type: str
+    description: 事发位置
+    default: null
+  - name: resource_types
+    type: str
+    description: 需调度资源类型(队伍/装备/物资)
+    default: null
+  involves_objects:
+  - EmergencyDepot
+  - RescueTeam
+  - EquipmentStock
+  - MaterialStock
+  - ResourceDispatchRule
+  - ResourceDispatchRecord
+  source: 公路交通应急处置技术规范.md 5.5
+  hint: 调用 lookup_resource_dispatch_rule 获取调度路径、优先级与补偿原则，结合装备运达方式动态规划
+- name: evaluate_and_terminate_response
+  function_type: business
+  summary: 评估处置状态并判定响应终止或扩大应急
+  group: 指挥调度
+  description: 输入处置状态、清理完成度、现场监测数据 → 调用 lookup_response_termination_rule 判定终止条件 →
+    生成总结评估 → 写入 ResponseTerminationRecord
+  depends_on:
+  - dispatch_emergency_resources
+  writes_to:
+  - ResponseTerminationRecord
+  params:
+  - name: event_id
+    type: str
+    description: 突发事件唯一标识
+    default: null
+  - name: disposal_status
+    type: str
+    description: 当前处置状态
+    default: null
+  - name: cleanup_completion
+    type: str
+    description: 现场清理完成度
+    default: null
+  involves_objects:
+  - MonitoringData
+  - ResponseTerminationRule
+  - ResponseTerminationRecord
+  source: 公路交通应急处置技术规范.md 5.4.5
+  hint: 调用 lookup_response_termination_rule 获取终止/扩大应急判定条件，不硬编码响应结束逻辑
+- name: conduct_subgrade_recon
+  function_type: business
+  summary: 执行路基路面现场应急侦测并生成报告
+  group: 路基路面抢通
+  description: 输入路段ID、气象水文数据、地质资料 → 采集宏观遥感与现场初勘数据 → 汇总损毁概况 → 写入 ReconReport
+  depends_on: []
+  writes_to:
+  - ReconReport
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: segment_id
+    type: str
+    description: 路段唯一标识
+    default: null
+  - name: recon_method
+    type: str
+    description: 侦测手段(卫星/无人机/现场)
+    default: null
+  involves_objects:
+  - RoadSegment
+  - WeatherData
+  - GeologicalData
+  - ReconReport
+  source: 公路交通应急处置技术规范.md 4.4
+  hint: 依据宏观与现场侦测技术规范执行，优先获取沉陷/坍塌/水毁空间属性与通行影响
+- name: assess_subgrade_damage
+  function_type: business
+  summary: 评估路基路面损毁等级并给出通行建议
+  group: 路基路面抢通
+  description: 输入侦测报告、现场测量数据 → 调用 lookup_subgrade_damage_standard/lookup_slope_damage_standard/lookup_retaining_structure_damage_standard
+    → 按最差构件打分 → 写入 SubgradeAssessmentRecord
+  depends_on:
+  - conduct_subgrade_recon
+  writes_to:
+  - SubgradeAssessmentRecord
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: damage_features
+    type: str
+    description: 损毁特征描述
+    default: null
+  - name: assessment_scope
+    type: str
+    description: 评估范围(路基本体/边坡/支挡结构)
+    default: null
+  involves_objects:
+  - SubgradeDamageStandard
+  - SlopeDamageStandard
+  - RetainingStructureDamageStandard
+  - SubgradeAssessmentRecord
+  source: 公路交通应急处置技术规范.md 6.2
+  hint: 调用对应 lookup 函数获取分级标准，I级正常通行，II级限制通行，III级禁止通行并触发抢通
+- name: implement_subgrade_clearance
+  function_type: business
+  summary: 选用抢通技术并生成路基路面抢通方案
+  group: 路基路面抢通
+  description: 输入损毁等级、地质条件、可用材料 → 调用 lookup_subgrade_clearance_rule 匹配技术 → 生成施工步骤
+    → 写入 ClearancePlan
+  depends_on:
+  - assess_subgrade_damage
+  writes_to:
+  - ClearancePlan
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: disaster_type
+    type: str
+    description: 灾害类型
+    default: null
+  - name: geological_condition
+    type: str
+    description: 现场地质条件
+    default: null
+  involves_objects:
+  - GeologicalData
+  - MaterialStock
+  - SubgradeClearanceRule
+  - ClearancePlan
+  source: 公路交通应急处置技术规范.md 6.4
+  hint: 调用 lookup_subgrade_clearance_rule 获取回填/拓宽/注浆/改线等技术选用原则，不硬编码施工方案
+- name: manage_traffic_control_subgrade
+  function_type: business
+  summary: 实施交通管制并布设次生灾害监测
+  group: 路基路面抢通
+  description: 输入损伤等级、变形趋势、巡查频次 → 调用 lookup_traffic_control_rule 与 lookup_secondary_disaster_warning_rule
+    → 动态调整管制措施与预警级别 → 写入 TrafficControlRecord, SecondaryDisasterMonitorRecord
+  depends_on:
+  - implement_subgrade_clearance
+  writes_to:
+  - TrafficControlRecord
+  - SecondaryDisasterMonitorRecord
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: damage_grade
+    type: str
+    description: 损伤等级
+    default: null
+  - name: deformation_trend
+    type: str
+    description: 变形发展趋势
+    default: null
+  involves_objects:
+  - TrafficData
+  - MonitoringData
+  - TrafficControlRule
+  - SecondaryDisasterWarningRule
+  - TrafficControlRecord
+  - SecondaryDisasterMonitorRecord
+  source: 公路交通应急处置技术规范.md 6.3, 6.4.1
+  hint: 调用 lookup_traffic_control_rule 获取管制措施，调用 lookup_secondary_disaster_warning_rule
+    获取预警要求
+- name: conduct_bridge_recon
+  function_type: business
+  summary: 执行桥涵应急侦测与重点部位调查
+  group: 桥涵抢通
+  description: 输入桥梁ID、灾害类型 → 调用 lookup_bridge_inspection_rule 获取调查清单 → 采集影像与初勘数据 →
+    写入 BridgeInspectionRecord
+  depends_on: []
+  writes_to:
+  - BridgeInspectionRecord
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: bridge_id
+    type: str
+    description: 桥梁唯一标识
+    default: null
+  - name: disaster_type
+    type: str
+    description: 灾害类型
+    default: null
+  involves_objects:
+  - Bridge
+  - BridgeInspectionRule
+  - BridgeInspectionRecord
+  source: 公路交通应急处置技术规范.md 7.1
+  hint: 调用 lookup_bridge_inspection_rule 获取重点调查部位、内容与设备清单，不硬编码调查流程
+- name: assess_bridge_damage
+  function_type: business
+  summary: 评估桥涵稳定性/承载力/通行能力并给出通行结论
+  group: 桥涵抢通
+  description: 输入调查记录、结构变形/裂缝数据 → 调用 lookup_bridge_stability_standard/lookup_bridge_capacity_standard/lookup_bridge_passability_standard
+    → 按最差构件打分 → 写入 BridgeAssessmentRecord
+  depends_on:
+  - conduct_bridge_recon
+  writes_to:
+  - BridgeAssessmentRecord
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: damage_features
+    type: str
+    description: 损毁特征描述
+    default: null
+  - name: assessment_dimensions
+    type: str
+    description: 评估维度(稳定性/承载力/通行能力)
+    default: null
+  involves_objects:
+  - MonitoringData
+  - BridgeStabilityStandard
+  - BridgeCapacityStandard
+  - BridgePassabilityStandard
+  - BridgeAssessmentRecord
+  source: 公路交通应急处置技术规范.md 7.2
+  hint: 调用对应 lookup 函数获取分级标准，任何一项III级则禁止通行，II级限制通行，全I级正常通行
+- name: implement_bridge_clearance
+  function_type: business
+  summary: 制定桥涵抢通方案并记录实施步骤
+  group: 桥涵抢通
+  description: 输入损毁程度、地形水文、制式桥梁库存 → 调用 lookup_bridge_clearance_rule 与 lookup_temporary_bridge_rule
+    → 选定便桥/修复/加固工艺 → 写入 BridgeClearancePlan
+  depends_on:
+  - assess_bridge_damage
+  writes_to:
+  - BridgeClearancePlan
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: damage_degree
+    type: str
+    description: 损毁程度
+    default: null
+  - name: terrain_condition
+    type: str
+    description: 地形条件
+    default: null
+  - name: span_length
+    type: float
+    description: 需跨越宽度(m)
+    default: null
+  involves_objects:
+  - GeologicalData
+  - EquipmentStock
+  - BridgeClearanceRule
+  - TemporaryBridgeRule
+  - BridgeClearancePlan
+  source: 公路交通应急处置技术规范.md 7.3
+  hint: 调用 lookup_bridge_clearance_rule 与 lookup_temporary_bridge_rule 综合时效性、地形地质与装备条件选定方案
+- name: monitor_bridge_construction
+  function_type: business
+  summary: 监测桥涵施工状态并记录永久加固进度
+  group: 桥涵抢通
+  description: 输入应力/位移监测数据、损伤类型 → 调用 lookup_bridge_reinforcement_rule 获取监测要求与加固工艺
+    → 超限触发处置 → 写入 BridgeConstructionMonitorRecord
+  depends_on:
+  - implement_bridge_clearance
+  writes_to:
+  - BridgeConstructionMonitorRecord
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: damage_type
+    type: str
+    description: 损伤类型
+    default: null
+  - name: monitoring_data
+    type: str
+    description: 实时应力/位移监测数据
+    default: null
+  involves_objects:
+  - MonitoringData
+  - BridgeReinforcementRule
+  - BridgeConstructionMonitorRecord
+  source: 公路交通应急处置技术规范.md 7.3.14
+  hint: 调用 lookup_bridge_reinforcement_rule 获取加固工艺与监测要求，数据超限立即停止通行并启动加固
+- name: conduct_tunnel_recon
+  function_type: business
+  summary: 执行隧道应急疏散与现场侦测
+  group: 隧道抢通
+  description: 输入隧道ID、灾害类型、气体/火灾初勘数据 → 调用 lookup_tunnel_inspection_rule 获取排查清单 → 记录疏散状态
+    → 写入 TunnelReconReport
+  depends_on: []
+  writes_to:
+  - TunnelReconReport
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: tunnel_id
+    type: str
+    description: 隧道唯一标识
+    default: null
+  - name: disaster_type
+    type: str
+    description: 灾害类型
+    default: null
+  involves_objects:
+  - Tunnel
+  - MonitoringData
+  - TunnelInspectionRule
+  - TunnelReconReport
+  source: 公路交通应急处置技术规范.md 8.2
+  hint: 调用 lookup_tunnel_inspection_rule 获取调查部位与气体/火灾排查清单，优先保障人员疏散安全
+- name: assess_tunnel_risk
+  function_type: business
+  summary: 评估隧道重要等级、风险等级与抢通难度
+  group: 隧道抢通
+  description: 输入道路等级、交通量、发生概率、损失程度、抢通时长评级 → 调用 lookup_tunnel_importance_level/lookup_secondary_risk_level/lookup_clearance_difficulty_matrix
+    → 综合评级 → 写入 TunnelAssessmentReport
+  depends_on:
+  - conduct_tunnel_recon
+  writes_to:
+  - TunnelAssessmentReport
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: road_class
+    type: str
+    description: 道路等级
+    default: null
+  - name: traffic_volume
+    type: int
+    description: 年日均交通量
+    default: null
+  - name: occurrence_probability
+    type: str
+    description: 次生事故发生概率
+    default: null
+  - name: loss_degree
+    type: str
+    description: 损失程度
+    default: null
+  - name: clearance_duration
+    type: str
+    description: 抢通时长评级(A/B/C/D)
+    default: null
+  involves_objects:
+  - TrafficData
+  - TunnelImportanceLevel
+  - SecondaryRiskLevel
+  - ClearanceDifficultyMatrix
+  - TunnelAssessmentReport
+  source: 公路交通应急处置技术规范.md 8.3
+  hint: 调用对应 lookup 函数计算重要等级、风险等级与难度矩阵，不硬编码评估公式
+- name: determine_tunnel_clearance_target
+  function_type: business
+  summary: 确定隧道抢通目标等级与通行限界
+  group: 隧道抢通
+  description: 输入难度等级、重要等级、替代分流方案 → 调用 lookup_tunnel_target_matrix 与 lookup_tunnel_clearance_limit
+    → 判定目标等级(I-III级)与最小宽高限界 → 写入 TunnelTargetDecision
+  depends_on:
+  - assess_tunnel_risk
+  writes_to:
+  - TunnelTargetDecision
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: difficulty_level
+    type: str
+    description: 抢通难度等级
+    default: null
+  - name: importance_level
+    type: str
+    description: 隧道重要等级
+    default: null
+  - name: detour_plan
+    type: str
+    description: 替代交通分流方案
+    default: null
+  involves_objects:
+  - DetourRoute
+  - TunnelTargetMatrix
+  - TunnelClearanceLimit
+  - TunnelTargetDecision
+  source: 公路交通应急处置技术规范.md 8.4
+  hint: 调用 lookup_tunnel_target_matrix 获取目标等级，调用 lookup_tunnel_clearance_limit 获取最小通行限界
+- name: implement_tunnel_clearance
+  function_type: business
+  summary: 实施隧道抢通作业并动态监测状态
+  group: 隧道抢通
+  description: 输入目标等级、支护/排水/通风设备库存、气体浓度 → 调用 lookup_tunnel_clearance_rule 选用措施 → 动态调整通行状态
+    → 写入 TunnelClearanceRecord
+  depends_on:
+  - determine_tunnel_clearance_target
+  writes_to:
+  - TunnelClearanceRecord
+  params:
+  - name: event_id
+    type: str
+    description: 关联突发事件ID
+    default: null
+  - name: target_level
+    type: str
+    description: 抢通目标等级
+    default: null
+  - name: disaster_type
+    type: str
+    description: 灾害类型
+    default: null
+  - name: gas_concentration
+    type: float
+    description: 有害气体浓度
+    default: null
+  involves_objects:
+  - EquipmentStock
+  - MonitoringData
+  - TunnelClearanceRule
+  - TunnelClearanceRecord
+  source: 公路交通应急处置技术规范.md 8.5
+  hint: 调用 lookup_tunnel_clearance_rule 获取支护/排水/通风/灭火措施，气体超标或结构变形超限立即禁止通行
+- name: conduct_accident_inspection
+  function_type: business
+  summary: 收集事故信息并实施现场警戒与危化品探测
+  group: 事故处置
+  description: 输入事故ID、现场环境、气象数据 → 调用 lookup_accident_inspection_rule 确定警戒范围与防护等级 →
+    记录疏散与探测状态 → 写入 AccidentInspectionRecord
+  depends_on: []
+  writes_to:
+  - AccidentInspectionRecord
+  params:
+  - name: event_id
+    type: str
+    description: 交通事故唯一标识
+    default: null
+  - name: site_environment
+    type: str
+    description: 现场环境描述
+    default: null
+  - name: weather_condition
+    type: str
+    description: 气象状况
+    default: null
+  involves_objects:
+  - AccidentEvent
+  - WeatherData
+  - AccidentInspectionRule
+  - AccidentInspectionRecord
+  source: 公路交通应急处置技术规范.md 9.1
+  hint: 调用 lookup_accident_inspection_rule 获取警戒范围、防护等级与疏散要求，识别危化品/火灾风险
+- name: assess_accident_level
+  function_type: business
+  summary: 评估事故类型、等级与响应时限
+  group: 事故处置
+  description: 输入伤亡人数、经济损失、影响范围、事故形态 → 调用 lookup_accident_type_rule 与 lookup_accident_level_standard
+    → 判定事故等级与响应等级 → 写入 AccidentLevelRecord
+  depends_on:
+  - conduct_accident_inspection
+  writes_to:
+  - AccidentLevelRecord
+  params:
+  - name: event_id
+    type: str
+    description: 交通事故唯一标识
+    default: null
+  - name: casualty_count
+    type: int
+    description: 伤亡人数
+    default: null
+  - name: economic_loss
+    type: float
+    description: 直接经济损失(万元)
+    default: null
+  - name: impact_scope
+    type: str
+    description: 交通影响范围
+    default: null
+  - name: accident_form
+    type: str
+    description: 事故形态/致因
+    default: null
+  involves_objects:
+  - AccidentEvent
+  - AccidentTypeRule
+  - AccidentLevelStandard
+  - AccidentLevelRecord
+  source: 公路交通应急处置技术规范.md 9.2
+  hint: 调用 lookup_accident_type_rule 分类事故，调用 lookup_accident_level_standard 获取等级划分与响应时限标准
+- name: dispatch_accident_equipment
+  function_type: business
+  summary: 选型并调度清障/起重/破拆装备
+  group: 事故处置
+  description: 输入车辆吨位、作业方式、装备库存 → 调用 lookup_accident_equipment_rule 匹配装备类型 → 生成调拨单
+    → 写入 AccidentEquipmentDispatch
+  depends_on:
+  - assess_accident_level
+  writes_to:
+  - AccidentEquipmentDispatch
+  params:
+  - name: event_id
+    type: str
+    description: 交通事故唯一标识
+    default: null
+  - name: vehicle_tonnage
+    type: float
+    description: 涉事车辆吨位(t)
+    default: null
+  - name: operation_mode
+    type: str
+    description: 作业方式(牵拉/起吊/扶正/拖运等)
+    default: null
+  involves_objects:
+  - EquipmentStock
+  - AccidentEquipmentRule
+  - AccidentEquipmentDispatch
+  source: 公路交通应急处置技术规范.md 9.3.3
+  hint: 调用 lookup_accident_equipment_rule 获取装备选型原则，匹配吨位与作业方式不硬编码装备清单
+- name: handle_accident_scene
+  function_type: business
+  summary: 实施事故处置作业并恢复现场交通
+  group: 事故处置
+  description: 输入事故类型、作业空间、高压线/桥梁限制 → 调用 lookup_accident_handling_rule 与 lookup_safety_distance_rule
+    → 规范作业流程与安全距离 → 记录处置耗时与状态 → 写入 AccidentHandlingRecord
+  depends_on:
+  - dispatch_accident_equipment
+  writes_to:
+  - AccidentHandlingRecord
+  params:
+  - name: event_id
+    type: str
+    description: 交通事故唯一标识
+    default: null
+  - name: accident_type
+    type: str
+    description: 事故类型
+    default: null
+  - name: voltage
+    type: float
+    description: 邻近高压线电压(kV)
+    default: null
+  - name: environment
+    type: str
+    description: 作业环境(隧道/桥梁/山区等)
+    default: null
+  involves_objects:
+  - RoadSegment
+  - Bridge
+  - Tunnel
+  - AccidentHandlingRule
+  - SafetyDistanceRule
+  - AccidentHandlingRecord
+  source: 公路交通应急处置技术规范.md 9.3.4, 9.3.6
+  hint: 调用 lookup_accident_handling_rule 获取处理步骤，调用 lookup_safety_distance_rule 获取最小安全距离，动态调整作业顺序
+- name: lookup_event_level_standard
+  function_type: lookup
+  summary: 查询公路交通突发事件分级标准
+  group: 规则查询
+  description: 输入公路等级、中断时间、影响范围 → 返回对应事件级别(I-IV级)
+  depends_on: []
+  writes_to: []
+  params:
+  - name: highway_class
+    type: str
+    description: 公路等级
+    default: null
+  - name: interruption_time
+    type: float
+    description: 中断时间(小时)
+    default: null
+  - name: impact_scope
+    type: str
+    description: 影响范围
+    default: null
+  involves_objects:
+  - EventLevelStandard
+  source: 公路交通应急处置技术规范.md 5.2.1
+- name: lookup_report_time_rule
+  function_type: lookup
+  summary: 查询信息上报时效与流程规则
+  group: 规则查询
+  description: 输入事件级别 → 返回上报时限、方式与要素要求
+  depends_on: []
+  writes_to: []
+  params:
+  - name: event_level
+    type: str
+    description: 事件级别
+    default: null
+  involves_objects:
+  - ReportTimeRule
+  source: 公路交通应急处置技术规范.md 5.3
+- name: lookup_command_dispatch_rule
+  function_type: lookup
+  summary: 查询应急指挥调度程序规则
+  group: 规则查询
+  description: 输入事件级别 → 返回指挥层级、联动机制与求援条件
+  depends_on: []
+  writes_to: []
+  params:
+  - name: event_level
+    type: str
+    description: 事件级别
+    default: null
+  involves_objects:
+  - CommandDispatchRule
+  source: 公路交通应急处置技术规范.md 5.4
+- name: lookup_resource_dispatch_rule
+  function_type: lookup
+  summary: 查询应急资源调度原则与路径优化规则
+  group: 规则查询
+  description: 输入事件类型、位置 → 返回调度路径、优先级与补偿原则
+  depends_on: []
+  writes_to: []
+  params:
+  - name: event_type
+    type: str
+    description: 事件类型
+    default: null
+  - name: location
+    type: str
+    description: 事发位置
+    default: null
+  involves_objects:
+  - ResourceDispatchRule
+  source: 公路交通应急处置技术规范.md 5.5
+- name: lookup_response_termination_rule
+  function_type: lookup
+  summary: 查询应急响应终止条件规则
+  group: 规则查询
+  description: 输入处置状态、清理完成度 → 返回终止/扩大应急判定
+  depends_on: []
+  writes_to: []
+  params:
+  - name: disposal_status
+    type: str
+    description: 处置状态
+    default: null
+  - name: cleanup_completion
+    type: str
+    description: 清理完成度
+    default: null
+  involves_objects:
+  - ResponseTerminationRule
+  source: 公路交通应急处置技术规范.md 5.4.5
+- name: lookup_subgrade_damage_standard
+  function_type: lookup
+  summary: 查询路基受损程度分级标准
+  group: 规则查询
+  description: 输入损毁特征 → 返回损毁等级(I-III级)与通行建议
+  depends_on: []
+  writes_to: []
+  params:
+  - name: damage_feature
+    type: str
+    description: 损毁特征
+    default: null
+  involves_objects:
+  - SubgradeDamageStandard
+  source: 公路交通应急处置技术规范.md 6.2.2
+- name: lookup_slope_damage_standard
+  function_type: lookup
+  summary: 查询边坡受损程度分级标准
+  group: 规则查询
+  description: 输入损毁特征 → 返回损毁等级(I-III级)与通行建议
+  depends_on: []
+  writes_to: []
+  params:
+  - name: damage_feature
+    type: str
+    description: 损毁特征
+    default: null
+  involves_objects:
+  - SlopeDamageStandard
+  source: 公路交通应急处置技术规范.md 6.2.3
+- name: lookup_retaining_structure_damage_standard
+  function_type: lookup
+  summary: 查询支挡结构受损程度分级标准
+  group: 规则查询
+  description: 输入损毁特征 → 返回损毁等级(I-III级)与通行建议
+  depends_on: []
+  writes_to: []
+  params:
+  - name: damage_feature
+    type: str
+    description: 损毁特征
+    default: null
+  involves_objects:
+  - RetainingStructureDamageStandard
+  source: 公路交通应急处置技术规范.md 6.2.4
+- name: lookup_subgrade_clearance_rule
+  function_type: lookup
+  summary: 查询路基抢通技术选用原则
+  group: 规则查询
+  description: 输入灾害类型、地质条件 → 返回适用抢通技术与施工注意事项
+  depends_on: []
+  writes_to: []
+  params:
+  - name: disaster_type
+    type: str
+    description: 灾害类型
+    default: null
+  - name: geological_condition
+    type: str
+    description: 地质条件
+    default: null
+  involves_objects:
+  - SubgradeClearanceRule
+  source: 公路交通应急处置技术规范.md 6.4
+- name: lookup_traffic_control_rule
+  function_type: lookup
+  summary: 查询交通管制措施规则
+  group: 规则查询
+  description: 输入损伤等级 → 返回管制措施(半幅/限速/封闭等)
+  depends_on: []
+  writes_to: []
+  params:
+  - name: damage_grade
+    type: str
+    description: 损伤等级
+    default: null
+  involves_objects:
+  - TrafficControlRule
+  source: 公路交通应急处置技术规范.md 6.3
+- name: lookup_secondary_disaster_warning_rule
+  function_type: lookup
+  summary: 查询次生灾害监测预警要求
+  group: 规则查询
+  description: 输入变形趋势、巡查频次 → 返回预警级别与处置要求
+  depends_on: []
+  writes_to: []
+  params:
+  - name: deformation_trend
+    type: str
+    description: 变形趋势
+    default: null
+  - name: inspection_frequency
+    type: str
+    description: 巡查频次
+    default: null
+  involves_objects:
+  - SecondaryDisasterWarningRule
+  source: 公路交通应急处置技术规范.md 6.4.1
+- name: lookup_bridge_inspection_rule
+  function_type: lookup
+  summary: 查询桥涵应急调查重点部位与内容
+  group: 规则查询
+  description: 输入灾害类型 → 返回调查部位、内容与设备清单
+  depends_on: []
+  writes_to: []
+  params:
+  - name: disaster_type
+    type: str
+    description: 灾害类型
+    default: null
+  involves_objects:
+  - BridgeInspectionRule
+  source: 公路交通应急处置技术规范.md 7.1
+- name: lookup_bridge_stability_standard
+  function_type: lookup
+  summary: 查询桥涵整体稳定性评估标准
+  group: 规则查询
+  description: 输入损毁特征 → 返回损伤等级与通行结论
+  depends_on: []
+  writes_to: []
+  params:
+  - name: damage_feature
+    type: str
+    description: 损毁特征
+    default: null
+  involves_objects:
+  - BridgeStabilityStandard
+  source: 公路交通应急处置技术规范.md 7.2.4
+- name: lookup_bridge_capacity_standard
+  function_type: lookup
+  summary: 查询桥涵承载力评估标准
+  group: 规则查询
+  description: 输入损毁特征 → 返回损伤等级与通行结论
+  depends_on: []
+  writes_to: []
+  params:
+  - name: damage_feature
+    type: str
+    description: 损毁特征
+    default: null
+  involves_objects:
+  - BridgeCapacityStandard
+  source: 公路交通应急处置技术规范.md 7.2.4
+- name: lookup_bridge_passability_standard
+  function_type: lookup
+  summary: 查询桥涵通行能力评估标准
+  group: 规则查询
+  description: 输入损毁特征 → 返回损伤等级与通行结论
+  depends_on: []
+  writes_to: []
+  params:
+  - name: damage_feature
+    type: str
+    description: 损毁特征
+    default: null
+  involves_objects:
+  - BridgePassabilityStandard
+  source: 公路交通应急处置技术规范.md 7.2.4
+- name: lookup_bridge_clearance_rule
+  function_type: lookup
+  summary: 查询桥涵抢通技术选用原则
+  group: 规则查询
+  description: 输入损毁程度、地形条件 → 返回适用抢通技术
+  depends_on: []
+  writes_to: []
+  params:
+  - name: damage_degree
+    type: str
+    description: 损毁程度
+    default: null
+  - name: terrain_condition
+    type: str
+    description: 地形条件
+    default: null
+  involves_objects:
+  - BridgeClearanceRule
+  source: 公路交通应急处置技术规范.md 7.3
+- name: lookup_temporary_bridge_rule
+  function_type: lookup
+  summary: 查询应急便桥技术选用规则
+  group: 规则查询
+  description: 输入跨径、水流速度、承载能力 → 返回推荐便桥类型、时效与保障能力
+  depends_on: []
+  writes_to: []
+  params:
+  - name: span_length
+    type: float
+    description: 跨径(m)
+    default: null
+  - name: water_flow
+    type: float
+    description: 水流速度(m/s)
+    default: null
+  - name: load_capacity
+    type: float
+    description: 承载能力(t)
+    default: null
+  involves_objects:
+  - TemporaryBridgeRule
+  source: 公路交通应急处置技术规范.md 附录3
+- name: lookup_bridge_reinforcement_rule
+  function_type: lookup
+  summary: 查询桥涵永久加固技术要求
+  group: 规则查询
+  description: 输入损伤类型 → 返回加固工艺、监测要求与材料
+  depends_on: []
+  writes_to: []
+  params:
+  - name: damage_type
+    type: str
+    description: 损伤类型
+    default: null
+  involves_objects:
+  - BridgeReinforcementRule
+  source: 公路交通应急处置技术规范.md 7.3.14
+- name: lookup_tunnel_inspection_rule
+  function_type: lookup
+  summary: 查询隧道应急调查内容要求
+  group: 规则查询
+  description: 输入灾害类型 → 返回调查部位、气体/火灾排查清单
+  depends_on: []
+  writes_to: []
+  params:
+  - name: disaster_type
+    type: str
+    description: 灾害类型
+    default: null
+  involves_objects:
+  - TunnelInspectionRule
+  source: 公路交通应急处置技术规范.md 8.2
+- name: lookup_tunnel_importance_level
+  function_type: lookup
+  summary: 查询隧道重要等级分级表
+  group: 规则查询
+  description: 输入道路等级、年日均交通量 → 返回重要等级(一/二/三级)
+  depends_on: []
+  writes_to: []
+  params:
+  - name: road_class
+    type: str
+    description: 道路等级
+    default: null
+  - name: traffic_volume
+    type: int
+    description: 年日均交通量(pcu/d/ln)
+    default: null
+  involves_objects:
+  - TunnelImportanceLevel
+  source: 公路交通应急处置技术规范.md 8.3.2
+- name: lookup_secondary_risk_level
+  function_type: lookup
+  summary: 查询次生事故风险等级表
+  group: 规则查询
+  description: 输入发生概率、损失程度 → 返回风险等级(I-IV级)
+  depends_on: []
+  writes_to: []
+  params:
+  - name: occurrence_probability
+    type: str
+    description: 发生概率
+    default: null
+  - name: loss_degree
+    type: str
+    description: 损失程度
+    default: null
+  involves_objects:
+  - SecondaryRiskLevel
+  source: 公路交通应急处置技术规范.md 8.3.5
+- name: lookup_clearance_difficulty_matrix
+  function_type: lookup
+  summary: 查询抢通难度等级矩阵
+  group: 规则查询
+  description: 输入抢通时长评级、风险等级 → 返回难度等级(高/中/低)
+  depends_on: []
+  writes_to: []
+  params:
+  - name: clearance_duration
+    type: str
+    description: 抢通时长评级(A/B/C/D)
+    default: null
+  - name: risk_level
+    type: str
+    description: 风险等级
+    default: null
+  involves_objects:
+  - ClearanceDifficultyMatrix
+  source: 公路交通应急处置技术规范.md 8.3.7
+- name: lookup_tunnel_target_matrix
+  function_type: lookup
+  summary: 查询隧道抢通目标等级表
+  group: 规则查询
+  description: 输入难度等级、重要等级 → 返回抢通目标等级(I-III级)
+  depends_on: []
+  writes_to: []
+  params:
+  - name: difficulty_level
+    type: str
+    description: 难度等级
+    default: null
+  - name: importance_level
+    type: str
+    description: 重要等级
+    default: null
+  involves_objects:
+  - TunnelTargetMatrix
+  source: 公路交通应急处置技术规范.md 8.4.1
+- name: lookup_tunnel_clearance_limit
+  function_type: lookup
+  summary: 查询最小通行限界表
+  group: 规则查询
+  description: 输入抢通目标等级 → 返回最小宽度与高度(m)
+  depends_on: []
+  writes_to: []
+  params:
+  - name: target_level
+    type: str
+    description: 抢通目标等级
+    default: null
+  involves_objects:
+  - TunnelClearanceLimit
+  source: 公路交通应急处置技术规范.md 8.5.1
+- name: lookup_tunnel_clearance_rule
+  function_type: lookup
+  summary: 查询隧道应急抢通技术要求
+  group: 规则查询
+  description: 输入灾害类型 → 返回支护/排水/通风/灭火措施
+  depends_on: []
+  writes_to: []
+  params:
+  - name: disaster_type
+    type: str
+    description: 灾害类型
+    default: null
+  involves_objects:
+  - TunnelClearanceRule
+  source: 公路交通应急处置技术规范.md 8.5

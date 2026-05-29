@@ -1,0 +1,437 @@
+objects:
+- name: RoadSegment
+  category: entity
+  summary: 路段/路基路面(公路基本单元，按桩号/坐标搜)
+  source: 公路交通应急处置技术规范.md 6.1/6.2
+  reasoning: A类实体。承载路基、边坡、支挡结构等静态属性，是抢通与评估的空间载体。
+  workflow_role: 应急调查与评估 / 抢通技术选用与实施
+- name: Bridge
+  category: entity
+  summary: 桥梁(含桥涵，按bridge_id查，含结构形式/跨径/材质)
+  source: 公路交通应急处置技术规范.md 7.1/7.2
+  reasoning: A类实体。独立基础设施对象，存储设计参数与养护记录，不随事件改变。
+  workflow_role: 桥涵应急侦测与调查 / 桥涵应急评估
+- name: Tunnel
+  category: entity
+  summary: 隧道(按tunnel_id查，含通风/消防/结构参数)
+  source: 公路交通应急处置技术规范.md 8.2/8.3
+  reasoning: A类实体。独立基础设施对象，存储运营资料与结构限界。
+  workflow_role: 应急疏散与侦测 / 隧道应急评估
+- name: EmergencyDepot
+  category: entity
+  summary: 应急储备中心(国家/省/市/县四级，按坐标搜)
+  source: 公路交通应急处置技术规范.md 10.3.6
+  reasoning: A类实体。现实中的物资装备储备节点，具有固定位置与管辖级别。
+  workflow_role: 应急资源调度
+- name: RescueTeam
+  category: entity
+  summary: 救援队伍(按坐标/专业能力搜，含编制与装备配置)
+  source: 公路交通应急处置技术规范.md 5.5/10.2
+  reasoning: A类实体。客观存在的应急力量组织，属性固定。
+  workflow_role: 应急资源调度
+- name: EquipmentStock
+  category: entity
+  summary: 装备库存(储备点→装备清单，含重量/环境/智能化等级)
+  source: 公路交通应急处置技术规范.md 10.2.4~10.2.21
+  reasoning: A类实体。装备分类体系作为其属性，库存状态随调度变化但对象本身固定。
+  workflow_role: 应急资源调度 / 装备选型与调度
+- name: MaterialStock
+  category: entity
+  summary: 物资库存(储备点→物资清单，含适用灾害类型)
+  source: 公路交通应急处置技术规范.md 10.3.2~10.3.4
+  reasoning: A类实体。物资分类与储备方式作为属性，独立查询场景明确。
+  workflow_role: 应急资源调度
+- name: Organization
+  category: entity
+  summary: 应急组织机构(指挥调度/管养单位，含层级与职责)
+  source: 公路交通应急处置技术规范.md 5.1/5.3
+  reasoning: A类实体。现实中的行政与指挥体系，不随单次事件改变。
+  workflow_role: 信息核实与上报 / 预案启动与指挥
+- name: DisasterEvent
+  category: entity
+  summary: 自然灾害事件(地震/滑坡/泥石流/水毁等，含发生时间地点)
+  source: 公路交通应急处置技术规范.md 2.0.1/4.2
+  reasoning: A类实体。客观发生的灾害本体，存储类型、规模、位置等固有属性。
+  workflow_role: 信息核实与上报 / 现场应急侦测
+- name: AccidentEvent
+  category: entity
+  summary: 交通事故事件(碰撞/翻车/危化品泄漏等，含报警信息)
+  source: 公路交通应急处置技术规范.md 9.1/9.2
+  reasoning: A类实体。客观发生的事故本体，存储形态、车辆类型、危化品属性。
+  workflow_role: 事故信息收集与现场警戒
+- name: WeatherData
+  category: entity
+  summary: 气象水文数据(实时/预报，含温度/降水/风速/能见度)
+  source: 公路交通应急处置技术规范.md 4.2/10.6.2
+  reasoning: A类实体。外部环境客观数据源，Agent通过接口或定时拉取查询。
+  workflow_role: 现场应急侦测 / 事故信息收集
+- name: GeologicalData
+  category: entity
+  summary: 地质地形资料(岩土类型/坡度/水文地质/勘察文件)
+  source: 公路交通应急处置技术规范.md 4.2/6.1
+  reasoning: A类实体。静态基础资料，用于抢通技术选用与风险评估。
+  workflow_role: 现场应急侦测 / 应急调查与评估
+- name: TrafficData
+  category: entity
+  summary: 交通运行数据(断面流量/车速/拥堵状态，按桩号查)
+  source: 公路交通应急处置技术规范.md 10.6.2
+  reasoning: A类实体。路网监测客观数据，用于事件分级与分流决策。
+  workflow_role: 交通管制与次生监测 / 确定抢通目标
+- name: MonitoringData
+  category: entity
+  summary: 结构监测数据(位移/应力/气体浓度/视频图像)
+  source: 公路交通应急处置技术规范.md 4.4~4.6/8.5.2
+  reasoning: A类实体。传感器与巡查采集的客观数据流，不随业务记录改变。
+  workflow_role: 交通管制与次生监测 / 施工监测与永久加固
+- name: DetourRoute
+  category: entity
+  summary: 绕行分流路线(替代交通路径，含距离/路况/承载能力)
+  source: 公路交通应急处置技术规范.md 8.4.5
+  reasoning: A类实体。路网中客观存在的替代路径，用于抢通目标决策。
+  workflow_role: 确定抢通目标
+- name: EventLevelStandard
+  category: rule
+  summary: 突发事件分级标准(公路等级+中断时间+影响范围→I-IV级)
+  source: 公路交通应急处置技术规范.md 5.2.1
+  reasoning: B类规则。典型分级表，Agent通过lookup判定事件级别。
+  workflow_role: 事件分级判定
+- name: ReportTimeRule
+  category: rule
+  summary: 信息上报时效规则(事件级别→上报时限/流程/要素)
+  source: 公路交通应急处置技术规范.md 5.3.2
+  reasoning: B类规则。条件→结论映射，决定上报路径与时间要求。
+  workflow_role: 信息核实与上报
+- name: CommandDispatchRule
+  category: rule
+  summary: 指挥调度程序(事件级别→指挥层级/联动机制/求援条件)
+  source: 公路交通应急处置技术规范.md 5.1.3/5.4
+  reasoning: B类规则。流程与权限映射表，指导指挥体系启动。
+  workflow_role: 预案启动与指挥
+- name: ResourceDispatchRule
+  category: rule
+  summary: 资源调度原则(事件类型/位置→调度路径/优先级/补偿原则)
+  source: 公路交通应急处置技术规范.md 5.5/10.3.7
+  reasoning: B类规则。查表获取调度策略与路径优化依据。
+  workflow_role: 应急资源调度
+- name: ResponseTerminationRule
+  category: rule
+  summary: 响应终止条件(处置状态/清理完成度→终止/扩大应急判定)
+  source: 公路交通应急处置技术规范.md 5.4.5/9.2.5
+  reasoning: B类规则。条件→结论映射，决定业务流程终点。
+  workflow_role: 处置评估与响应终止
+- name: SubgradeDamageStandard
+  category: rule
+  summary: 路基受损分级标准(损毁特征→I-III级及正常/限制/禁止通行)
+  source: 公路交通应急处置技术规范.md 6.2.2
+  reasoning: B类规则。分级矩阵表，Agent查表判定通行建议。
+  workflow_role: 应急调查与评估
+- name: SlopeDamageStandard
+  category: rule
+  summary: 边坡受损分级标准(滑坡/崩塌特征→I-III级及通行建议)
+  source: 公路交通应急处置技术规范.md 6.2.3
+  reasoning: B类规则。独立分级表，与路基标准并列查询。
+  workflow_role: 应急调查与评估
+- name: RetainingStructureDamageStandard
+  category: rule
+  summary: 支挡结构受损分级标准(挡墙/护坡特征→I-III级及通行建议)
+  source: 公路交通应急处置技术规范.md 6.2.4
+  reasoning: B类规则。独立分级表，用于综合评定路段等级。
+  workflow_role: 应急调查与评估
+- name: SubgradeClearanceRule
+  category: rule
+  summary: 路基抢通技术选用(灾害类型+地质条件→回填/拓宽/注浆/改线)
+  source: 公路交通应急处置技术规范.md 6.4.2~6.4.7
+  reasoning: B类规则。条件→技术映射表，指导抢通方案制定。
+  workflow_role: 抢通技术选用与实施
+- name: TrafficControlRule
+  category: rule
+  summary: 交通管制措施规则(损伤等级→半幅/限速/分时/封闭管制)
+  source: 公路交通应急处置技术规范.md 6.3/7.3.3
+  reasoning: B类规则。分级→管制措施映射，Agent查表生成管制指令。
+  workflow_role: 交通管制与次生监测
+- name: SecondaryDisasterWarningRule
+  category: rule
+  summary: 次生灾害预警要求(变形趋势/巡查频次→预警级别与处置)
+  source: 公路交通应急处置技术规范.md 6.4.1
+  reasoning: B类规则。监测数据阈值→预警动作映射。
+  workflow_role: 交通管制与次生监测
+- name: BridgeInspectionRule
+  category: rule
+  summary: 桥涵调查重点规则(灾害类型→调查部位/内容/设备清单)
+  source: 公路交通应急处置技术规范.md 7.1.4
+  reasoning: B类规则。查表获取调查清单与技术手段。
+  workflow_role: 桥涵应急侦测与调查
+- name: BridgeStabilityStandard
+  category: rule
+  summary: 桥涵稳定性评估标准(整体偏位/坍塌→I-III级及通行结论)
+  source: 公路交通应急处置技术规范.md 7.2-1/附录2-1
+  reasoning: B类规则。分级表，按最差构件打分法判定。
+  workflow_role: 桥涵应急评估
+- name: BridgeCapacityStandard
+  category: rule
+  summary: 桥涵承载力评估标准(构件开裂/变形→I-III级及通行结论)
+  source: 公路交通应急处置技术规范.md 7.2-2/附录2-2~2-6
+  reasoning: B类规则。分级表，判定结构承载安全性。
+  workflow_role: 桥涵应急评估
+- name: BridgePassabilityStandard
+  category: rule
+  summary: 桥涵通行能力评估标准(桥面高差/障碍→I-III级及通行结论)
+  source: 公路交通应急处置技术规范.md 7.2-3/附录2-7~2-9
+  reasoning: B类规则。分级表，判定桥面通行条件。
+  workflow_role: 桥涵应急评估
+- name: BridgeClearanceRule
+  category: rule
+  summary: 桥涵抢通技术选用(损毁程度+地形→便道/便桥/修复/加固)
+  source: 公路交通应急处置技术规范.md 7.3.1~7.3.14
+  reasoning: B类规则。条件→技术映射，综合时效性与地质条件。
+  workflow_role: 抢通方案制定与实施
+- name: TemporaryBridgeRule
+  category: rule
+  summary: 便桥技术选用规则(跨径+水流+承载→桥型/时效/保障能力)
+  source: 公路交通应急处置技术规范.md 附录3
+  reasoning: B类规则。典型矩阵表，Agent查表推荐便桥类型。
+  workflow_role: 抢通方案制定与实施
+- name: BridgeReinforcementRule
+  category: rule
+  summary: 永久加固技术要求(损伤类型→加固工艺/监测要求/材料)
+  source: 公路交通应急处置技术规范.md 7.3.14/8.5.1
+  reasoning: B类规则。条件→工艺映射，指导施工监测与永久修复。
+  workflow_role: 施工监测与永久加固
+- name: TunnelInspectionRule
+  category: rule
+  summary: 隧道调查内容要求(灾害类型→调查部位/气体/火灾排查清单)
+  source: 公路交通应急处置技术规范.md 8.2.3/8.2.6
+  reasoning: B类规则。查表获取调查重点与安全要求。
+  workflow_role: 应急疏散与侦测
+- name: TunnelImportanceLevel
+  category: rule
+  summary: 隧道重要等级分级(道路等级+交通量→一/二/三级)
+  source: 公路交通应急处置技术规范.md 8.3.2
+  reasoning: B类规则。分级表，决定抢通优先级。
+  workflow_role: 隧道应急评估
+- name: SecondaryRiskLevel
+  category: rule
+  summary: 次生事故风险等级(发生概率+损失程度→I-IV级)
+  source: 公路交通应急处置技术规范.md 8.3.4/8.3.5
+  reasoning: B类规则。风险矩阵表，Agent查表计算风险等级。
+  workflow_role: 隧道应急评估
+- name: ClearanceDifficultyMatrix
+  category: rule
+  summary: 抢通难度等级矩阵(抢通时长+风险等级→高/中/低难度)
+  source: 公路交通应急处置技术规范.md 8.3.6/8.3.7
+  reasoning: B类规则。二维矩阵表，综合评定抢通难度。
+  workflow_role: 隧道应急评估
+- name: TunnelTargetMatrix
+  category: rule
+  summary: 隧道抢通目标矩阵(难度+重要等级→I-III级目标)
+  source: 公路交通应急处置技术规范.md 8.4.1
+  reasoning: B类规则。决策矩阵表，输出抢通目标等级。
+  workflow_role: 确定抢通目标
+- name: TunnelClearanceLimit
+  category: rule
+  summary: 最小通行限界表(抢通目标等级→宽高限界m)
+  source: 公路交通应急处置技术规范.md 8.6-1
+  reasoning: B类规则。查表获取通行物理限界标准。
+  workflow_role: 确定抢通目标
+- name: TunnelClearanceRule
+  category: rule
+  summary: 隧道抢通技术要求(灾害类型→支护/排水/通风/灭火措施)
+  source: 公路交通应急处置技术规范.md 8.5.3~8.5.7
+  reasoning: B类规则。条件→技术映射，指导洞门/洞身/路面/火灾处置。
+  workflow_role: 抢通实施与监测
+- name: AccidentInspectionRule
+  category: rule
+  summary: 事故调查流程安全(现场环境→警戒范围/防护等级/疏散要求)
+  source: 公路交通应急处置技术规范.md 9.1.3
+  reasoning: B类规则。条件→安全要求映射，决定警戒与防护配置。
+  workflow_role: 事故信息收集与现场警戒
+- name: AccidentTypeRule
+  category: rule
+  summary: 交通事故类型分类(致因+形态→抛锚/碰撞/翻车/坠车等)
+  source: 公路交通应急处置技术规范.md 9.2.2
+  reasoning: B类规则。分类映射表，用于后续装备选型与流程匹配。
+  workflow_role: 事故类型与等级评估
+- name: AccidentLevelStandard
+  category: rule
+  summary: 事故等级划分标准(伤亡+损失+影响→I-IV级及响应等级)
+  source: 公路交通应急处置技术规范.md 9.2.3/9.2.4
+  reasoning: B类规则。分级表，决定响应级别与处理需求。
+  workflow_role: 事故类型与等级评估
+- name: AccidentEquipmentRule
+  category: rule
+  summary: 事故装备选型原则(车辆吨位+作业方式→清障/起重/破拆装备)
+  source: 公路交通应急处置技术规范.md 9.3.3
+  reasoning: B类规则。条件→装备映射，指导救援车辆与辅具选择。
+  workflow_role: 装备选型与调度
+- name: AccidentHandlingRule
+  category: rule
+  summary: 事故处理流程规范(事故类型→牵拉/起吊/扶正/拖运步骤)
+  source: 公路交通应急处置技术规范.md 9.3.4
+  reasoning: B类规则。流程映射表，规定各类事故的标准处置顺序。
+  workflow_role: 实施处置与现场恢复
+- name: SafetyDistanceRule
+  category: rule
+  summary: 作业安全距离规范(高压线电压/环境→最小安全距离m)
+  source: 公路交通应急处置技术规范.md 9.3.6
+  reasoning: B类规则。查表获取高压线/恶劣天气下的安全作业阈值。
+  workflow_role: 实施处置与现场恢复
+- name: EventReport
+  category: process
+  summary: 事件上报记录(首报/续报/终报信息链，含时间/地点/措施)
+  source: 公路交通应急处置技术规范.md 5.3
+  reasoning: C类记录。Agent创建，串联信息核实与上报流程。
+  workflow_role: 信息核实与上报
+- name: EventGradingRecord
+  category: process
+  summary: 事件分级记录(判定级别/依据数据/启动预案版本)
+  source: 公路交通应急处置技术规范.md 5.2/5.4
+  reasoning: C类记录。Agent创建，记录分级决策与预案启动依据。
+  workflow_role: 事件分级判定
+- name: PlanActivationRecord
+  category: process
+  summary: 预案启动记录(指挥机构/能力评估/求援状态)
+  source: 公路交通应急处置技术规范.md 5.4
+  reasoning: C类记录。Agent创建，记录指挥体系激活与能力判定。
+  workflow_role: 预案启动与指挥
+- name: ResourceDispatchRecord
+  category: process
+  summary: 资源调度记录(队伍/装备/物资调拨单，含路径/状态)
+  source: 公路交通应急处置技术规范.md 5.5
+  reasoning: C类记录。Agent创建，状态流转(candidate→dispatched→arrived)。
+  workflow_role: 应急资源调度
+- name: ResponseTerminationRecord
+  category: process
+  summary: 处置终止记录(终止条件满足情况/总结评估/整改建议)
+  source: 公路交通应急处置技术规范.md 5.4.5/9.2.6
+  reasoning: C类记录。Agent创建，标记业务流程终点与复盘数据。
+  workflow_role: 处置评估与响应终止
+- name: ReconReport
+  category: process
+  summary: 应急侦测报告(宏观遥感/无人机/现场初勘数据汇总)
+  source: 公路交通应急处置技术规范.md 4.3/4.4
+  reasoning: C类记录。Agent创建，串联侦测与调查环节。
+  workflow_role: 现场应急侦测
+- name: SubgradeAssessmentRecord
+  category: process
+  summary: 路基路面评估表(损毁等级/通行建议/处治措施/照片编号)
+  source: 公路交通应急处置技术规范.md 附录1
+  reasoning: C类记录。Agent创建，记录现场调查与评估结论。
+  workflow_role: 应急调查与评估
+- name: ClearancePlan
+  category: process
+  summary: 抢通方案记录(技术选型/施工步骤/状态流转candidate→completed)
+  source: 公路交通应急处置技术规范.md 6.4
+  reasoning: C类记录。Agent创建，串联方案制定与实施全过程。
+  workflow_role: 抢通技术选用与实施
+- name: TrafficControlRecord
+  category: process
+  summary: 交通管制记录(管制措施/实施时间/解除条件/责任人)
+  source: 公路交通应急处置技术规范.md 6.3
+  reasoning: C类记录。Agent创建，记录管制执行与状态变更。
+  workflow_role: 交通管制与次生监测
+- name: SecondaryDisasterMonitorRecord
+  category: process
+  summary: 次生灾害监测记录(巡查频次/变形数据/预警触发/处置)
+  source: 公路交通应急处置技术规范.md 6.4.1
+  reasoning: C类记录。Agent创建，记录持续监测与预警响应。
+  workflow_role: 交通管制与次生监测
+- name: BridgeInspectionRecord
+  category: process
+  summary: 桥涵调查记录(重点部位检查清单/影像/初步判定)
+  source: 公路交通应急处置技术规范.md 7.1
+  reasoning: C类记录。Agent创建，记录现场踏勘与抵近调查数据。
+  workflow_role: 桥涵应急侦测与调查
+- name: BridgeAssessmentRecord
+  category: process
+  summary: 桥涵评估表(稳定性/承载力/通行能力综合评级/通行结论)
+  source: 公路交通应急处置技术规范.md 附录2
+  reasoning: C类记录。Agent创建，记录最差构件打分法评估结果。
+  workflow_role: 桥涵应急评估
+- name: BridgeClearancePlan
+  category: process
+  summary: 桥涵抢通方案(便桥/修复/加固方案/实施记录/状态流转)
+  source: 公路交通应急处置技术规范.md 7.3
+  reasoning: C类记录。Agent创建，串联方案制定与施工实施。
+  workflow_role: 抢通方案制定与实施
+- name: BridgeConstructionMonitorRecord
+  category: process
+  summary: 施工监测记录(应力/位移监测/超限处置/永久加固进度)
+  source: 公路交通应急处置技术规范.md 7.3.4/7.3.14
+  reasoning: C类记录。Agent创建，记录抢通期监测与加固状态。
+  workflow_role: 施工监测与永久加固
+- name: TunnelReconReport
+  category: process
+  summary: 隧道侦测报告(洞口/洞身/气体/火灾初勘数据/疏散状态)
+  source: 公路交通应急处置技术规范.md 8.2
+  reasoning: C类记录。Agent创建，记录应急侦测与疏散执行。
+  workflow_role: 应急疏散与侦测
+- name: TunnelAssessmentReport
+  category: process
+  summary: 隧道评估报告(重要等级/风险等级/难度评级/综合结论)
+  source: 公路交通应急处置技术规范.md 8.3
+  reasoning: C类记录。Agent创建，记录多维评估矩阵计算结果。
+  workflow_role: 隧道应急评估
+- name: TunnelTargetDecision
+  category: process
+  summary: 抢通目标决策(目标等级/通行限界/改道方案/调整记录)
+  source: 公路交通应急处置技术规范.md 8.4
+  reasoning: C类记录。Agent创建，记录目标判定与动态调整。
+  workflow_role: 确定抢通目标
+- name: TunnelClearanceRecord
+  category: process
+  summary: 隧道抢通实施记录(支护/排水/通风/灭火作业/状态流转)
+  source: 公路交通应急处置技术规范.md 8.5
+  reasoning: C类记录。Agent创建，串联抢通实施与动态监测。
+  workflow_role: 抢通实施与监测
+- name: AccidentInspectionRecord
+  category: process
+  summary: 事故调查记录(现场警戒/危化品探测/环境评估/防护配置)
+  source: 公路交通应急处置技术规范.md 9.1
+  reasoning: C类记录。Agent创建，记录现场初勘与安全评估。
+  workflow_role: 事故信息收集与现场警戒
+- name: AccidentLevelRecord
+  category: process
+  summary: 事故等级评估(伤亡/损失/响应等级/处理需求判定)
+  source: 公路交通应急处置技术规范.md 9.2
+  reasoning: C类记录。Agent创建，记录分级与响应级别决策。
+  workflow_role: 事故类型与等级评估
+- name: AccidentEquipmentDispatch
+  category: process
+  summary: 装备调度记录(清障/起重/破拆装备调拨/到位状态)
+  source: 公路交通应急处置技术规范.md 9.3.3
+  reasoning: C类记录。Agent创建，记录装备选型与调度执行。
+  workflow_role: 装备选型与调度
+- name: AccidentHandlingRecord
+  category: process
+  summary: 事故处置作业记录(牵拉/起吊/扶正/拖运执行/现场恢复)
+  source: 公路交通应急处置技术规范.md 9.3.4~9.3.7
+  reasoning: C类记录。Agent创建，串联处置步骤与恢复交接。
+  workflow_role: 实施处置与现场恢复
+- name: DetourPlanRecord
+  category: process
+  summary: 绕行分流方案记录(替代路线/管制措施/信息发布/状态)
+  source: 公路交通应急处置技术规范.md 8.4.5
+  reasoning: C类记录。Agent创建，记录改道决策与执行状态。
+  workflow_role: 确定抢通目标
+maybe_attributes:
+- name: EquipmentClassification
+  reason: 装备分类(通用/专用/土方/破碎/桩工等)是静态字典，随装备库存动态变化，适合作为EquipmentStock的枚举属性。
+  suggested_parent: EquipmentStock
+- name: MaterialType
+  reason: 物资分类(融雪剂/编织袋/水泥/防护装备等)是静态字典，适合作为MaterialStock的属性，无需独立查询。
+  suggested_parent: MaterialStock
+- name: CommNetworkTopology
+  reason: 通信网络拓扑(公网/专网/卫星/5G)是支撑工具配置，无独立业务查询场景，归为Organization或EquipmentStock属性。
+  suggested_parent: Organization
+- name: PowerSupplyLevel
+  reason: 电力保障分级(I级/II级)是作业环境条件，随处置过程动态判定，适合作为ClearancePlan或TunnelClearanceRecord的属性。
+  suggested_parent: ClearancePlan
+- name: DataAccuracyRequirement
+  reason: 数据保障准确度与时效要求(85%/10分钟)是系统配置参数，非业务规则表，放入函数hint或系统配置。
+  suggested_parent: SystemConfig
+- name: DronePayloadType
+  reason: 无人机载荷类型(光学/红外/激光/气体)是装备能力描述，作为EquipmentStock或ReconReport的属性更合理。
+  suggested_parent: EquipmentStock
+- name: AccidentVehicleWeight
+  reason: 事故车辆吨位是动态现场数据，用于装备选型计算，作为AccidentEvent或AccidentHandlingRecord的属性。
+  suggested_parent: AccidentEvent

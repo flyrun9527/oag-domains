@@ -1,0 +1,201 @@
+links:
+- name: road_segment_has_damage_grade_standard
+  source: RoadSegment
+  target: RoadDamageGradeStandard
+  source_key: damage_grade
+  target_key: grade
+  description: 公路路段的受损程度等级引用路基路面受损程度分级标准。技术定义：RoadSegment 的 damage_grade 字段（如 I级,
+    II级, III级）对应 RoadDamageGradeStandard 的 grade 字段。
+  source_doc: 公路交通应急处置技术规范.md 6.2
+- name: road_segment_has_traffic_control_rule
+  source: RoadSegment
+  target: TrafficControlRule
+  source_key: damage_grade
+  target_key: damage_grade
+  description: 公路路段根据受损等级确定交通管制措施规则。技术定义：RoadSegment 的 damage_grade 字段对应 TrafficControlRule
+    的 damage_grade 字段，从而确定 control_measure。
+  source_doc: 公路交通应急处置技术规范.md 6.3
+- name: bridge_has_damage_stability_standard
+  source: Bridge
+  target: BridgeDamageGradeStandard
+  source_key: damage_stability_grade
+  target_key: grade
+  description: 桥梁的整体稳定性损伤等级引用桥涵受损程度分级标准。技术定义：Bridge 的 damage_stability_grade 字段对应
+    BridgeDamageGradeStandard 的 grade 字段，且 dimension 为 '整体稳定性'。
+  source_doc: 公路交通应急处置技术规范.md 7.2
+- name: bridge_has_damage_capacity_standard
+  source: Bridge
+  target: BridgeDamageGradeStandard
+  source_key: damage_capacity_grade
+  target_key: grade
+  description: 桥梁的承载能力损伤等级引用桥涵受损程度分级标准。技术定义：Bridge 的 damage_capacity_grade 字段对应 BridgeDamageGradeStandard
+    的 grade 字段，且 dimension 为 '承载能力'。
+  source_doc: 公路交通应急处置技术规范.md 7.2
+- name: bridge_has_damage_passability_standard
+  source: Bridge
+  target: BridgeDamageGradeStandard
+  source_key: damage_passability_grade
+  target_key: grade
+  description: 桥梁的通行能力损伤等级引用桥涵受损程度分级标准。技术定义：Bridge 的 damage_passability_grade 字段对应
+    BridgeDamageGradeStandard 的 grade 字段，且 dimension 为 '通行能力'。
+  source_doc: 公路交通应急处置技术规范.md 7.2
+- name: bridge_has_clearance_technique_rule
+  source: Bridge
+  target: ClearanceTechniqueRule
+  source_key: damage_type
+  target_key: disaster_type
+  description: 桥梁根据灾损类型确定抢通技术规则。技术定义：Bridge 的灾损类型（需补充字段或从上下文推断）对应 ClearanceTechniqueRule
+    的 disaster_type，且 facility_type 为 '桥梁'。
+  source_doc: 公路交通应急处置技术规范.md 7.3
+- name: tunnel_has_importance_level_standard
+  source: Tunnel
+  target: TunnelImportanceLevel
+  source_key: importance_level
+  target_key: level
+  description: 隧道的重要等级引用隧道重要等级分级表。技术定义：Tunnel 的 importance_level 字段对应 TunnelImportanceLevel
+    的 level 字段。
+  source_doc: 公路交通应急处置技术规范.md 8.3
+- name: tunnel_has_clearance_difficulty_matrix
+  source: Tunnel
+  target: TunnelClearanceDifficultyMatrix
+  source_key: clearance_difficulty
+  target_key: difficulty_level
+  description: 隧道的抢通难度引用隧道抢通难度矩阵。技术定义：Tunnel 的 clearance_difficulty 字段对应 TunnelClearanceDifficultyMatrix
+    的 difficulty_level 字段。
+  source_doc: 公路交通应急处置技术规范.md 8.3
+- name: tunnel_has_clearance_target_matrix
+  source: Tunnel
+  target: TunnelClearanceTargetMatrix
+  source_key: clearance_target_level
+  target_key: target_level
+  description: 隧道的抢通目标等级引用隧道抢通目标矩阵。技术定义：Tunnel 的 clearance_target_level 字段对应 TunnelClearanceTargetMatrix
+    的 target_level 字段。
+  source_doc: 公路交通应急处置技术规范.md 8.4
+- name: tunnel_has_clearance_technique_rule
+  source: Tunnel
+  target: ClearanceTechniqueRule
+  source_key: disaster_type
+  target_key: disaster_type
+  description: 隧道根据灾害类型确定抢通技术规则。技术定义：Tunnel 的 disaster_type 字段对应 ClearanceTechniqueRule
+    的 disaster_type，且 facility_type 为 '隧道'。
+  source_doc: 公路交通应急处置技术规范.md 8.5
+- name: emergency_event_has_level_standard
+  source: EmergencyEvent
+  target: EventLevelStandard
+  source_key: event_level
+  target_key: level
+  description: 突发事件的级别引用公路交通突发事件分级标准。技术定义：EmergencyEvent 的 event_level 字段对应 EventLevelStandard
+    的 level 字段。
+  source_doc: 公路交通应急处置技术规范.md 5.2
+- name: emergency_event_has_material_allocation_rule
+  source: EmergencyEvent
+  target: MaterialAllocationRule
+  source_key: event_type
+  target_key: disaster_type
+  description: 突发事件根据类型确定应急物资分配规则。技术定义：EmergencyEvent 的 event_type 字段（如 '冰雪及其次生灾害'）对应
+    MaterialAllocationRule 的 disaster_type 字段（如 '冰雪'）。
+  source_doc: 公路交通应急处置技术规范.md 10.3
+- name: emergency_event_has_equipment_selection_rule
+  source: EmergencyEvent
+  target: EquipmentSelectionRule
+  source_key: event_type
+  target_key: scenario
+  description: 突发事件根据类型确定应急装备选型规则。技术定义：EmergencyEvent 的 event_type 字段对应 EquipmentSelectionRule
+    的 scenario 字段（如 '抢通'）。
+  source_doc: 公路交通应急处置技术规范.md 10.2
+- name: accident_handling_record_has_accident_type
+  source: AccidentHandlingRecord
+  target: AccidentType
+  source_key: accident_type
+  target_key: type_name
+  description: 事故处理记录引用道路交通事故类型定义。技术定义：AccidentHandlingRecord 的 accident_type 字段对应
+    AccidentType 的 type_name 字段。
+  source_doc: 公路交通应急处置技术规范.md 9.2
+- name: accident_handling_record_has_handling_time_rule
+  source: AccidentHandlingRecord
+  target: AccidentHandlingTimeRule
+  source_key: accident_level
+  target_key: accident_level
+  description: 事故处理记录根据事故等级引用应急处理时限规则。技术定义：AccidentHandlingRecord 的 accident_level
+    字段对应 AccidentHandlingTimeRule 的 accident_level 字段。
+  source_doc: 公路交通应急处置技术规范.md 9.2
+- name: accident_handling_record_has_accident_level_standard
+  source: AccidentHandlingRecord
+  target: AccidentLevelStandard
+  source_key: accident_level
+  target_key: level
+  description: 事故处理记录引用道路交通事故等级标准。技术定义：AccidentHandlingRecord 的 accident_level 字段对应
+    AccidentLevelStandard 的 level 字段。
+  source_doc: 公路交通应急处置技术规范.md 9.2
+- name: equipment_stock_belongs_to_emergency_depot
+  source: EquipmentStock
+  target: EmergencyDepot
+  source_key: depot_id
+  target_key: depot_id
+  description: 应急装备库存记录属于某个应急物资储备点。技术定义：EquipmentStock 的 depot_id 字段对应 EmergencyDepot
+    的 depot_id 字段。
+  source_doc: 公路交通应急处置技术规范.md 10.2
+- name: material_stock_belongs_to_emergency_depot
+  source: MaterialStock
+  target: EmergencyDepot
+  source_key: depot_id
+  target_key: depot_id
+  description: 应急物资库存记录属于某个应急物资储备点。技术定义：MaterialStock 的 depot_id 字段对应 EmergencyDepot
+    的 depot_id 字段。
+  source_doc: 公路交通应急处置技术规范.md 10.3
+- name: equipment_stock_has_equipment_category
+  source: EquipmentStock
+  target: EquipmentCategory
+  source_key: equipment_type
+  target_key: type_name
+  description: 应急装备库存记录引用应急处置装备分类定义。技术定义：EquipmentStock 的 equipment_type 字段对应 EquipmentCategory
+    的 type_name 字段。
+  source_doc: 公路交通应急处置技术规范.md 10.2
+- name: rescue_team_has_communication_device
+  source: RescueTeam
+  target: CommunicationDevice
+  source_key: communication_equipment
+  target_key: device_name
+  description: 应急救援队伍配备应急通信设备。技术定义：RescueTeam 的 communication_equipment 字段对应 CommunicationDevice
+    的 device_name 字段。
+  source_doc: 公路交通应急处置技术规范.md 10.4
+- name: facility_inspection_has_monitoring_record
+  source: FacilityInspection
+  target: MonitoringRecord
+  source_key: inspection_method
+  target_key: monitoring_method
+  description: 设施应急调查记录关联监测巡查记录。技术定义：FacilityInspection 的 inspection_method 字段对应 MonitoringRecord
+    的 monitoring_method 字段。
+  source_doc: 公路交通应急处置技术规范.md 8.5
+- name: facility_assessment_has_secondary_disaster_risk_standard
+  source: FacilityAssessment
+  target: SecondaryDisasterRiskStandard
+  source_key: risk_level
+  target_key: risk_grade
+  description: 设施应急评估记录引用次生灾害风险等级标准。技术定义：FacilityAssessment 的 risk_level 字段对应 SecondaryDisasterRiskStandard
+    的 risk_grade 字段。
+  source_doc: 公路交通应急处置技术规范.md 8.3
+- name: clearance_plan_has_clearance_technique_rule
+  source: ClearancePlan
+  target: ClearanceTechniqueRule
+  source_key: plan_type
+  target_key: recommended_technique
+  description: 抢通方案引用抢通技术选用规则。技术定义：ClearancePlan 的 plan_type 字段对应 ClearanceTechniqueRule
+    的 recommended_technique 字段。
+  source_doc: 公路交通应急处置技术规范.md 6.4, 7.3, 8.5
+- name: traffic_control_has_traffic_control_rule
+  source: TrafficControl
+  target: TrafficControlRule
+  source_key: control_type
+  target_key: control_measure
+  description: 交通管制执行记录引用交通管制措施规则。技术定义：TrafficControl 的 control_type 字段对应 TrafficControlRule
+    的 control_measure 字段。
+  source_doc: 公路交通应急处置技术规范.md 6.3
+- name: tunnel_damage_assessment_has_tunnel_importance_level
+  source: TunnelDamageAssessment
+  target: TunnelImportanceLevel
+  source_key: condition_class
+  target_key: level
+  description: 隧道技术状况评定引用隧道重要等级分级表。技术定义：TunnelDamageAssessment 的 condition_class 字段（如
+    1~3类）对应 TunnelImportanceLevel 的 level 字段（如 一级）。
+  source_doc: 公路交通应急处置技术规范.md 8.2
