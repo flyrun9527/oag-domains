@@ -144,7 +144,10 @@ objects:
     mutability: append_only
     summary: "接入申请(新装/临时)"
     description: |
-      高压新装或临时用电申请。search_sources 从此类申请的坐标出发搜索电源点。
+      高压新装或临时用电申请。
+      流程: 确认申请→确定电源结构→搜索电源点→筛选→组合方案→评分→输出。
+      单路容量=capacity_kva/电源路数(单电源1路、双电源/双回路2路、多电源3路)。
+      如果 force_new_feeder=1 或单路容量≥5000kVA，应直接走 new_feeder，不走 search_sources。
       增容申请请用 ExpandRequest。
     properties:
       request_id: {type: str, required: true, description: "申请编号"}
@@ -408,26 +411,34 @@ functions:
     description: |
       以用户受电点为中心扩散搜索电源点(200→500→800→1000m)，直到找到5条不同线路(spec第三章第1条)。
       仅适用于 AccessRequest(新装/临时)。增容请用 ExpandRequest 流程，跳过此步骤。
+      注意: 如果 force_new_feeder=1 或单路容量≥5000kVA，应直接调用 new_feeder 而非此函数。
+      单路容量 = capacity_kva / 电源路数(单电源1路、双电源/双回路2路、多电源3路)。
     group: "方案设计"
-    function_type: business
-    writes_to: [AccessPoint]
+    function_type: get
     hint: |
       扩散策略(spec第三章第1条):
       从200米开始，按200→500→800→1000递增搜索。
       目标: 找到5条不同线路的电源点。
       双电源要求: 至少2条线路来自不同变电站或同一变电站两段母线;
       双回路要求: 至少2条线路来自不同母线;
+      多电源(3路含应急): 按双电源逻辑找2路主供+1路应急(来自第三个独立变电站或母线);
       单电源: 满足5条不同线路即可。
       若指定了 preferred_point_types，仅返回指定类型的电源点。
+      搜索完成后用返回的 point_ids 调用 filter_sources 进行硬约束筛选。
     params:
       request_id: {type: str, description: "申请编号(AccessRequest)"}
       point_types: {type: str, default: "", description: "指定设备类型过滤: 杆塔/开关站/环网柜(逗号分隔，可选)"}
 
   filter_sources:
     summary: "套用7条硬约束筛选电源点"
-    description: "对候选电源点套用配网3号文等7条硬约束(F1-F7)筛选。"
+    description: |
+      对候选电源点套用配网3号文等7条硬约束(F1-F7)筛选。
+      新装场景: point_ids 传 search_sources 返回的 point_ids，per_path_capacity_kva 传单路接入容量。
+      增容场景: point_ids 传 ExpandRequest.original_point_id，per_path_capacity_kva 传增容后总容量。
+      单路接入容量 = capacity_kva / 电源路数(单电源1路、双电源/双回路2路、多电源3路)。
+      筛选完成后: 有通过的→调 compose_plans; 全部失败→看失败原因调 transfer_feeder_load/transfer_transformer_load/new_feeder。
     group: "方案设计"
-    function_type: business
+    function_type: get
     hint: |
       7条硬约束(spec第三章):
       F1: 馈线历史最大负载率<80%
@@ -462,7 +473,7 @@ functions:
       - {object: AccessPlan, field: status, set_to: "candidate"}
     params:
       request_id: {type: str, description: "申请编号"}
-      source_structure: {type: str, description: "电源结构: 单电源/双电源/双回路"}
+      source_structure: {type: str, description: "电源结构: 单电源/双电源/双回路/多电源(3路含应急)。多电源按双电源逻辑组合2路主供+1路应急"}
 
   score_plans:
     summary: "三维加权评分(距离40%+容量30%+可靠性30%)"
@@ -472,6 +483,7 @@ functions:
       运行方式: 同时供电互为备用100/同时供电90/一主一备80/一路主供70。
     group: "方案设计"
     function_type: business
+    writes_to: [AccessPlan]
     preconditions:
       - {object: AccessPlan, field: status, operator: eq, value: "candidate"}
     effects:
@@ -494,6 +506,7 @@ functions:
       每种至少保留1套评分最高的，总计≤10套。
     group: "方案设计"
     function_type: business
+    writes_to: [AccessPlan]
     preconditions:
       - {object: AccessPlan, field: status, operator: eq, value: "scored"}
     effects:
@@ -547,7 +560,10 @@ functions:
   # ----- 申请管理 -----
   get_request:
     summary: "查询接入申请详情"
-    description: "查询申请详情。同时搜索 AccessRequest 和 ExpandRequest，返回含 request_type 字段。"
+    description: |
+      查询申请详情。同时搜索 AccessRequest 和 ExpandRequest，返回含 request_type 字段。
+      AccessRequest(新装/临时): 后续走 search_sources→filter_sources→compose_plans 流程。
+      ExpandRequest(增容): 跳过 search_sources，直接用 original_point_id 调 filter_sources。
     group: "申请管理"
     function_type: get
     params:
@@ -585,12 +601,12 @@ workflows:
     steps:
       - name: 确认申请
         function: get_request
-        description: "查看申请详情，确认容量、等级、业务类型"
+        description: "查看申请详情，确认容量、等级、业务类型。计算单路容量=capacity_kva/电源路数"
         next: 确定电源结构
       - name: 确定电源结构
         function: lookup_source_requirement
         description: "根据负荷等级和重要性确定电源结构要求"
-        next: 搜索电源点
+        next: {force_new_feeder=1或单路≥5000kVA: 新出线, 常规: 搜索电源点}
       - name: 搜索电源点
         function: search_sources
         description: "从用户位置扩散搜索，找到5条不同线路的电源点"

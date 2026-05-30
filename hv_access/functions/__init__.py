@@ -25,6 +25,7 @@ DATA_FILES = {
 
 
 def _haversine(lng1, lat1, lng2, lat2):
+    lng1, lat1, lng2, lat2 = float(lng1), float(lat1), float(lng2), float(lat2)
     R = 6371000
     dlat = math.radians(lat2 - lat1)
     dlng = math.radians(lng2 - lng1)
@@ -56,9 +57,10 @@ def _get_request(store: Store, request_id: str = "", **kw) -> dict:
 
 
 def _get_access_points(store: Store, lng: float = 0, lat: float = 0, radius_m: float = 1000, **kw) -> list:
+    lng, lat, radius_m = float(lng), float(lat), float(radius_m)
     results = []
     for row in store.query("AccessPoint"):
-        dist = _haversine(lng, lat, row.get("lng", 0), row.get("lat", 0))
+        dist = _haversine(lng, lat, float(row.get("lng", 0)), float(row.get("lat", 0)))
         if dist <= radius_m:
             row["distance_m"] = round(dist, 1)
             results.append(row)
@@ -119,11 +121,21 @@ def _search_sources(store: Store, request_id: str = "", point_types: str = "", *
             break
 
     found.sort(key=lambda x: x.get("distance_m", 9999))
+    max_searched = radii[-1]
+    for r in radii:
+        if len(found_feeders) >= 5:
+            max_searched = r
+            break
+        max_searched = r
+
     return {
         "request_id": request_id,
-        "search_radius_m": radii[min(len(radii) - 1, radii.index(radius) if radius in radii else 0)] if found else radii[-1],
+        "search_complete": True,
+        "search_radius_m": max_searched,
         "found_points": len(found),
         "distinct_feeders": len(found_feeders),
+        "target_feeders": 5,
+        "point_ids": ",".join(p["point_id"] for p in found),
         "points": found,
     }
 
@@ -133,6 +145,11 @@ def _search_sources(store: Store, request_id: str = "", point_types: str = "", *
 # ============================================================
 
 def _filter_sources(store: Store, request_id: str = "", point_ids: str = "", per_path_capacity_kva: float = 0, **kw) -> dict:
+    per_path_capacity_kva = float(per_path_capacity_kva)
+    if not point_ids:
+        return {"error": "缺少 point_ids 参数。新装场景传 search_sources 返回的接入点ID，增容场景传 ExpandRequest.original_point_id"}
+    if per_path_capacity_kva <= 0:
+        return {"error": "缺少 per_path_capacity_kva 参数。请传入单路接入容量(kVA)，增容场景传增容后总容量"}
     ids = [pid.strip() for pid in point_ids.split(",") if pid.strip()]
     results = []
 

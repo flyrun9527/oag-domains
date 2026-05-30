@@ -773,6 +773,7 @@ functions:
     summary: "综合评估事件等级"
     group: "事件与检查"
     function_type: business
+    writes_to: [DisasterEvent]
     hint: >
       I级: 国家干线阻断24h以上; II级: 阻断12h以上; III级: 阻断6h以上; IV级: 其他
     preconditions:
@@ -1072,6 +1073,7 @@ functions:
     description: "合规检查通过且飞行审批批准后调派无人机"
     group: "无人机侦测"
     function_type: business
+    writes_to: [Drone, ReconMission]
     preconditions:
       - {object: ComplianceCheck, field: overall_result, operator: eq, value: "通过"}
       - {object: FlightApproval, field: approval_status, operator: eq, value: "已批准"}
@@ -1106,7 +1108,7 @@ functions:
   intensify_patrol:
     summary: "加密巡检(预警触发)"
     group: "预警与防御"
-    function_type: business
+    function_type: get
     params:
       warning_id: {type: str, description: "预警编号"}
 

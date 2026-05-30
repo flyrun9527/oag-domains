@@ -439,7 +439,7 @@ functions:
   release_subsystems:
     summary: "释放分系统服务预约"
     group: "任务管理"
-    function_type: business
+    function_type: get
     params:
       mission_id: {type: str, description: "发射任务编号"}
 
@@ -548,7 +548,7 @@ functions:
       1. 中子屏蔽门锁闭; 2. 人员计数归零; 3. 钛泵/靶室真空度正常。
       不满足任一条件则不允许进入/继续发射流程。
     group: "安全联锁"
-    function_type: business
+    function_type: get
     params:
       mission_id: {type: str, description: "发射任务编号"}
 

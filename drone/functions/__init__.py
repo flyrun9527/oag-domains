@@ -36,6 +36,7 @@ DATA_FILES = {
 
 
 def _haversine(lng1, lat1, lng2, lat2):
+    lng1, lat1, lng2, lat2 = float(lng1), float(lat1), float(lng2), float(lat2)
     R = 6371
     dlat = math.radians(lat2 - lat1)
     dlng = math.radians(lng2 - lng1)
