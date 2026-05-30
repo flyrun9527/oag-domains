@@ -1,0 +1,745 @@
+name: icf
+description: "GXLF激光发射集中管控系统。覆盖发射任务管理、运行配方管理、发射准备/正式发射/后处理全流程控制、分系统协调、安全联锁与异常处理。60束线并行控制，16类分系统对接。"
+
+objects:
+  # ============================================================
+  # 物理设备与分系统（外部受控设备）
+  # ============================================================
+
+  Subsystem:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "分系统/组件(受控设备)"
+    description: "受控分系统或组件。通过 Tango/HTTP 接口交互。请用 get_subsystem 查询。"
+    properties:
+      subsystem_id: {type: str, required: true, description: "分系统编号"}
+      name: {type: str, description: "分系统名称"}
+      subsystem_type: {type: str, description: "类型: 光纤种子源/二倍频/再生双程/多程放大/泵浦/测量取样/频率转换/靶瞄/真空靶室/物理诊断/同步/开关驱动源/冷却/控制环境/屏蔽门/人员计数"}
+      instance_count: {type: int, description: "实例数量"}
+      interface_type: {type: str, description: "接口类型: Tango/HTTP/待定"}
+      service_status: {type: str, description: "服务状态: 正常/异常/离线"}
+      reservation_status: {type: str, description: "预约状态: 空闲/已预约/占用"}
+
+  BeamLine:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "束线(共60条)"
+    description: |
+      激光束线。共60条，各分系统按束线编号独立控制。
+      固定8条束线可选择种子源光或二倍频光，其余仅可出种子源光。
+    properties:
+      beam_id: {type: str, required: true, description: "束线编号(1-60)"}
+      light_source: {type: str, description: "光源类型: 种子源光/二倍频光"}
+      can_use_doublefreq: {type: int, description: "可选二倍频: 1=是 0=否(仅8条)"}
+      status: {type: str, description: "状态: 空闲/出光/闭环/充电/已触发/待机"}
+
+  ShieldDoor:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "中子屏蔽门"
+    description: "靶场中子屏蔽门。安全联锁的核心对象，发射前必须锁闭，后处理后打开。"
+    properties:
+      door_id: {type: str, required: true, description: "屏蔽门编号"}
+      location: {type: str, description: "位置: 靶场/能库"}
+      status: {type: str, description: "状态: 开启/关闭/锁定"}
+
+  PersonnelCounter:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "人员进出计数器"
+    description: "靶场/能库人员进出计数。安全联锁要求人员计数归零。"
+    properties:
+      counter_id: {type: str, required: true, description: "计数器编号"}
+      location: {type: str, description: "位置: 靶场/能库"}
+      current_count: {type: int, description: "当前场内人数"}
+      last_update: {type: str, description: "最后更新时间"}
+
+  VacuumStatus:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "真空/钛泵状态"
+    description: "多程放大系统钛泵和靶室真空度。安全联锁监测对象。"
+    properties:
+      device_id: {type: str, required: true, description: "设备编号"}
+      device_type: {type: str, description: "类型: 钛泵/靶室真空"}
+      vacuum_level: {type: float, description: "真空度(Pa)"}
+      is_normal: {type: int, description: "是否正常: 1=是 0=否"}
+
+  # ============================================================
+  # 任务与配方管理（业务对象）
+  # ============================================================
+
+  LaunchMission:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "发射任务(一次发射的全生命周期)"
+    description: |
+      一次激光发射任务实例。从参数下发到后处理结束的完整生命周期。
+      发射准备约31.5min，正式发射约3.5min，后处理约25min。
+      上游前置业务(任务创建/发布/参数生成/配方生成)不在本流程范围内。
+    status_transitions:
+      参数下发中: [发射准备中, 已终止]
+      发射准备中: [发射准备完成, 已终止]
+      发射准备完成: [正式发射准备中]
+      正式发射准备中: [发射充电中, 已终止]
+      发射充电中: [触发中, 已终止]
+      触发中: [正式发射完成, 已终止]
+      正式发射完成: [后处理中]
+      后处理中: [预电离中, 已完成]
+      预电离中: [已完成, 已终止]
+    properties:
+      mission_id: {type: str, required: true, description: "发射任务编号"}
+      shot_number: {type: str, description: "发次编号"}
+      phase_number: {type: str, description: "阶段编号"}
+      recipe_id: {type: str, description: "运行配方编号(上游加载)"}
+      status: {type: str, description: "任务状态"}
+      safety_interlock: {type: str, description: "安全联锁状态: 正常/触发"}
+      active_beam_ids: {type: str, description: "本次参与的束线编号(逗号分隔，最多60)"}
+      start_time: {type: str, description: "开始时间"}
+      end_time: {type: str, description: "结束时间"}
+      total_energy_j: {type: float, description: "本次发射总能量(J，后处理采集)"}
+
+  FlowNode:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "流程节点执行记录"
+    description: |
+      单个流程节点的执行记录。每个节点对应一条控制指令下发及结果。
+      节点执行前需检查: 前置节点完成、分系统服务正常、安全联锁正常。
+      节点超过预期时长未响应应判定为超时失败。
+    status_transitions:
+      pending: [executing, skipped]
+      executing: [completed, failed, timeout]
+      failed: [pending]
+    properties:
+      node_id: {type: str, required: true, description: "节点记录编号"}
+      mission_id: {type: str, description: "关联发射任务编号"}
+      node_name: {type: str, description: "节点名称"}
+      phase: {type: str, description: "所属阶段: 发射准备/正式发射/后处理/预电离"}
+      subsystem_type: {type: str, description: "对接分系统类型"}
+      command: {type: str, description: "控制指令"}
+      call_mode: {type: str, description: "调用方式: 同步/异步"}
+      beam_ids: {type: str, description: "涉及束线编号(逗号分隔)"}
+      input_params: {type: str, description: "输入参数(JSON)"}
+      output_status: {type: int, description: "输出状态: 0=失败 1=收到 2=无服务权限"}
+      expected_duration_s: {type: int, description: "预期执行时长(秒)"}
+      actual_duration_s: {type: int, description: "实际执行时长(秒)"}
+      preconditions_met: {type: str, description: "前置条件检查结果"}
+      status: {type: str, description: "状态: pending/executing/completed/failed/timeout/skipped"}
+      error_message: {type: str, description: "错误信息"}
+      start_time: {type: str, description: "开始执行时间"}
+      end_time: {type: str, description: "执行完成时间"}
+
+  ReadinessCheck:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "准备就绪检查(AND汇合点)"
+    description: |
+      发射准备完成的AND汇合检查(文档第6.22节)。全部9项必须就绪:
+      1.诊断设备发射准备 2.测量打靶运动准备 3.靶瞄打靶状态
+      4.光路准直完成 5.种子源/二倍频出光 6.预放唤醒+能量闭环
+      7.各系统服务正常 8.安全联锁正常 9.泵浦发射准备。
+    properties:
+      check_id: {type: str, required: true, description: "检查编号"}
+      mission_id: {type: str, description: "关联发射任务编号"}
+      diagnostics_ready: {type: int, description: "诊断设备准备: 1=就绪 0=未就绪"}
+      measurement_ready: {type: int, description: "测量打靶准备: 1=就绪 0=未就绪"}
+      target_ready: {type: int, description: "靶瞄打靶状态: 1=就绪 0=未就绪"}
+      alignment_ready: {type: int, description: "光路准直: 1=就绪 0=未就绪"}
+      light_source_ready: {type: int, description: "出光状态: 1=就绪 0=未就绪"}
+      preamplifier_ready: {type: int, description: "预放+闭环: 1=就绪 0=未就绪"}
+      services_ready: {type: int, description: "各系统服务: 1=正常 0=异常"}
+      interlock_ready: {type: int, description: "安全联锁: 1=正常 0=异常"}
+      pump_ready: {type: int, description: "泵浦准备: 1=就绪 0=未就绪"}
+      all_ready: {type: int, description: "全部就绪: 1=是 0=否"}
+      check_time: {type: str, description: "检查时间"}
+
+  SafetyInterlockEvent:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "安全联锁事件"
+    description: |
+      安全联锁触发/解除记录(文档第3节)。
+      进入条件: 中子屏蔽门锁闭、人员计数归零、钛泵/靶室真空度正常。
+      触发源: 人员被困触发紧急停机、钛泵/靶室真空度异常、视频监控发现隐患。
+      触发后: 向所有分系统下发流程终止指令，中子屏蔽门解除锁定，警灯警报触发。
+      解除条件: 中子屏蔽门解除锁闭、警灯/警报解除、语音播报本次实验结束。
+    status_transitions:
+      触发: [已解除]
+    properties:
+      event_id: {type: str, required: true, description: "事件编号"}
+      mission_id: {type: str, description: "关联发射任务编号"}
+      trigger_type: {type: str, description: "触发类型: 人工紧急停机/真空度异常/视频监控发现隐患"}
+      trigger_time: {type: str, description: "触发时间"}
+      resolve_time: {type: str, description: "解除时间"}
+      affected_subsystems: {type: str, description: "已下发终止指令的分系统(逗号分隔)"}
+      status: {type: str, description: "状态: 触发/已解除"}
+
+  EmergencyAction:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "紧急操作记录"
+    description: |
+      异常处理操作记录(文档第3节)。四种场景:
+      紧急停车: 同步触发5秒倒计时内突发异常，向同步下发紧急触发指令;
+      紧急触发: 同步触发时未能触发，向同步下发紧急触发指令;
+      紧急泄放: 泵浦发射充电或预电离充电完成后未能触发，向泵浦下发紧急泄放指令;
+      紧急停充: 泵浦发射充电或预电离充电过程中突发异常，向泵浦下发紧急停充指令。
+    properties:
+      action_id: {type: str, required: true, description: "操作编号"}
+      mission_id: {type: str, description: "关联发射任务编号"}
+      action_type: {type: str, description: "操作类型: 紧急停车/紧急触发/紧急泄放/紧急停充"}
+      target_subsystem: {type: str, description: "目标分系统: 同步分系统/泵浦分系统"}
+      trigger_reason: {type: str, description: "触发原因"}
+      result: {type: str, description: "操作结果"}
+      action_time: {type: str, description: "操作时间"}
+
+  EnergyMeasurement:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "能量测量数据"
+    description: "发射后的能量数据采集结果。包括预放能量、主放能量等。"
+    properties:
+      measurement_id: {type: str, required: true, description: "测量编号"}
+      mission_id: {type: str, description: "关联发射任务编号"}
+      beam_id: {type: str, description: "束线编号"}
+      measurement_type: {type: str, description: "类型: 能量粗闭环/能量精闭环/发射后能量采集"}
+      target_energy_j: {type: float, description: "目标能量(J)"}
+      actual_energy_j: {type: float, description: "实际能量(J)"}
+      deviation_pct: {type: float, description: "偏差百分比"}
+      timestamp: {type: str, description: "采集时间"}
+
+  LaserParameterData:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "激光参数采集数据"
+    description: "发射后的激光参数采集结果。包括种子源/二倍频/测量取样的激光参数。"
+    properties:
+      data_id: {type: str, required: true, description: "数据编号"}
+      mission_id: {type: str, description: "关联发射任务编号"}
+      source_type: {type: str, description: "来源: 种子源/二倍频/测量取样"}
+      beam_id: {type: str, description: "束线编号"}
+      parameters: {type: str, description: "激光参数(JSON)"}
+      timestamp: {type: str, description: "采集时间"}
+
+  ServiceReservation:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "分系统服务预约"
+    description: "每次流程执行前需预约各分系统服务，避免与其他流程产生权限冲突(文档第3节)。"
+    status_transitions:
+      预约中: [已预约, 预约失败]
+      已预约: [已释放]
+    properties:
+      reservation_id: {type: str, required: true, description: "预约编号"}
+      mission_id: {type: str, description: "关联发射任务编号"}
+      subsystem_type: {type: str, description: "分系统类型"}
+      reserved_time: {type: str, description: "预约时间"}
+      release_time: {type: str, description: "释放时间"}
+      status: {type: str, description: "状态: 预约中/已预约/预约失败/已释放"}
+
+  # ============================================================
+  # 配置表（rule_table）
+  # ============================================================
+
+  NodeDefinition:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "流程节点定义(控制指令+参数+时长+前置条件)"
+    description: "全部流程节点的标准定义(文档第6节)。包含对接分系统、控制指令、输入输出参数、调用方式、前置条件和预期执行时长。"
+    properties:
+      node_name: {type: str, required: true, description: "节点名称"}
+      phase: {type: str, description: "所属阶段: 发射准备/正式发射/后处理/预电离"}
+      subsystem_type: {type: str, description: "对接分系统类型"}
+      instance_count: {type: int, description: "对接实例数量"}
+      command: {type: str, description: "控制指令"}
+      input_params: {type: str, description: "输入参数描述"}
+      output_params: {type: str, description: "输出参数描述"}
+      call_mode: {type: str, description: "调用方式: 同步/异步"}
+      preconditions: {type: str, description: "前置条件描述"}
+      expected_duration: {type: str, description: "预期执行时长"}
+
+  FlowEdge:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "流程链路定义(节点间DAG依赖)"
+    description: "定义流程节点之间的前后依赖关系(文档第5节)。用于构建流程DAG，支持并行链路和AND汇合。"
+    properties:
+      edge_id: {type: str, required: true, description: "链路编号"}
+      phase: {type: str, description: "所属阶段: 发射准备/正式发射/后处理/预电离"}
+      from_node: {type: str, description: "源节点名称"}
+      to_node: {type: str, description: "目标节点名称"}
+      condition: {type: str, description: "转移条件(空表示无条件)"}
+      is_and_join: {type: int, description: "是否AND汇合: 1=是(需所有入边完成) 0=否"}
+
+  SubsystemConfig:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "分系统配置清单(16类)"
+    description: "所有对接分系统/组件的配置信息(文档第2节)。"
+    properties:
+      subsystem_type: {type: str, required: true, description: "分系统类型"}
+      name: {type: str, description: "名称"}
+      instance_count: {type: int, description: "实例数量"}
+      interface_type: {type: str, description: "接口类型: Tango/HTTP/待定"}
+      description: {type: str, description: "说明"}
+
+  TimeoutRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "节点超时规则"
+    description: "各节点的超时阈值配置。超过响应时间应判定节点执行失败(文档第3节)。"
+    properties:
+      node_name: {type: str, required: true, description: "节点名称"}
+      timeout_s: {type: int, description: "超时阈值(秒)"}
+      on_timeout: {type: str, description: "超时处理: 重试/标记失败/触发紧急操作"}
+
+  InterlockCondition:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "安全联锁条件表"
+    description: "安全联锁的进入条件、触发条件和解除条件(文档第3节)。"
+    properties:
+      condition_id: {type: str, required: true, description: "条件编号"}
+      condition_type: {type: str, description: "类型: 进入条件/触发条件/解除条件"}
+      description: {type: str, description: "条件描述"}
+      check_target: {type: str, description: "检查对象: 屏蔽门/人员计数/真空度/人工/视频"}
+      is_mandatory: {type: int, description: "是否必须: 1=是 0=否"}
+
+links:
+  mission_has_nodes:
+    source: LaunchMission
+    target: FlowNode
+    join: {source_key: mission_id, target_key: mission_id}
+    link_type: contains
+    cardinality: "1..n"
+    description: 发射任务下的流程节点执行记录
+
+  mission_has_readiness:
+    source: LaunchMission
+    target: ReadinessCheck
+    join: {source_key: mission_id, target_key: mission_id}
+    link_type: contains
+    cardinality: "0..1"
+    description: 发射任务的准备就绪检查
+
+  mission_has_interlock_events:
+    source: LaunchMission
+    target: SafetyInterlockEvent
+    join: {source_key: mission_id, target_key: mission_id}
+    link_type: contains
+    cardinality: "0..n"
+    description: 发射任务的安全联锁事件
+
+  mission_has_emergency_actions:
+    source: LaunchMission
+    target: EmergencyAction
+    join: {source_key: mission_id, target_key: mission_id}
+    link_type: contains
+    cardinality: "0..n"
+    description: 发射任务的紧急操作记录
+
+  mission_has_energy_data:
+    source: LaunchMission
+    target: EnergyMeasurement
+    join: {source_key: mission_id, target_key: mission_id}
+    link_type: contains
+    cardinality: "0..n"
+    description: 发射任务的能量测量数据
+
+  mission_has_laser_data:
+    source: LaunchMission
+    target: LaserParameterData
+    join: {source_key: mission_id, target_key: mission_id}
+    link_type: contains
+    cardinality: "0..n"
+    description: 发射任务的激光参数数据
+
+  mission_has_reservations:
+    source: LaunchMission
+    target: ServiceReservation
+    join: {source_key: mission_id, target_key: mission_id}
+    link_type: contains
+    cardinality: "0..n"
+    description: 发射任务的分系统预约记录
+
+functions:
+  # ----- 设备查询 -----
+  get_subsystem:
+    summary: "查询分系统状态"
+    group: "设备查询"
+    function_type: get
+    params:
+      subsystem_id: {type: str, description: "分系统编号或类型"}
+
+  get_beam_line:
+    summary: "查询束线状态"
+    group: "设备查询"
+    function_type: get
+    params:
+      beam_id: {type: str, description: "束线编号"}
+
+  get_shield_door:
+    summary: "查询屏蔽门状态"
+    group: "设备查询"
+    function_type: get
+    params:
+      door_id: {type: str, description: "屏蔽门编号"}
+
+  get_personnel_count:
+    summary: "查询场内人员数量"
+    group: "设备查询"
+    function_type: get
+    params:
+      location: {type: str, default: "", description: "位置: 靶场/能库(可选)"}
+
+  get_vacuum_status:
+    summary: "查询真空/钛泵状态"
+    group: "设备查询"
+    function_type: get
+    params:
+      device_id: {type: str, default: "", description: "设备编号(可选)"}
+
+  # ----- 任务管理 -----
+  get_mission:
+    summary: "查询发射任务详情"
+    group: "任务管理"
+    function_type: get
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+
+  reserve_subsystems:
+    summary: "预约分系统服务"
+    description: "每次流程执行前需预约各分系统服务，避免权限冲突(文档第3节)。"
+    group: "任务管理"
+    function_type: business
+    writes_to: [ServiceReservation]
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      subsystem_types: {type: str, description: "需预约的分系统类型(逗号分隔)"}
+
+  release_subsystems:
+    summary: "释放分系统服务预约"
+    group: "任务管理"
+    function_type: business
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+
+  # ----- 流程查询 -----
+  get_node_definition:
+    summary: "查询流程节点定义"
+    description: "查询某个流程节点的标准定义(文档第6节): 对接系统、指令、参数、前置条件、时长"
+    group: "流程查询"
+    function_type: lookup
+    params:
+      node_name: {type: str, description: "节点名称"}
+
+  get_flow_edges:
+    summary: "查询流程链路(节点间DAG依赖)"
+    description: "查询流程节点间的前后关系，可按阶段或源节点过滤"
+    group: "流程查询"
+    function_type: lookup
+    params:
+      phase: {type: str, default: "", description: "阶段过滤(可选)"}
+      from_node: {type: str, default: "", description: "源节点过滤(可选)"}
+
+  get_node_status:
+    summary: "查询某节点的执行状态"
+    description: "查询指定任务中某个节点的最新执行记录"
+    group: "流程查询"
+    function_type: get
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      node_name: {type: str, description: "节点名称"}
+
+  get_next_executable_nodes:
+    summary: "查询当前可执行的下一批节点"
+    description: "根据DAG和已完成节点，计算当前可以并行执行的节点列表"
+    group: "流程查询"
+    function_type: get
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+
+  # ----- 流程控制 -----
+  execute_node:
+    summary: "执行流程节点(下发控制指令)"
+    description: |
+      向分系统下发控制指令执行流程节点。执行前自动检查:
+      1. 前置节点是否全部completed(DAG依赖);
+      2. 对接分系统服务状态是否正常;
+      3. 安全联锁状态是否正常;
+      4. 分系统服务是否已预约。
+      超过预期时长未响应则标记为timeout。
+    group: "流程控制"
+    function_type: business
+    writes_to: [FlowNode]
+    preconditions:
+      - {object: LaunchMission, field: mission_id, operator: exists}
+    effects:
+      - {object: FlowNode, field: status, set_to: "executing"}
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      node_name: {type: str, description: "节点名称"}
+      beam_ids: {type: str, default: "", description: "束线编号(逗号分隔，多束线节点需要)"}
+
+  execute_parallel_nodes:
+    summary: "并行执行多个流程节点"
+    description: "同时向多个分系统下发控制指令。用于发射准备阶段的并行展开。"
+    group: "流程控制"
+    function_type: business
+    writes_to: [FlowNode]
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      node_names: {type: str, description: "节点名称列表(逗号分隔)"}
+
+  check_readiness:
+    summary: "检查发射准备就绪状态(AND汇合)"
+    description: "检查全部9项准备是否就绪(文档第6.22节)，写入 ReadinessCheck 记录"
+    group: "流程控制"
+    function_type: business
+    writes_to: [ReadinessCheck]
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+
+  trigger_sync:
+    summary: "执行同步触发(带5秒倒计时)"
+    description: |
+      同步触发流程(文档第6.34节):
+      T0下发触发指令并开始倒计时;
+      T+3s泵浦触发准备和开关触发准备必须在第三秒瞬间完成;
+      T+5s同步系统完成正式触发。
+      这是一个带严格时序的组合操作，不能拆成独立并行任务。
+    group: "流程控制"
+    function_type: business
+    writes_to: [FlowNode]
+    preconditions:
+      - {object: FlowNode, field: node_name, operator: exists}
+    temporal_constraints:
+      - when: {}
+        deadline: "trigger_start + 10s"
+        sla: "T0→T+3s泵浦+开关准备→T+5s正式触发，总计10s内完成"
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      trigger_type: {type: str, default: "主发射", description: "触发类型: 主发射/预电离"}
+
+  # ----- 安全联锁 -----
+  check_interlock:
+    summary: "检查安全联锁状态"
+    description: |
+      检查安全联锁三个条件(文档第3节):
+      1. 中子屏蔽门锁闭; 2. 人员计数归零; 3. 钛泵/靶室真空度正常。
+      不满足任一条件则不允许进入/继续发射流程。
+    group: "安全联锁"
+    function_type: business
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+
+  trigger_interlock:
+    summary: "触发安全联锁(紧急停止)"
+    description: |
+      触发安全联锁(文档第3节):
+      1. 向所有流程中的分系统下发流程终止指令;
+      2. 中子屏蔽门解除锁定;
+      3. 警灯警报触发。
+    group: "安全联锁"
+    function_type: business
+    writes_to: [SafetyInterlockEvent]
+    effects:
+      - {object: LaunchMission, field: safety_interlock, set_to: "触发"}
+      - {object: LaunchMission, field: status, set_to: "已终止"}
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      trigger_type: {type: str, description: "触发类型: 人工紧急停机/真空度异常/视频监控发现隐患"}
+
+  resolve_interlock:
+    summary: "解除安全联锁"
+    description: |
+      解除安全联锁(文档第3节):
+      1. 中子屏蔽门解除锁闭; 2. 警灯/警报解除; 3. 语音播报本次实验结束。
+    group: "安全联锁"
+    function_type: business
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      event_id: {type: str, description: "联锁事件编号"}
+
+  # ----- 紧急操作 -----
+  emergency_action:
+    summary: "执行紧急操作(停车/触发/泄放/停充)"
+    description: |
+      四种紧急操作(文档第3节):
+      紧急停车: 倒计时内突发异常，向同步分系统下发紧急触发指令;
+      紧急触发: 同步触发未能触发时，向同步分系统下发紧急触发指令;
+      紧急泄放: 泵浦充电完成后未能触发，向泵浦分系统下发紧急泄放指令;
+      紧急停充: 泵浦充电过程中突发异常，向泵浦分系统下发紧急停充指令。
+    group: "紧急操作"
+    function_type: business
+    writes_to: [EmergencyAction]
+    hint: |
+      紧急操作对应分系统:
+      紧急停车/紧急触发 → 同步分系统
+      紧急泄放/紧急停充 → 泵浦分系统
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      action_type: {type: str, description: "操作类型: 紧急停车/紧急触发/紧急泄放/紧急停充"}
+      reason: {type: str, default: "", description: "触发原因"}
+
+  # ----- 数据采集 -----
+  collect_energy_data:
+    summary: "采集能量测量数据"
+    description: "发射后采集各束线的能量数据，包括预放能量和主放能量。"
+    group: "数据采集"
+    function_type: business
+    writes_to: [EnergyMeasurement]
+    preconditions:
+      - {object: FlowNode, field: node_name, operator: exists}
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      beam_ids: {type: str, default: "", description: "束线编号(逗号分隔)"}
+
+  collect_laser_params:
+    summary: "采集激光参数数据"
+    description: "发射后采集种子源/二倍频/测量取样的激光参数。"
+    group: "数据采集"
+    function_type: business
+    writes_to: [LaserParameterData]
+    params:
+      mission_id: {type: str, description: "发射任务编号"}
+      source_type: {type: str, description: "来源: 种子源/二倍频/测量取样"}
+
+rules:
+  interlock_entry:
+    description: "安全联锁进入条件检查(文档第3节)"
+    rule_type: judgment
+    applies_to: [LaunchMission]
+    result_field: safety_interlock
+    source: "文档第3节·安全联锁"
+    conditions:
+      - {field: safety_interlock, operator: eq, value: "正常", result: "允许继续"}
+      - {field: safety_interlock, operator: eq, value: "触发", result: "立即终止流程"}
+
+  emergency_type_to_target:
+    description: "紧急操作类型→目标分系统(文档第3节)"
+    rule_type: classification
+    applies_to: [EmergencyAction]
+    result_field: target_subsystem
+    source: "文档第3节·异常处理"
+    conditions:
+      - {field: action_type, operator: eq, value: "紧急停车", result: "同步分系统"}
+      - {field: action_type, operator: eq, value: "紧急触发", result: "同步分系统"}
+      - {field: action_type, operator: eq, value: "紧急泄放", result: "泵浦分系统"}
+      - {field: action_type, operator: eq, value: "紧急停充", result: "泵浦分系统"}
+
+workflows:
+  laser_launch:
+    description: "激光发射全流程(发射准备→正式发射→后处理→预电离)"
+    trigger: "发射任务启动"
+    involves_objects: [LaunchMission, FlowNode, ReadinessCheck, SafetyInterlockEvent, EnergyMeasurement, LaserParameterData]
+    steps:
+      - name: 预约分系统
+        function: reserve_subsystems
+        description: "预约所有需要的分系统服务，避免权限冲突"
+        next: 参数下发
+      - name: 参数下发
+        function: execute_node
+        description: "向所有分系统下发参数(发次编号+阶段编号)，各分系统初始化"
+        sla: "2s"
+        next: 发射准备并行展开
+      - name: 发射准备并行展开
+        function: execute_parallel_nodes
+        description: |
+          并行启动多条链路:
+          预放链路: 同步预放重频→预放唤醒→能量粗闭环→能量精闭环
+          靶瞄链路: 同步测量重频→测量靶瞄准备→模拟靶定位→光束引导→实验靶复位
+          清场链路: 清场→屏蔽门关闭→光路准直
+          泵浦链路: 泵浦发射准备
+          出光链路: 种子源/二倍频出光
+        next: 准备就绪检查
+      - name: 准备就绪检查
+        function: check_readiness
+        description: "AND汇合: 9项准备全部就绪才可进入正式发射"
+        sla: "31.5min(整体发射准备)"
+        next: {就绪: 正式发射准备, 未就绪: ""}
+      - name: 正式发射准备
+        function: execute_parallel_nodes
+        description: "并行: 诊断采集设置/晶体位姿/充电准备/能量精闭环/测量单次配方/开关充电/警灯警示音乐"
+        next: 发射充电
+      - name: 发射充电
+        function: execute_node
+        description: "泵浦发射充电(75s±3s)，充电完成后不能长时间保持，有安全风险"
+        sla: "78s"
+        next: 同步触发
+      - name: 同步触发
+        function: trigger_sync
+        description: "T0触发→T+3s泵浦+开关准备→T+5s正式触发"
+        sla: "10s"
+        next: 后处理
+      - name: 后处理
+        function: execute_parallel_nodes
+        description: |
+          并行后处理:
+          物理诊断后处理/种子源激光参数采集/能量数据采集→预放待机
+          泵浦数据采集→泵浦待机→预电离链路
+          激光参数采集→靶瞄数据分析/靶瞄收靶
+          放电波形采集→开关待机/片放吹扫
+        sla: "25min(不含片放吹扫)"
+        next: 预电离
+      - name: 预电离
+        description: "泵浦待机→预电离发射准备→预电离充电→同步触发→泵浦数据采集→泵浦待机→警灯关闭"
+        next: 结束
+      - name: 结束
+        description: "靶场中子屏蔽门打开，释放分系统预约，流程结束"
+
+  safety_interlock:
+    description: "安全联锁处理流程(文档第3节)"
+    trigger: "安全联锁事件触发"
+    involves_objects: [SafetyInterlockEvent, LaunchMission]
+    steps:
+      - name: 触发联锁
+        function: trigger_interlock
+        description: "向所有分系统下发终止指令，任务状态→已终止"
+        next: 等待解除
+      - name: 等待解除
+        description: "等待: 中子屏蔽门解除锁闭、警灯/警报解除、语音播报结束"
+        next: 解除联锁
+      - name: 解除联锁
+        function: resolve_interlock
+        description: "确认所有解除条件满足，记录解除时间"
+
+  emergency_handling:
+    description: "紧急操作处理流程(文档第3节)"
+    trigger: "发射异常"
+    involves_objects: [EmergencyAction, LaunchMission]
+    steps:
+      - name: 判断异常类型
+        description: "根据当前阶段判断: 充电中→停充, 充电后未触发→泄放, 倒计时内→停车, 触发失败→紧急触发"
+        next: {充电中异常: 紧急停充, 充电后未触发: 紧急泄放, 倒计时内异常: 紧急停车, 触发失败: 紧急触发}
+      - name: 紧急停充
+        function: emergency_action
+        description: "向泵浦分系统下发紧急停充指令"
+      - name: 紧急泄放
+        function: emergency_action
+        description: "向泵浦分系统下发紧急泄放指令"
+      - name: 紧急停车
+        function: emergency_action
+        description: "向同步分系统下发紧急触发指令(在倒计时内由同步完成触发)"
+      - name: 紧急触发
+        function: emergency_action
+        description: "向同步分系统下发紧急触发指令(同步触发失败时的补救)"

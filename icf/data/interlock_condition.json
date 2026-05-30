@@ -1,0 +1,11 @@
+[
+  {"condition_id": "IC001", "condition_type": "进入条件", "description": "中子屏蔽门锁闭", "check_target": "屏蔽门", "is_mandatory": 1},
+  {"condition_id": "IC002", "condition_type": "进入条件", "description": "基建系统人员计数归零", "check_target": "人员计数", "is_mandatory": 1},
+  {"condition_id": "IC003", "condition_type": "进入条件", "description": "多程放大系统钛泵/靶室真空度正常", "check_target": "真空度", "is_mandatory": 1},
+  {"condition_id": "IC004", "condition_type": "触发条件", "description": "人员被困人工触发紧急停机", "check_target": "人工", "is_mandatory": 0},
+  {"condition_id": "IC005", "condition_type": "触发条件", "description": "多程放大系统钛泵/靶室真空度异常", "check_target": "真空度", "is_mandatory": 0},
+  {"condition_id": "IC006", "condition_type": "触发条件", "description": "语音视频监控发现重大安全隐患", "check_target": "视频", "is_mandatory": 0},
+  {"condition_id": "IC007", "condition_type": "解除条件", "description": "中子屏蔽门解除锁闭", "check_target": "屏蔽门", "is_mandatory": 1},
+  {"condition_id": "IC008", "condition_type": "解除条件", "description": "警灯/警报解除", "check_target": "控制环境", "is_mandatory": 1},
+  {"condition_id": "IC009", "condition_type": "解除条件", "description": "语音播报本次实验结束", "check_target": "控制环境", "is_mandatory": 1}
+]

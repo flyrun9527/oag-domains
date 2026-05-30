@@ -1,0 +1,7 @@
+[
+  {"beam_id": "BL001", "light_source": "种子源光", "can_use_doublefreq": 1, "status": "空闲"},
+  {"beam_id": "BL002", "light_source": "种子源光", "can_use_doublefreq": 1, "status": "空闲"},
+  {"beam_id": "BL003", "light_source": "种子源光", "can_use_doublefreq": 0, "status": "空闲"},
+  {"beam_id": "BL004", "light_source": "种子源光", "can_use_doublefreq": 0, "status": "空闲"},
+  {"beam_id": "BL005", "light_source": "种子源光", "can_use_doublefreq": 0, "status": "空闲"}
+]

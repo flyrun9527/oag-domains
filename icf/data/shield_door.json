@@ -1,0 +1,4 @@
+[
+  {"door_id": "SD001", "location": "靶场", "status": "开启"},
+  {"door_id": "SD002", "location": "能库", "status": "开启"}
+]

@@ -1,0 +1,18 @@
+[
+  {"subsystem_type": "光纤种子源", "name": "光纤种子源组件", "instance_count": 1, "interface_type": "Tango", "description": "参数下发、出光、激光参数采集"},
+  {"subsystem_type": "二倍频", "name": "二倍频宽带激光注入组件", "instance_count": 1, "interface_type": "Tango", "description": "固定8条束线可选择种子源光或二倍频光"},
+  {"subsystem_type": "再生双程", "name": "再生与双程放大组件", "instance_count": 10, "interface_type": "Tango", "description": "预放唤醒、能量闭环、能量数据采集、预放待机"},
+  {"subsystem_type": "多程放大", "name": "多程放大系统", "instance_count": 60, "interface_type": "Tango", "description": "光路准直"},
+  {"subsystem_type": "泵浦", "name": "泵浦分系统", "instance_count": 1, "interface_type": "Tango", "description": "泵浦发射准备、充电、数据采集、待机、预电离"},
+  {"subsystem_type": "测量取样", "name": "测量取样组件", "instance_count": 60, "interface_type": "Tango", "description": "测量靶瞄准备、打靶运动准备、激光参数采集"},
+  {"subsystem_type": "频率转换", "name": "频率转换分系统", "instance_count": 60, "interface_type": "Tango", "description": "晶体位姿设置"},
+  {"subsystem_type": "靶瞄", "name": "靶瞄准定位系统", "instance_count": 1, "interface_type": "Tango", "description": "实验靶预定位、模拟靶定位、光束引导、实验靶复位、靶瞄分析、收靶"},
+  {"subsystem_type": "真空靶室", "name": "真空靶室分系统", "instance_count": 1, "interface_type": "Tango", "description": "参数下发、安全联锁相关"},
+  {"subsystem_type": "物理诊断", "name": "物理实验诊断分系统", "instance_count": 1, "interface_type": "Tango", "description": "诊断设备发射准备、采集设置、后处理"},
+  {"subsystem_type": "同步", "name": "集中同步分系统", "instance_count": 60, "interface_type": "Tango", "description": "预放/测量重频配方、单次配方、同步触发"},
+  {"subsystem_type": "开关驱动源", "name": "开关驱动源组件", "instance_count": 1, "interface_type": "Tango", "description": "开关充电、触发准备、放电波形采集、待机"},
+  {"subsystem_type": "冷却", "name": "冷却分系统", "instance_count": 1, "interface_type": "Tango", "description": "片放吹扫"},
+  {"subsystem_type": "控制环境", "name": "控制环境组件", "instance_count": 1, "interface_type": "HTTP", "description": "清场语音、警灯/警示音乐、警灯关闭"},
+  {"subsystem_type": "屏蔽门", "name": "建安工程安防系统屏蔽门控制接口", "instance_count": 1, "interface_type": "待定", "description": "屏蔽门关闭/打开"},
+  {"subsystem_type": "人员计数", "name": "人员进出计数接口", "instance_count": 1, "interface_type": "待定", "description": "人员计数归零判断"}
+]

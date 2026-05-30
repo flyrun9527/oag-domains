@@ -1,0 +1,18 @@
+[
+  {"node_name": "参数下发", "timeout_s": 5, "on_timeout": "标记失败"},
+  {"node_name": "同步预放重频配方", "timeout_s": 5, "on_timeout": "标记失败"},
+  {"node_name": "同步测量重频配方", "timeout_s": 5, "on_timeout": "标记失败"},
+  {"node_name": "光纤种子源/二倍频出光", "timeout_s": 720, "on_timeout": "标记失败"},
+  {"node_name": "预放唤醒", "timeout_s": 600, "on_timeout": "标记失败"},
+  {"node_name": "能量粗闭环", "timeout_s": 180, "on_timeout": "标记失败"},
+  {"node_name": "能量精闭环", "timeout_s": 180, "on_timeout": "标记失败"},
+  {"node_name": "清场", "timeout_s": 360, "on_timeout": "标记失败"},
+  {"node_name": "靶场中子屏蔽门关闭", "timeout_s": 360, "on_timeout": "标记失败"},
+  {"node_name": "光路准直", "timeout_s": 720, "on_timeout": "标记失败"},
+  {"node_name": "光束引导", "timeout_s": 240, "on_timeout": "标记失败"},
+  {"node_name": "发射充电", "timeout_s": 90, "on_timeout": "触发紧急操作"},
+  {"node_name": "同步触发", "timeout_s": 15, "on_timeout": "触发紧急操作"},
+  {"node_name": "泵浦触发准备", "timeout_s": 5, "on_timeout": "触发紧急操作"},
+  {"node_name": "开关触发准备", "timeout_s": 3, "on_timeout": "触发紧急操作"},
+  {"node_name": "片放吹扫", "timeout_s": 2700, "on_timeout": "标记失败"}
+]

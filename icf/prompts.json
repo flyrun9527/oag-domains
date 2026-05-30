@@ -1,0 +1,93 @@
+[
+  {
+    "group": "设备与状态查询",
+    "items": [
+      {"prompt": "有哪些分系统？各有多少实例？", "desc": "查询 SubsystemConfig 全表(16类)"},
+      {"prompt": "泵浦分系统的接口类型和功能是什么？", "desc": "查询 SubsystemConfig 泵浦"},
+      {"prompt": "哪些束线可以使用二倍频光？", "desc": "查询 BeamLine can_use_doublefreq=1(8条)"},
+      {"prompt": "靶场中子屏蔽门当前状态是什么？", "desc": "get_shield_door SD001"},
+      {"prompt": "靶场内还有几个人？", "desc": "get_personnel_count 靶场"},
+      {"prompt": "真空度和钛泵状态是否正常？", "desc": "get_vacuum_status 全部查询"}
+    ]
+  },
+  {
+    "group": "流程定义查询",
+    "items": [
+      {"prompt": "参数下发节点的定义是什么？需要哪些前置条件？", "desc": "get_node_definition 参数下发"},
+      {"prompt": "发射准备阶段有哪些流程链路？", "desc": "get_flow_edges phase=发射准备"},
+      {"prompt": "光路准直节点的前置条件有哪些？", "desc": "get_node_definition 光路准直(6个前置条件)"},
+      {"prompt": "同步触发的时序要求是什么？", "desc": "get_node_definition 同步触发(T0/T+3s/T+5s)"},
+      {"prompt": "发射充电的超时阈值是多少？超时后怎么处理？", "desc": "查询 TimeoutRule 发射充电(90s→触发紧急操作)"},
+      {"prompt": "安全联锁的进入条件、触发条件和解除条件分别是什么？", "desc": "查询 InterlockCondition 全表(9条)"},
+      {"prompt": "参数下发之后可以并行执行哪些节点？", "desc": "get_flow_edges from_node=参数下发"}
+    ]
+  },
+  {
+    "group": "任务管理",
+    "items": [
+      {"prompt": "查看发射任务M001的详情", "desc": "get_mission M001"},
+      {"prompt": "为任务M001预约所有分系统服务", "desc": "reserve_subsystems(M001, 全部16类)"},
+      {"prompt": "当前有哪些节点可以执行？", "desc": "get_next_executable_nodes M001"}
+    ]
+  },
+  {
+    "group": "发射准备流程",
+    "items": [
+      {"prompt": "发射任务M001，开始执行参数下发", "desc": "execute_node(M001, 参数下发)"},
+      {"prompt": "参数下发完成后，并行启动所有准备链路", "desc": "execute_parallel_nodes(同步预放重频/同步测量重频/种子源出光/实验靶预定位/清场/泵浦发射准备)"},
+      {"prompt": "逐步执行预放链路：同步预放重频配方→预放唤醒→能量粗闭环→能量精闭环", "desc": "按序execute_node 4个节点"},
+      {"prompt": "执行靶瞄链路：实验靶预定位→模拟靶定位→光束引导→实验靶复位→靶瞄进入打靶状态", "desc": "按序execute_node"},
+      {"prompt": "执行清场链路：清场→屏蔽门关闭→光路准直", "desc": "按序execute_node"},
+      {"prompt": "检查发射准备就绪状态，哪些项已就绪？哪些还没？", "desc": "check_readiness(M001)→查看9项状态"}
+    ]
+  },
+  {
+    "group": "正式发射流程",
+    "items": [
+      {"prompt": "发射准备全部完成，开始正式发射准备（诊断采集/晶体位姿/充电准备/能量精闭环/测量单次配方/开关充电）", "desc": "execute_parallel_nodes 6个前置节点"},
+      {"prompt": "执行发射充电", "desc": "execute_node(M001, 发射充电)，注意75s±3s时限且充电后不能长时间保持"},
+      {"prompt": "执行同步触发流程（含5秒倒计时）", "desc": "trigger_sync(M001)→T0→T+3s→T+5s"},
+      {"prompt": "发射充电过程中突发异常，需要紧急停充", "desc": "emergency_action(M001, 紧急停充)→泵浦分系统"},
+      {"prompt": "充电完成但同步触发迟迟未响应，执行紧急泄放", "desc": "emergency_action(M001, 紧急泄放)→泵浦分系统"},
+      {"prompt": "同步触发5秒倒计时内突发异常，紧急停车", "desc": "emergency_action(M001, 紧急停车)→同步分系统"}
+    ]
+  },
+  {
+    "group": "后处理与预电离",
+    "items": [
+      {"prompt": "正式发射完成后，并行启动所有后处理链路", "desc": "execute_parallel_nodes(物理诊断后处理/种子源激光参数采集/能量数据采集/泵浦数据采集/靶瞄收靶/放电波形采集/片放吹扫)"},
+      {"prompt": "执行能量数据采集，然后预放待机", "desc": "execute_node 能量数据采集→预放待机"},
+      {"prompt": "执行预电离流程：泵浦待机→预电离发射准备→预电离充电→同步触发→泵浦数据采集→泵浦待机", "desc": "按序执行预电离链路"},
+      {"prompt": "后处理全部完成，打开靶场中子屏蔽门，结束流程", "desc": "execute_node 靶场中子屏蔽门打开"},
+      {"prompt": "片放吹扫需要40分钟，但结束前15分钟可以开始下一发次准备，怎么衔接？", "desc": "查 NodeDefinition 片放吹扫"}
+    ]
+  },
+  {
+    "group": "安全联锁",
+    "items": [
+      {"prompt": "检查当前安全联锁状态（屏蔽门/人员/真空度）", "desc": "check_interlock(M001)→检查3个条件"},
+      {"prompt": "发现靶室真空度异常，触发安全联锁！", "desc": "trigger_interlock(M001, 真空度异常)→终止所有分系统"},
+      {"prompt": "安全联锁触发后会怎么处理？", "desc": "查询 InterlockCondition + trigger_interlock 的 effects"},
+      {"prompt": "安全联锁已解除所有条件，执行解除", "desc": "resolve_interlock(M001, event_id)"},
+      {"prompt": "如果有人被困在靶场内怎么办？", "desc": "人工触发紧急停机→trigger_interlock→屏蔽门解锁"}
+    ]
+  },
+  {
+    "group": "完整发射流程",
+    "items": [
+      {"prompt": "请从预约分系统开始，执行一次完整的激光发射流程直到后处理结束", "desc": "触发 laser_launch 工作流全流程(10步)"},
+      {"prompt": "发射任务M001，逐步执行每个节点，告诉我每步的前置条件和执行结果", "desc": "按DAG顺序逐节点执行+报告"}
+    ]
+  },
+  {
+    "group": "开放性问题",
+    "items": [
+      {"prompt": "发射准备阶段哪条链路是关键路径？整体需要多长时间？", "desc": "分析DAG: 出光(10min)+准直(10min) vs 预放(8min)+闭环(4min) vs 清场(5min)+屏蔽门(5min)+准直(10min)"},
+      {"prompt": "如果某个分系统返回'无服务权限'(状态2)，说明什么？应该怎么处理？", "desc": "说明该分系统被其他流程占用，需要预约机制"},
+      {"prompt": "充电完成后泵浦不能长时间保持且有安全风险，如果此时同步触发延迟了怎么办？", "desc": "考虑紧急泄放的时机窗口"},
+      {"prompt": "60条束线是全部同时参与发射还是可以选择部分？如果只用30条会怎样？", "desc": "查 LaunchMission.active_beam_ids + 各节点的beam_ids参数"},
+      {"prompt": "如果连续进行两发次发射，两次之间最短间隔是多少？哪个环节是瓶颈？", "desc": "片放吹扫40min但可提前15min进入下一发次=25min最短间隔"},
+      {"prompt": "预电离流程和主发射流程在时序上有什么区别？为什么放在后处理阶段？", "desc": "预电离是主发射后的辅助触发，共用泵浦分系统"}
+    ]
+  }
+]

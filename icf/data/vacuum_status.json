@@ -1,0 +1,4 @@
+[
+  {"device_id": "VAC001", "device_type": "钛泵", "vacuum_level": 0.001, "is_normal": 1},
+  {"device_id": "VAC002", "device_type": "靶室真空", "vacuum_level": 0.005, "is_normal": 1}
+]
