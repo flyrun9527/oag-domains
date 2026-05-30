@@ -1,82 +1,10 @@
 [
-  {
-    "load_class": "一级",
-    "importance_level": "特级",
-    "min_source_count": 3,
-    "source_nature": "双重电源+应急电源",
-    "source_structure_type": "多电源",
-    "source_operation_mode": "双电源同时供电互为备用",
-    "source_requirement": "双重电源+独立应急电源",
-    "wiring_scheme": "双母线+应急段"
-  },
-  {
-    "load_class": "一级",
-    "importance_level": "一级",
-    "min_source_count": 2,
-    "source_nature": "两路主供",
-    "source_structure_type": "双电源",
-    "source_operation_mode": "双电源同时供电",
-    "source_requirement": "双电源",
-    "wiring_scheme": "单母分段"
-  },
-  {
-    "load_class": "二级",
-    "importance_level": "一级",
-    "min_source_count": 2,
-    "source_nature": "两路主供",
-    "source_structure_type": "双回路",
-    "source_operation_mode": "双电源同时供电",
-    "source_requirement": "双回路",
-    "wiring_scheme": "单母分段"
-  },
-  {
-    "load_class": "二级",
-    "importance_level": "二级",
-    "min_source_count": 1,
-    "source_nature": "单电源",
-    "source_structure_type": "单电源",
-    "source_operation_mode": "单电源",
-    "source_requirement": "单电源可满足二级负荷基础接入",
-    "wiring_scheme": "单母线"
-  },
-  {
-    "load_class": "二级",
-    "importance_level": "临时",
-    "min_source_count": 1,
-    "source_nature": "单电源",
-    "source_structure_type": "单电源",
-    "source_operation_mode": "单电源",
-    "source_requirement": "临时用电单电源+应急切换",
-    "wiring_scheme": "单母线+应急切换"
-  },
-  {
-    "load_class": "一级",
-    "importance_level": "临时",
-    "min_source_count": 1,
-    "source_nature": "单电源",
-    "source_structure_type": "单电源",
-    "source_operation_mode": "单电源",
-    "source_requirement": "临时重要负荷单电源+应急切换",
-    "wiring_scheme": "单母线+应急切换"
-  },
-  {
-    "load_class": "三级",
-    "importance_level": "非重要",
-    "min_source_count": 1,
-    "source_nature": "单电源",
-    "source_structure_type": "单电源",
-    "source_operation_mode": "单电源",
-    "source_requirement": "普通用户单电源",
-    "wiring_scheme": "单母线"
-  },
-  {
-    "load_class": "三级",
-    "importance_level": "DEFAULT",
-    "min_source_count": 1,
-    "source_nature": "单电源",
-    "source_structure_type": "单电源",
-    "source_operation_mode": "单电源",
-    "source_requirement": "默认单电源",
-    "wiring_scheme": "单母线"
-  }
+  {"requirement_id": "SR001", "load_level": "一级", "importance_level": "特级", "source_structure": "多电源(3路含应急)", "description": "特级用户一级负荷需3路电源含应急"},
+  {"requirement_id": "SR002", "load_level": "一级", "importance_level": "一级", "source_structure": "双电源", "description": "一级用户一级负荷需双电源(跨变电站)"},
+  {"requirement_id": "SR003", "load_level": "一级", "importance_level": "二级", "source_structure": "双回路", "description": "二级用户一级负荷需双回路"},
+  {"requirement_id": "SR004", "load_level": "二级", "importance_level": "一级", "source_structure": "双电源", "description": "一级用户二级负荷需双电源"},
+  {"requirement_id": "SR005", "load_level": "二级", "importance_level": "二级", "source_structure": "双回路", "description": "二级用户二级负荷需双回路"},
+  {"requirement_id": "SR006", "load_level": "二级", "importance_level": "临时", "source_structure": "双回路", "description": "临时用户二级负荷需双回路"},
+  {"requirement_id": "SR007", "load_level": "三级", "importance_level": "非重要", "source_structure": "单电源", "description": "非重要用户三级负荷可单电源"},
+  {"requirement_id": "SR008", "load_level": "三级", "importance_level": "二级", "source_structure": "单电源", "description": "二级用户三级负荷可单电源"}
 ]

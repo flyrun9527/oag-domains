@@ -1,6 +1,4 @@
 [
-  {"switch_id": "TS007", "source_transformer_id": "T001", "target_transformer_id": "T002"},
-  {"switch_id": "TS008", "source_transformer_id": "T002", "target_transformer_id": "T001"},
-  {"switch_id": "TS009", "source_transformer_id": "T003", "target_transformer_id": "T004"},
-  {"switch_id": "TS010", "source_transformer_id": "T004", "target_transformer_id": "T003"}
+  {"switch_id": "TTS001", "source_transformer_id": "MT001", "target_transformer_id": "MT002", "name": "嘉定变#1-#2主变联络", "status": "常开"},
+  {"switch_id": "TTS002", "source_transformer_id": "MT003", "target_transformer_id": "MT004", "name": "安亭变#1-#2主变联络", "status": "常开"}
 ]

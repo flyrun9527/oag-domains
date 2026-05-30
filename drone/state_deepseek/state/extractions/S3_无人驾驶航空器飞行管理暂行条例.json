@@ -1,0 +1,1308 @@
+{
+  "objects": [
+    {
+      "name": "Drone",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "无人驾驶航空器（按性能指标分类）",
+      "description": "无人驾驶航空器，是指没有机载驾驶员、自备动力系统的航空器。按照性能指标分为微型、轻型、小型、中型和大型。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二条",
+      "properties": [
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": true,
+          "description": "无人驾驶航空器唯一标识（如产品识别码或登记号）",
+          "source": "§第九条"
+        },
+        {
+          "name": "category",
+          "type": "str",
+          "required": false,
+          "description": "分类：微型/轻型/小型/中型/大型",
+          "source": "§第二条"
+        },
+        {
+          "name": "max_takeoff_weight_kg",
+          "type": "float",
+          "required": false,
+          "description": "最大起飞重量（千克）",
+          "source": "§第六十二条"
+        },
+        {
+          "name": "empty_weight_kg",
+          "type": "float",
+          "required": false,
+          "description": "空机重量（千克）",
+          "source": "§第六十二条"
+        },
+        {
+          "name": "max_flight_height_m",
+          "type": "float",
+          "required": false,
+          "description": "最大飞行真高（米）",
+          "source": "§第六十二条"
+        },
+        {
+          "name": "max_speed_kmh",
+          "type": "float",
+          "required": false,
+          "description": "最大平飞速度（千米/小时）",
+          "source": "§第六十二条"
+        },
+        {
+          "name": "product_identification_code",
+          "type": "str",
+          "required": false,
+          "description": "唯一产品识别码",
+          "source": "§第九条"
+        },
+        {
+          "name": "owner",
+          "type": "str",
+          "required": false,
+          "description": "所有者信息（实名登记）",
+          "source": "§第十条"
+        },
+        {
+          "name": "registration_status",
+          "type": "str",
+          "required": false,
+          "description": "实名登记状态：已登记/未登记",
+          "source": "§第十条"
+        },
+        {
+          "name": "airworthiness_certificate",
+          "type": "str",
+          "required": false,
+          "description": "适航许可（中型、大型需取得）",
+          "source": "§第八条"
+        },
+        {
+          "name": "operator_license",
+          "type": "str",
+          "required": false,
+          "description": "运营合格证（使用除微型外的单位需取得）",
+          "source": "§第十一条"
+        },
+        {
+          "name": "pilot_license",
+          "type": "str",
+          "required": false,
+          "description": "操控员执照（操控小型、中型、大型需取得）",
+          "source": "§第十六条"
+        },
+        {
+          "name": "insurance_status",
+          "type": "str",
+          "required": false,
+          "description": "责任保险投保状态：已投保/未投保",
+          "source": "§第十二条"
+        },
+        {
+          "name": "airspace_keeping_capability",
+          "type": "bool",
+          "required": false,
+          "description": "是否具备空域保持能力",
+          "source": "§第六十二条"
+        },
+        {
+          "name": "reliable_monitored_capability",
+          "type": "bool",
+          "required": false,
+          "description": "是否具备可靠被监视能力",
+          "source": "§第六十二条"
+        },
+        {
+          "name": "radio_frequency",
+          "type": "str",
+          "required": false,
+          "description": "指挥控制链路无线电频率",
+          "source": "§第二十七条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "FlightMission",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "飞行活动申请及执行记录",
+      "description": "组织无人驾驶航空器飞行活动的单位或者个人需提交的飞行活动申请，包含飞行任务、空域、时间等信息。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二十六条",
+      "properties": [
+        {
+          "name": "mission_id",
+          "type": "str",
+          "required": true,
+          "description": "飞行活动申请编号",
+          "source": "§第二十六条"
+        },
+        {
+          "name": "applicant",
+          "type": "str",
+          "required": false,
+          "description": "组织飞行活动的单位或者个人",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "pilot_info",
+          "type": "str",
+          "required": false,
+          "description": "操控人员信息以及有关资质证书",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "drone_type",
+          "type": "str",
+          "required": false,
+          "description": "无人驾驶航空器的类型",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "drone_quantity",
+          "type": "int",
+          "required": false,
+          "description": "无人驾驶航空器数量",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "drone_performance",
+          "type": "str",
+          "required": false,
+          "description": "主要性能指标",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "drone_registration",
+          "type": "str",
+          "required": false,
+          "description": "登记管理信息",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "mission_type",
+          "type": "str",
+          "required": false,
+          "description": "飞行任务性质和飞行方式",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "special_mission_approval",
+          "type": "str",
+          "required": false,
+          "description": "执行国家规定的特殊通用航空飞行任务的批准文件",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "takeoff_site",
+          "type": "str",
+          "required": false,
+          "description": "起飞、降落和备降机场（场地）",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "communication_method",
+          "type": "str",
+          "required": false,
+          "description": "通信联络方法",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "estimated_start_time",
+          "type": "str",
+          "required": false,
+          "description": "预计飞行开始时刻",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "estimated_end_time",
+          "type": "str",
+          "required": false,
+          "description": "预计飞行结束时刻",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "flight_route",
+          "type": "str",
+          "required": false,
+          "description": "飞行航线、高度、速度和空域范围，进出空域方法",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "control_link_frequency",
+          "type": "str",
+          "required": false,
+          "description": "指挥控制链路无线电频率以及占用带宽",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "communication_navigation_surveillance_capability",
+          "type": "str",
+          "required": false,
+          "description": "通信、导航和被监视能力",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "transponder_code",
+          "type": "str",
+          "required": false,
+          "description": "二次雷达应答机或自动监视设备代码申请",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "emergency_procedure",
+          "type": "str",
+          "required": false,
+          "description": "应急处置程序",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "special_flight_support",
+          "type": "str",
+          "required": false,
+          "description": "特殊飞行保障需求",
+          "source": "§第二十七条"
+        },
+        {
+          "name": "approval_status",
+          "type": "str",
+          "required": false,
+          "description": "批准状态：已批准/未批准/待审批",
+          "source": "§第二十六条"
+        },
+        {
+          "name": "approval_authority",
+          "type": "str",
+          "required": false,
+          "description": "批准机构（空中交通管理机构）",
+          "source": "§第二十八条"
+        },
+        {
+          "name": "report_time",
+          "type": "str",
+          "required": false,
+          "description": "计划起飞1小时前报告预计起飞时刻和准备情况",
+          "source": "§第三十条"
+        },
+        {
+          "name": "actual_start_time",
+          "type": "str",
+          "required": false,
+          "description": "实际起飞时间",
+          "source": "§第三十二条"
+        },
+        {
+          "name": "actual_end_time",
+          "type": "str",
+          "required": false,
+          "description": "实际结束时间",
+          "source": "§第三十二条"
+        },
+        {
+          "name": "flight_status",
+          "type": "str",
+          "required": false,
+          "description": "飞行状态：申请中/已批准/已起飞/飞行中/已结束/异常",
+          "source": "§第三十二条"
+        }
+      ],
+      "status_transitions": {
+        "申请中": [
+          "已批准",
+          "未批准"
+        ],
+        "已批准": [
+          "已起飞"
+        ],
+        "已起飞": [
+          "飞行中"
+        ],
+        "飞行中": [
+          "已结束",
+          "异常"
+        ],
+        "异常": [
+          "已结束"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "ControlledAirspace",
+      "kind": "rule_table",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "无人驾驶航空器管制空域",
+      "description": "国家根据需要划设的无人驾驶航空器管制空域，包括真高120米以上空域、空中禁区、空中限制区等。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第十九条",
+      "properties": [
+        {
+          "name": "airspace_id",
+          "type": "str",
+          "required": true,
+          "description": "空域编号",
+          "source": "§第十九条"
+        },
+        {
+          "name": "type",
+          "type": "str",
+          "required": false,
+          "description": "空域类型：管制空域/适飞空域",
+          "source": "§第十九条"
+        },
+        {
+          "name": "horizontal_range",
+          "type": "str",
+          "required": false,
+          "description": "水平范围",
+          "source": "§第十八条"
+        },
+        {
+          "name": "vertical_range",
+          "type": "str",
+          "required": false,
+          "description": "垂直范围（如真高120米以上）",
+          "source": "§第十八条"
+        },
+        {
+          "name": "usage_time",
+          "type": "str",
+          "required": false,
+          "description": "使用时间",
+          "source": "§第十八条"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "空域描述（如机场周边、军事禁区等）",
+          "source": "§第十九条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "PilotLicense",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "民用无人驾驶航空器操控员执照",
+      "description": "操控小型、中型、大型民用无人驾驶航空器飞行的人员需取得的操控员执照。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第十六条",
+      "properties": [
+        {
+          "name": "license_id",
+          "type": "str",
+          "required": true,
+          "description": "操控员执照编号",
+          "source": "§第十六条"
+        },
+        {
+          "name": "holder_name",
+          "type": "str",
+          "required": false,
+          "description": "持有人姓名",
+          "source": "§第十六条"
+        },
+        {
+          "name": "civil_capacity",
+          "type": "str",
+          "required": false,
+          "description": "民事行为能力：完全/限制/无",
+          "source": "§第十六条"
+        },
+        {
+          "name": "training_status",
+          "type": "str",
+          "required": false,
+          "description": "安全操控培训考核状态：合格/不合格",
+          "source": "§第十六条"
+        },
+        {
+          "name": "health_status",
+          "type": "str",
+          "required": false,
+          "description": "无可能影响操控的疾病病史、无吸毒行为记录",
+          "source": "§第十六条"
+        },
+        {
+          "name": "criminal_record",
+          "type": "str",
+          "required": false,
+          "description": "近5年内无危害国家安全等故意犯罪记录",
+          "source": "§第十六条"
+        },
+        {
+          "name": "valid_until",
+          "type": "str",
+          "required": false,
+          "description": "执照有效期",
+          "source": "§第十六条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "OperationCertificate",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "民用无人驾驶航空器运营合格证",
+      "description": "使用除微型以外的民用无人驾驶航空器从事飞行活动的单位需取得的运营合格证。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第十一条",
+      "properties": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "required": true,
+          "description": "运营合格证编号",
+          "source": "§第十一条"
+        },
+        {
+          "name": "unit_name",
+          "type": "str",
+          "required": false,
+          "description": "单位名称",
+          "source": "§第十一条"
+        },
+        {
+          "name": "management_structure",
+          "type": "str",
+          "required": false,
+          "description": "管理机构、管理人员情况",
+          "source": "§第十一条"
+        },
+        {
+          "name": "qualified_pilots",
+          "type": "str",
+          "required": false,
+          "description": "符合规定的操控人员",
+          "source": "§第十一条"
+        },
+        {
+          "name": "equipment_facilities",
+          "type": "str",
+          "required": false,
+          "description": "符合安全运营要求的无人驾驶航空器及有关设施、设备",
+          "source": "§第十一条"
+        },
+        {
+          "name": "management_system",
+          "type": "str",
+          "required": false,
+          "description": "安全运营的管理制度和操作规程",
+          "source": "§第十一条"
+        },
+        {
+          "name": "business_type",
+          "type": "str",
+          "required": false,
+          "description": "经营性/非经营性",
+          "source": "§第十一条"
+        },
+        {
+          "name": "valid_until",
+          "type": "str",
+          "required": false,
+          "description": "有效期",
+          "source": "§第十一条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "AirworthinessCertificate",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "适航许可",
+      "description": "从事中型、大型民用无人驾驶航空器系统的设计、生产、进口、飞行和维修活动需取得的适航许可。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第八条",
+      "properties": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "required": true,
+          "description": "适航许可编号",
+          "source": "§第八条"
+        },
+        {
+          "name": "drone_type",
+          "type": "str",
+          "required": false,
+          "description": "无人驾驶航空器类型",
+          "source": "§第八条"
+        },
+        {
+          "name": "holder",
+          "type": "str",
+          "required": false,
+          "description": "持有人（单位/个人）",
+          "source": "§第八条"
+        },
+        {
+          "name": "valid_until",
+          "type": "str",
+          "required": false,
+          "description": "有效期",
+          "source": "§第八条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "FlightIncidentReport",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "飞行安全问题报告",
+      "description": "无人驾驶航空器飞行发生异常情况导致飞行安全问题时，组织飞行活动的单位或者个人应在降落后24小时内向空中交通管理机构报告。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第四十条",
+      "properties": [
+        {
+          "name": "report_id",
+          "type": "str",
+          "required": true,
+          "description": "报告编号",
+          "source": "§第四十条"
+        },
+        {
+          "name": "mission_id",
+          "type": "str",
+          "required": false,
+          "description": "关联的飞行活动申请编号",
+          "source": "§第四十条"
+        },
+        {
+          "name": "incident_time",
+          "type": "str",
+          "required": false,
+          "description": "异常发生时间",
+          "source": "§第四十条"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "异常情况描述",
+          "source": "§第四十条"
+        },
+        {
+          "name": "handling_measures",
+          "type": "str",
+          "required": false,
+          "description": "处置措施",
+          "source": "§第四十条"
+        },
+        {
+          "name": "report_time",
+          "type": "str",
+          "required": false,
+          "description": "报告时间（降落后24小时内）",
+          "source": "§第四十条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "DroneRegistration",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "民用无人驾驶航空器实名登记",
+      "description": "民用无人驾驶航空器所有者应当依法进行实名登记。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第十条",
+      "properties": [
+        {
+          "name": "registration_id",
+          "type": "str",
+          "required": true,
+          "description": "登记编号",
+          "source": "§第十条"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "无人驾驶航空器标识",
+          "source": "§第十条"
+        },
+        {
+          "name": "owner_name",
+          "type": "str",
+          "required": false,
+          "description": "所有者姓名或单位名称",
+          "source": "§第十条"
+        },
+        {
+          "name": "registration_date",
+          "type": "str",
+          "required": false,
+          "description": "登记日期",
+          "source": "§第十条"
+        },
+        {
+          "name": "nationality_registration",
+          "type": "str",
+          "required": false,
+          "description": "国籍登记（涉及境外飞行时）",
+          "source": "§第十条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "AgriculturalDroneOperatorCertificate",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "农用无人驾驶航空器操作证书",
+      "description": "从事常规农用无人驾驶航空器作业飞行活动的人员需取得的操作证书。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第十六条",
+      "properties": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "required": true,
+          "description": "操作证书编号",
+          "source": "§第十六条"
+        },
+        {
+          "name": "holder_name",
+          "type": "str",
+          "required": false,
+          "description": "持有人姓名",
+          "source": "§第十六条"
+        },
+        {
+          "name": "training_provider",
+          "type": "str",
+          "required": false,
+          "description": "培训考核机构（农用无人驾驶航空器系统生产者）",
+          "source": "§第十六条"
+        },
+        {
+          "name": "valid_until",
+          "type": "str",
+          "required": false,
+          "description": "有效期",
+          "source": "§第十六条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "DroneDefectRecall",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "无人驾驶航空器缺陷召回记录",
+      "description": "微型、轻型、小型民用无人驾驶航空器系统投放市场后发现缺陷的，生产者、进口商应当停止生产、销售，召回缺陷产品。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第十三条",
+      "properties": [
+        {
+          "name": "recall_id",
+          "type": "str",
+          "required": true,
+          "description": "召回记录编号",
+          "source": "§第十三条"
+        },
+        {
+          "name": "drone_model",
+          "type": "str",
+          "required": false,
+          "description": "无人驾驶航空器型号",
+          "source": "§第十三条"
+        },
+        {
+          "name": "defect_description",
+          "type": "str",
+          "required": false,
+          "description": "缺陷描述",
+          "source": "§第十三条"
+        },
+        {
+          "name": "recall_date",
+          "type": "str",
+          "required": false,
+          "description": "召回日期",
+          "source": "§第十三条"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "召回状态：进行中/已完成",
+          "source": "§第十三条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "DroneModificationRecord",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "无人驾驶航空器改装记录",
+      "description": "对微型、轻型、小型民用无人驾驶航空器系统进行改装，或改变出厂性能参数时，需在监管服务平台更新信息。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第十四条",
+      "properties": [
+        {
+          "name": "modification_id",
+          "type": "str",
+          "required": true,
+          "description": "改装记录编号",
+          "source": "§第十四条"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "无人驾驶航空器标识",
+          "source": "§第十四条"
+        },
+        {
+          "name": "modification_description",
+          "type": "str",
+          "required": false,
+          "description": "改装内容描述",
+          "source": "§第十四条"
+        },
+        {
+          "name": "changed_parameters",
+          "type": "str",
+          "required": false,
+          "description": "变更的性能参数（空域保持能力、可靠被监视能力、速度、高度等）",
+          "source": "§第十四条"
+        },
+        {
+          "name": "update_time",
+          "type": "str",
+          "required": false,
+          "description": "信息更新时间",
+          "source": "§第十四条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "DroneCountermeasureDevice",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "无人驾驶航空器反制设备",
+      "description": "专门用于防控无人驾驶航空器违规飞行，具有干扰、截控、捕获、摧毁等功能的设备。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第四十三条",
+      "properties": [
+        {
+          "name": "device_id",
+          "type": "str",
+          "required": true,
+          "description": "反制设备编号",
+          "source": "§第四十三条"
+        },
+        {
+          "name": "owner",
+          "type": "str",
+          "required": false,
+          "description": "拥有单位（军队、警察、高风险反恐重点目标管理单位）",
+          "source": "§第四十三条"
+        },
+        {
+          "name": "type",
+          "type": "str",
+          "required": false,
+          "description": "设备类型",
+          "source": "§第四十三条"
+        },
+        {
+          "name": "installation_location",
+          "type": "str",
+          "required": false,
+          "description": "设置地点",
+          "source": "§第四十三条"
+        },
+        {
+          "name": "supervision_authority",
+          "type": "str",
+          "required": false,
+          "description": "指导监督机构（公安机关或有关军事机关）",
+          "source": "§第四十三条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "DroneViolationReport",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "无人驾驶航空器违规飞行举报/报告",
+      "description": "任何单位或者个人发现违反本条例规定行为的，可以向空中交通管理机构、民用航空管理部门或者当地公安机关举报。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第三十八条",
+      "properties": [
+        {
+          "name": "report_id",
+          "type": "str",
+          "required": true,
+          "description": "举报/报告编号",
+          "source": "§第三十八条"
+        },
+        {
+          "name": "reporter",
+          "type": "str",
+          "required": false,
+          "description": "举报人信息（可选匿名）",
+          "source": "§第三十八条"
+        },
+        {
+          "name": "violation_description",
+          "type": "str",
+          "required": false,
+          "description": "违规行为描述",
+          "source": "§第三十八条"
+        },
+        {
+          "name": "report_time",
+          "type": "str",
+          "required": false,
+          "description": "举报时间",
+          "source": "§第三十八条"
+        },
+        {
+          "name": "handling_status",
+          "type": "str",
+          "required": false,
+          "description": "处理状态：待处理/处理中/已处理",
+          "source": "§第三十八条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "DroneEmergencyPlan",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "无人驾驶航空器飞行紧急情况处置预案",
+      "description": "使用无人驾驶航空器的单位或者个人应当按照有关规定，制定飞行紧急情况处置预案。",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第三十九条",
+      "properties": [
+        {
+          "name": "plan_id",
+          "type": "str",
+          "required": true,
+          "description": "预案编号",
+          "source": "§第三十九条"
+        },
+        {
+          "name": "unit_name",
+          "type": "str",
+          "required": false,
+          "description": "制定单位或个人",
+          "source": "§第三十九条"
+        },
+        {
+          "name": "content",
+          "type": "str",
+          "required": false,
+          "description": "预案内容",
+          "source": "§第三十九条"
+        },
+        {
+          "name": "last_review_date",
+          "type": "str",
+          "required": false,
+          "description": "最近审查日期",
+          "source": "§第三十九条"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    }
+  ],
+  "links": [
+    {
+      "name": "mission_has_drone",
+      "source": "FlightMission",
+      "target": "Drone",
+      "join": {
+        "source_key": "drone_type",
+        "target_key": "category"
+      },
+      "link_type": "contains",
+      "cardinality": "1..n",
+      "description": "飞行活动申请中使用的无人驾驶航空器"
+    },
+    {
+      "name": "mission_has_pilot_license",
+      "source": "FlightMission",
+      "target": "PilotLicense",
+      "join": {
+        "source_key": "pilot_info",
+        "target_key": "license_id"
+      },
+      "link_type": "enables",
+      "cardinality": "1..1",
+      "description": "飞行活动申请需要操控员执照"
+    },
+    {
+      "name": "mission_has_operation_certificate",
+      "source": "FlightMission",
+      "target": "OperationCertificate",
+      "join": {
+        "source_key": "applicant",
+        "target_key": "unit_name"
+      },
+      "link_type": "enables",
+      "cardinality": "1..1",
+      "description": "飞行活动申请需要运营合格证（除微型外）"
+    },
+    {
+      "name": "mission_has_airworthiness",
+      "source": "FlightMission",
+      "target": "AirworthinessCertificate",
+      "join": {
+        "source_key": "drone_type",
+        "target_key": "drone_type"
+      },
+      "link_type": "enables",
+      "cardinality": "1..1",
+      "description": "中型、大型无人驾驶航空器飞行需要适航许可"
+    },
+    {
+      "name": "mission_has_registration",
+      "source": "FlightMission",
+      "target": "DroneRegistration",
+      "join": {
+        "source_key": "drone_registration",
+        "target_key": "registration_id"
+      },
+      "link_type": "enables",
+      "cardinality": "1..1",
+      "description": "飞行活动申请需要实名登记"
+    },
+    {
+      "name": "mission_has_incident_report",
+      "source": "FlightMission",
+      "target": "FlightIncidentReport",
+      "join": {
+        "source_key": "mission_id",
+        "target_key": "mission_id"
+      },
+      "link_type": "causal",
+      "cardinality": "0..n",
+      "description": "飞行异常导致安全问题需报告"
+    },
+    {
+      "name": "drone_has_registration",
+      "source": "Drone",
+      "target": "DroneRegistration",
+      "join": {
+        "source_key": "drone_id",
+        "target_key": "drone_id"
+      },
+      "link_type": "contains",
+      "cardinality": "1..1",
+      "description": "无人驾驶航空器拥有实名登记"
+    },
+    {
+      "name": "drone_has_modification",
+      "source": "Drone",
+      "target": "DroneModificationRecord",
+      "join": {
+        "source_key": "drone_id",
+        "target_key": "drone_id"
+      },
+      "link_type": "contains",
+      "cardinality": "0..n",
+      "description": "无人驾驶航空器的改装记录"
+    }
+  ],
+  "functions": [
+    {
+      "name": "get_drone_info",
+      "summary": "查询无人驾驶航空器信息",
+      "description": "根据drone_id查询无人驾驶航空器的详细信息，包括分类、性能参数、登记状态等。",
+      "function_type": "get",
+      "group": "无人机管理",
+      "params": [
+        {
+          "name": "drone_id",
+          "type": "str",
+          "description": "无人驾驶航空器唯一标识",
+          "default": null
+        }
+      ],
+      "writes_to": [],
+      "involves_objects": [
+        "Drone"
+      ],
+      "preconditions": [],
+      "effects": [],
+      "temporal_constraints": [],
+      "hint": "",
+      "source": "§第二条"
+    },
+    {
+      "name": "get_pilot_license",
+      "summary": "查询操控员执照信息",
+      "description": "根据license_id查询操控员执照信息。",
+      "function_type": "get",
+      "group": "人员管理",
+      "params": [
+        {
+          "name": "license_id",
+          "type": "str",
+          "description": "操控员执照编号",
+          "default": null
+        }
+      ],
+      "writes_to": [],
+      "involves_objects": [
+        "PilotLicense"
+      ],
+      "preconditions": [],
+      "effects": [],
+      "temporal_constraints": [],
+      "hint": "",
+      "source": "§第十六条"
+    },
+    {
+      "name": "get_operation_certificate",
+      "summary": "查询运营合格证信息",
+      "description": "根据certificate_id查询运营合格证信息。",
+      "function_type": "get",
+      "group": "单位管理",
+      "params": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "description": "运营合格证编号",
+          "default": null
+        }
+      ],
+      "writes_to": [],
+      "involves_objects": [
+        "OperationCertificate"
+      ],
+      "preconditions": [],
+      "effects": [],
+      "temporal_constraints": [],
+      "hint": "",
+      "source": "§第十一条"
+    },
+    {
+      "name": "get_airworthiness_certificate",
+      "summary": "查询适航许可信息",
+      "description": "根据certificate_id查询适航许可信息。",
+      "function_type": "get",
+      "group": "适航管理",
+      "params": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "description": "适航许可编号",
+          "default": null
+        }
+      ],
+      "writes_to": [],
+      "involves_objects": [
+        "AirworthinessCertificate"
+      ],
+      "preconditions": [],
+      "effects": [],
+      "temporal_constraints": [],
+      "hint": "",
+      "source": "§第八条"
+    },
+    {
+      "name": "get_drone_registration",
+      "summary": "查询无人驾驶航空器实名登记信息",
+      "description": "根据registration_id或drone_id查询实名登记信息。",
+      "function_type": "get",
+      "group": "登记管理",
+      "params": [
+        {
+          "name": "drone_id",
+          "type": "str",
+          "description": "无人驾驶航空器标识",
+          "default": null
+        }
+      ],
+      "writes_to": [],
+      "involves_objects": [
+        "DroneRegistration"
+      ],
+      "preconditions": [],
+      "effects": [],
+      "temporal_constraints": [],
+      "hint": "",
+      "source": "§第十条"
+    },
+    {
+      "name": "get_agricultural_operator_certificate",
+      "summary": "查询农用无人驾驶航空器操作证书",
+      "description": "根据certificate_id查询操作证书信息。",
+      "function_type": "get",
+      "group": "人员管理",
+      "params": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "description": "操作证书编号",
+          "default": null
+        }
+      ],
+      "writes_to": [],
+      "involves_objects": [
+        "AgriculturalDroneOperatorCertificate"
+      ],
+      "preconditions": [],
+      "effects": [],
+      "temporal_constraints": [],
+      "hint": "",
+      "source": "§第十六条"
+    },
+    {
+      "name": "get_controlled_airspace",
+      "summary": "查询管制空域信息",
+      "description": "根据空域编号或位置查询管制空域信息。",
+      "function_type": "lookup",
+      "group": "空域管理",
+      "params": [
+        {
+          "name": "airspace_id",
+          "type": "str",
+          "description": "空域编号",
+          "default": null
+        }
+      ],
+      "writes_to": [],
+      "involves_objects": [
+        "ControlledAirspace"
+      ],
+      "preconditions": [],
+      "effects": [],
+      "temporal_constraints": [],
+      "hint": "",
+      "source": "§第十九条"
+    },
+    {
+      "name": "submit_flight_mission_application",
+      "summary": "提交飞行活动申请",
+      "description": "组织无人驾驶航空器飞行活动的单位或者个人在拟飞行前1日12时前向空中交通管理机构提出飞行活动申请。",
+      "function_type": "business",
+      "group": "飞行活动管理",
+      "params": [
+        {
+          "name": "applicant",
+          "type": "str",
+          "description": "组织飞行活动的单位或者个人",
+          "default": null
+        },
+        {
+          "name": "pilot_info",
+          "type": "str",
+          "description": "操控人员信息以及有关资质证书",
+          "default": null
+        },
+        {
+          "name": "drone_type",
+          "type": "str",
+          "description": "无人驾驶航空器的类型",
+          "default": null
+        },
+        {
+          "name": "drone_quantity",
+          "type": "int",
+          "description": "无人驾驶航空器数量",
+          "default": null
+        },
+        {
+          "name": "drone_performance",
+          "type": "str",
+          "description": "主要性能指标",
+          "default": null
+        },
+        {
+          "name": "drone_registration",
+          "type": "str",
+          "description": "登记管理信息",
+          "default": null
+        },
+        {
+          "name": "mission_type",
+          "type": "str",
+          "description": "飞行任务性质和飞行方式",
+          "default": null
+        },
+        {
+          "name": "special_mission_approval",
+          "type": "str",
+          "description": "执行国家规定的特殊通用航空飞行任务的批准文件",
+          "default": null
+        },
+        {
+          "name": "takeoff_site",
+          "type": "str",
+          "description": "起飞、降落和备降机场（场地）",
+          "default": null
+        },
+        {
+          "name": "communication_method",
+          "type": "str",
+          "description": "通信联络方法",
+          "default": null
+        },
+        {
+          "name": "estimated_start_time",
+          "type": "str",
+          "description": "预计飞行开始时刻",
+          "default": null
+        },
+        {
+          "name": "estimated_end_time",
+          "type": "str",
+          "description": "预计飞行结束时刻",
+          "default": null
+        },
+        {
+          "name": "flight_route",
+          "type": "str",
+          "description": "飞行航线、高度、速度和空域范围，进出空域方法",
+          "default": null
+        },
+        {
+          "name": "control_link_frequency",
+          "type": "str",
+          "description": "指挥控制链路无线电频率以及占用带宽",
+          "default": null
+        },
+        {
+          "name": "communication"
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "doc_name": "S3_无人驾驶航空器飞行管理暂行条例.md",
+    "doc_type": "法规",
+    "doc_summary": "无人驾驶航空器飞行管理暂行条例，规范飞行活动，维护航空安全、公共安全、国家安全"
+  }
+}

@@ -1,0 +1,418 @@
+{
+  "objects": [
+    {
+      "name": "UnmannedAircraft",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "无人驾驶航空器(按性能指标分为微型、轻型、小型、中型、大型)",
+      "description": "民用无人驾驶航空器",
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.7",
+      "properties": [
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": true,
+          "description": "无人机编号",
+          "source": "§92.7"
+        },
+        {
+          "name": "category",
+          "type": "str",
+          "required": false,
+          "description": "分类: 微型/轻型/小型/中型/大型",
+          "source": "§92.51"
+        },
+        {
+          "name": "registration_number",
+          "type": "str",
+          "required": false,
+          "description": "实名登记号/国籍标志",
+          "source": "§92.211"
+        },
+        {
+          "name": "airworthiness_certificate_status",
+          "type": "str",
+          "required": false,
+          "description": "适航证状态",
+          "source": "§92.453"
+        }
+      ]
+    },
+    {
+      "name": "Pilot",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "无人驾驶航空器操控员",
+      "description": "持有执照或符合安全操控要求的操控人员",
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.51",
+      "properties": [
+        {
+          "name": "pilot_id",
+          "type": "str",
+          "required": true,
+          "description": "操控员唯一标识",
+          "source": "§92.51"
+        },
+        {
+          "name": "license_type",
+          "type": "str",
+          "required": false,
+          "description": "执照类型: 小型/中型/大型",
+          "source": "§92.53"
+        },
+        {
+          "name": "license_level",
+          "type": "str",
+          "required": false,
+          "description": "等级: 类别/级别/型别/超视距/教员",
+          "source": "§92.53"
+        },
+        {
+          "name": "medical_certificate_status",
+          "type": "str",
+          "required": false,
+          "description": "体检合格证状态",
+          "source": "§92.51"
+        },
+        {
+          "name": "blood_alcohol_content",
+          "type": "float",
+          "required": false,
+          "description": "血液酒精含量",
+          "source": "§92.611"
+        }
+      ],
+      "status_transitions": {
+        "有效": [
+          "暂扣",
+          "注销",
+          "吊销"
+        ],
+        "暂扣": [
+          "有效"
+        ],
+        "注销": [],
+        "吊销": []
+      }
+    },
+    {
+      "name": "FlightApplication",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "飞行活动申请记录",
+      "description": "用户提交的飞行活动申请及审批记录",
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.535",
+      "properties": [
+        {
+          "name": "application_id",
+          "type": "str",
+          "required": true,
+          "description": "申请编号",
+          "source": "§92.535"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 待审批/已批准/不予批准",
+          "source": "§92.59"
+        }
+      ]
+    },
+    {
+      "name": "Operator",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "无人驾驶航空器运营单位或个人",
+      "description": "获得运营合格证并实施运行的单位或个人",
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.603",
+      "properties": [
+        {
+          "name": "operator_id",
+          "type": "str",
+          "required": true,
+          "description": "运营者唯一标识",
+          "source": "§92.603"
+        },
+        {
+          "name": "operating_certificate_status",
+          "type": "str",
+          "required": false,
+          "description": "运营合格证状态",
+          "source": "§92.603"
+        },
+        {
+          "name": "business_type",
+          "type": "str",
+          "required": false,
+          "description": "经营种类: 载客/载人类/载货/培训/其他",
+          "source": "§92.643"
+        }
+      ]
+    },
+    {
+      "name": "AirspaceType",
+      "kind": "lookup_table",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "空域类型配置表",
+      "description": "管制空域与适飞空域的定义",
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.511",
+      "properties": [
+        {
+          "name": "airspace_id",
+          "type": "str",
+          "required": true,
+          "description": "空域ID",
+          "source": "§92.511"
+        },
+        {
+          "name": "type",
+          "type": "str",
+          "required": false,
+          "description": "类型: 管制空域/适飞空域",
+          "source": "§92.511"
+        }
+      ]
+    },
+    {
+      "name": "FlightMission",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "飞行任务记录",
+      "description": "具体的飞行活动记录",
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.521",
+      "properties": [
+        {
+          "name": "mission_id",
+          "type": "str",
+          "required": true,
+          "description": "任务ID",
+          "source": "§92.521"
+        },
+        {
+          "name": "flight_dynamic_data",
+          "type": "str",
+          "required": false,
+          "description": "飞行动态数据",
+          "source": "§92.521"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "name": "operator_uses_aircraft",
+      "source": "Operator",
+      "target": "UnmannedAircraft",
+      "join": {
+        "operator_id": "owner_id"
+      },
+      "link_type": "contains",
+      "cardinality": "0..n",
+      "description": "运营者使用无人驾驶航空器"
+    },
+    {
+      "name": "pilot_controls_aircraft",
+      "source": "Pilot",
+      "target": "UnmannedAircraft",
+      "join": {
+        "pilot_id": "controller_id"
+      },
+      "link_type": "enables",
+      "cardinality": "0..n",
+      "description": "操控员操控无人驾驶航空器"
+    },
+    {
+      "name": "mission_has_pilot",
+      "source": "FlightMission",
+      "target": "Pilot",
+      "join": {
+        "mission_id": "mission_id"
+      },
+      "link_type": "enables",
+      "cardinality": "1..1",
+      "description": "飞行任务由特定操控员执行"
+    }
+  ],
+  "functions": [
+    {
+      "name": "apply_flight_permission",
+      "summary": "提交飞行活动申请",
+      "description": "向局方提交飞行活动申请及起飞前确认信息",
+      "function_type": "business",
+      "group": "飞行管理",
+      "params": [
+        {
+          "name": "operator_id",
+          "type": "str",
+          "description": "运营者ID",
+          "default": null
+        },
+        {
+          "name": "aircraft_id",
+          "type": "str",
+          "description": "航空器ID",
+          "default": null
+        },
+        {
+          "name": "flight_plan",
+          "type": "str",
+          "description": "飞行计划内容",
+          "default": null
+        }
+      ],
+      "writes_to": [
+        "FlightApplication"
+      ],
+      "involves_objects": [
+        "Operator",
+        "UnmannedAircraft",
+        "FlightApplication"
+      ],
+      "preconditions": [
+        {
+          "object": "Operator",
+          "field": "operating_certificate_status",
+          "operator": "ne",
+          "value": "已注销"
+        }
+      ],
+      "effects": [
+        {
+          "object": "FlightApplication",
+          "field": "status",
+          "set_to": "待审批"
+        }
+      ],
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.535"
+    },
+    {
+      "name": "get_aircraft_registration_info",
+      "summary": "获取航空器实名登记信息",
+      "description": "查询无人驾驶航空器的实名登记号及国籍标志",
+      "function_type": "get",
+      "group": "登记管理",
+      "params": [
+        {
+          "name": "drone_id",
+          "type": "str",
+          "description": "无人机编号",
+          "default": null
+        }
+      ],
+      "involves_objects": [
+        "UnmannedAircraft"
+      ],
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.211"
+    }
+  ],
+  "rules": [
+    {
+      "name": "aircraft_category_classification",
+      "description": "按最大起飞重量分类无人驾驶航空器",
+      "rule_type": "classification",
+      "applies_to": [
+        "UnmannedAircraft"
+      ],
+      "result_field": "category",
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.51",
+      "conditions": [
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "lte",
+          "value": 0.25,
+          "result": "微型"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "lte",
+          "value": 7,
+          "result": "轻型"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "lte",
+          "value": 25,
+          "result": "小型"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "lte",
+          "value": 150,
+          "result": "中型"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "gt",
+          "value": 150,
+          "result": "大型"
+        }
+      ]
+    },
+    {
+      "name": "pilot_alcohol_restriction",
+      "description": "酒精含量限制判定",
+      "rule_type": "judgment",
+      "applies_to": [
+        "Pilot"
+      ],
+      "result_field": "is_fit_to_fly",
+      "source": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md§92.611",
+      "conditions": [
+        {
+          "field": "blood_alcohol_content",
+          "operator": "gte",
+          "value": 0.04,
+          "result": "不合格"
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "name": "flight_application_workflow",
+      "description": "飞行活动申请审批流程",
+      "trigger": "运行人提交飞行活动申请",
+      "involves_objects": [
+        "Operator",
+        "FlightApplication"
+      ],
+      "steps": [
+        {
+          "name": "提交申请",
+          "function": "apply_flight_permission",
+          "description": "运行人提交申请信息",
+          "next": "局方审查",
+          "sla": null
+        },
+        {
+          "name": "局方审查",
+          "function": "",
+          "description": "局方在20个工作日内进行审查并作出决定",
+          "next": {
+            "批准": "飞行开始",
+            "不予批准": "流程结束"
+          },
+          "sla": "20个工作日"
+        }
+      ]
+    }
+  ],
+  "key_constraints": [
+    "操控员在饮用任何含酒精饮料之后的 8 小时之内或者血液中酒精含量等于或者大于 0.04%时，不得担任操控员 (92.611)",
+    "局方应当自受理申请之日起 20 个工作日内，对申请材料进行审查，并作出是否批准的书面决定 (92.59)",
+    "执照过期后的重新办理，须重新通过其执照上相应等级的理论考试和实践考试 (92.65)",
+    "飞行动态数据记录应当至少保存 12 个月，飞行活动申请数据记录应当至少保存 15 个月 (92.547)"
+  ],
+  "_meta": {
+    "doc_name": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md",
+    "doc_type": "法规",
+    "doc_summary": "交通运输部发布的关于民用无人驾驶航空器运行安全管理的行业管理规则。"
+  }
+}

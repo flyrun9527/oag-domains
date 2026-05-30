@@ -1,5 +1,4 @@
 [
-  {"substation_id": "S001", "name": "黄渡变", "lng": 121.205, "lat": 31.270, "voltage_level": "110kV"},
-  {"substation_id": "S002", "name": "嘉定变", "lng": 121.240, "lat": 31.285, "voltage_level": "110kV"},
-  {"substation_id": "S003", "name": "南翔变", "lng": 121.300, "lat": 31.300, "voltage_level": "110kV"}
+  {"substation_id": "SS001", "name": "嘉定变电站", "lng": 121.25, "lat": 31.38, "voltage_level": "110kV/10kV", "total_capacity_kva": 63000},
+  {"substation_id": "SS002", "name": "安亭变电站", "lng": 121.18, "lat": 31.36, "voltage_level": "110kV/10kV", "total_capacity_kva": 50000}
 ]

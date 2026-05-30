@@ -1,0 +1,559 @@
+name: "无人驾驶航空器与公路交通应急管理领域"
+description: "涵盖无人驾驶航空器飞行管理、公路交通突发事件应急响应、设施灾损调查及抢通处置的综合管理领域。"
+
+objects:
+  UnmannedAircraft:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "无人驾驶航空器(按性能指标分为微型、轻型、小型、中型、大型)"
+    description: "没有机载驾驶员、自备动力系统的航空器"
+    status_transitions:
+      适航: [非适航]
+      非适航: [适航]
+    properties:
+      aircraft_id: {type: str, required: true, description: "唯一产品识别码"}
+      drone_id: {type: str, required: true, description: "无人机编号"}
+      category: {type: str, description: "分类: 微型/轻型/小型/中型/大型"}
+      max_takeoff_weight_kg: {type: float, description: "最大起飞重量(kg)"}
+      empty_weight_kg: {type: float, description: "空机重量(kg)"}
+      max_flight_altitude_m: {type: float, description: "最大飞行真高(m)"}
+      max_horizontal_speed_kmh: {type: float, description: "最大平飞速度(km/h)"}
+      status: {type: str, description: "状态: 适航/非适航/缺陷/改装"}
+      registration_number: {type: str, description: "实名登记号/国籍标志"}
+      airworthiness_certificate_status: {type: str, description: "适航证状态"}
+
+  Operator:
+    kind: entity
+    data_source: agent_generated
+    mutability: mutable
+    summary: "无人驾驶航空器运营单位或个人"
+    description: "从事无人驾驶航空器飞行活动的单位或个人"
+    properties:
+      operator_id: {type: str, required: true, description: "运营者唯一标识"}
+      is_commercial: {type: bool, description: "是否从事经营性活动"}
+      has_operating_certificate: {type: bool, description: "是否取得运营合格证"}
+      operating_certificate_status: {type: str, description: "运营合格证状态"}
+      business_type: {type: str, description: "经营种类: 载客/载人类/载货/培训/其他"}
+
+  Pilot:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "无人驾驶航空器操控员"
+    description: "负责操控无人驾驶航空器的人员"
+    status_transitions:
+      有效: [暂扣, 注销, 吊销]
+      暂扣: [有效]
+      注销: []
+      吊销: []
+    properties:
+      pilot_id: {type: str, required: true, description: "操控员执照编号"}
+      license_type: {type: str, description: "执照类型: 操控员执照/操作证书/无需执照"}
+      civil_capacity: {type: str, description: "民事行为能力: 完全/限制/无"}
+      license_level: {type: str, description: "等级: 类别/级别/型别/超视距/教员"}
+      medical_certificate_status: {type: str, description: "体检合格证状态"}
+      blood_alcohol_content: {type: float, description: "血液酒精含量"}
+      is_fit_to_fly: {type: bool, description: "是否适航/符合飞行条件"}
+
+  FlightApplication:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "飞行活动申请记录"
+    description: "向空中交通管理机构提交的飞行申请"
+    properties:
+      application_id: {type: str, required: true, description: "申请编号"}
+      application_status: {type: str, description: "状态: 待审批/已批准/不予批准"}
+      is_emergency: {type: bool, description: "是否为紧急任务"}
+      status: {type: str, description: "状态: 待审批/已批准/不予批准"}
+
+  AirspaceType:
+    kind: lookup_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "空域类型配置表"
+    description: "管制空域与适飞空域的定义"
+    properties:
+      type_name: {type: str, required: true, description: "空域类型: 管制空域/适飞空域"}
+      airspace_id: {type: str, required: true, description: "空域ID"}
+      type: {type: str, description: "类型: 管制空域/适飞空域"}
+
+  FlightMission:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "飞行任务记录"
+    description: "具体的飞行活动记录"
+    properties:
+      mission_id: {type: str, required: true, description: "任务ID"}
+      flight_dynamic_data: {type: str, description: "飞行动态数据"}
+
+  EmergencyResponse:
+    kind: entity
+    data_source: agent_generated
+    mutability: mutable
+    summary: "应急响应记录"
+    description: "交通运输部或地方各级交通运输主管部门启动的应急响应记录"
+    status_transitions:
+      启动中: [调整中, 终止, 降级]
+      调整中: [终止, 降级]
+      降级: [终止]
+    properties:
+      response_id: {type: str, required: true, description: "响应唯一编号"}
+      event_type: {type: str, description: "事件类型(如台风、地震、事故等)"}
+      response_level: {type: str, description: "响应等级: 一级/二级/三级/四级"}
+      status: {type: str, description: "当前状态: 启动中/调整中/终止/降级"}
+
+  DisasterWarning:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "自然灾害预警信息"
+    description: "气象、海洋、水文等部门发布的预警信息"
+    properties:
+      warning_id: {type: str, required: true, description: "预警唯一编号"}
+      warning_type: {type: str, description: "预警类型(如台风、暴雨、大雾等)"}
+      warning_level_color: {type: str, description: "预警级别颜色: 红色/橙色/黄色/蓝色"}
+      impact_scope: {type: str, description: "影响范围(时间、地点、强度、范围)"}
+      expected_wind_force: {type: int, description: "预计中心风力等级"}
+
+  HighwayProject:
+    kind: entity
+    data_source: human_confirmed
+    mutability: mutable
+    summary: "公路水运工程项目"
+    description: "公路水运工程建设项目"
+    properties:
+      project_id: {type: str, required: true, description: "项目唯一编号"}
+      construction_unit: {type: str, description: "建设单位名称"}
+      contractor: {type: str, description: "施工单位名称"}
+
+  HighwayTrafficEmergencyEvent:
+    kind: entity
+    data_source: agent_generated
+    mutability: mutable
+    summary: "公路交通突发事件"
+    description: "在自然灾害、事故等原因导致公路交通阻断情况下，需要及时抢通、恢复通行能力的紧急事件。"
+    status_transitions:
+      接报: [先期处置, 信息上报]
+      应急处置: [应急终止, 扩大应急]
+      应急终止: [应急恢复]
+    properties:
+      event_id: {type: str, required: true, description: "事件唯一标识"}
+      event_level: {type: str, description: "事件级别: I级(特别重大)/II级(重大)/III级(较大)/IV级(一般)"}
+      event_type: {type: str, description: "事件类型"}
+      occurrence_time: {type: str, description: "发生时间"}
+      location: {type: str, description: "发生地点"}
+      consequences: {type: str, description: "已造成的后果"}
+      status: {type: str, description: "状态: 发现/响应中/检查中/抢通中/已完成"}
+
+  Tunnel:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "公路隧道设施"
+    description: "公路交通网络中的隧道设施"
+    properties:
+      tunnel_id: {type: str, required: true, description: "隧道编号"}
+      importance_level: {type: str, description: "隧道重要等级: 一级/二级/三级"}
+      technical_status_category: {type: str, description: "技术状况评定类别: 1-5类"}
+
+  Bridge:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "公路桥梁设施"
+    description: "公路交通网络中的桥梁设施"
+    properties:
+      bridge_id: {type: str, required: true, description: "桥梁编号"}
+      structure_type: {type: str, description: "结构形式: 简支/连续/悬臂/桁架/吊桥/拱桥/斜拉桥等"}
+      main_beam_displacement: {type: str, description: "主梁位移情况"}
+
+  EmergencyResource:
+    kind: lookup_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "应急资源配置表"
+    description: "包括通用装备、专用装备、物资等"
+    properties:
+      resource_id: {type: str, required: true, description: "资源唯一标识"}
+      resource_type: {type: str, description: "类型: 通用装备/专用装备/物资"}
+      weight_level: {type: str, description: "重量等级: 微型/轻型/中型/重型"}
+
+  RoadNetworkDisasterSurvey:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "路网灾情调查记录"
+    description: "通过卫星遥感、航空遥感、地面监测等手段实施的灾情快速评估记录"
+    properties:
+      survey_id: {type: str, required: true, description: "调查编号"}
+      affected_route_count: {type: int, description: "受灾线路数量"}
+      disaster_scope: {type: str, description: "灾情影响范围"}
+      priority_list: {type: str, description: "优先抢通的生命通道、重点线路、关键节点清单"}
+
+  RouteDisasterSurvey:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "线路灾损调查记录"
+    description: "对所属公路基础设施受损状况、结构物承载能力、抵御次生灾害能力开展的实地快速评估记录"
+    properties:
+      survey_id: {type: str, required: true, description: "调查编号"}
+      infrastructure_id: {type: str, description: "受损基础设施编号"}
+      damage_type: {type: str, description: "灾损类型"}
+      damage_length: {type: float, description: "灾损长度"}
+      blockage_degree: {type: str, description: "阻断程度"}
+      clearance_suggestion: {type: str, description: "抢通建议"}
+      damage_description: {type: str, description: "损伤描述"}
+
+  FacilityOnSiteInspection:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "设施现场检查记录"
+    description: "对路基路面、桥涵、隧道等结构物具体灾损形态、程度、通行能力评估的核查记录"
+    properties:
+      inspection_id: {type: str, required: true, description: "检查编号"}
+      facility_type: {type: str, description: "设施类型: 路基路面/桥涵/隧道"}
+      damage_form: {type: str, description: "具体灾损形态"}
+      damage_degree: {type: str, description: "损伤程度"}
+      capacity_assessment: {type: str, description: "通行能力评估"}
+      repair_technical_plan: {type: str, description: "现场应急抢修技术方案建议"}
+      damage_description: {type: str, description: "损伤描述"}
+
+  EmergencyEquipment:
+    kind: lookup_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "应急装备物资配置表"
+    description: "包含通用应急装备和专用应急装备的配置信息"
+    properties:
+      equipment_id: {type: str, required: true, description: "装备编号"}
+      equipment_category: {type: str, description: "类别: 通用/专用"}
+      application_scenario: {type: str, description: "应用场景"}
+      capability: {type: str, description: "通行保障能力/技术指标"}
+
+links:
+  operator_operates_aircraft:
+    source: Operator
+    target: UnmannedAircraft
+    join: {operator_id: operator_id}
+    link_type: enables
+    cardinality: "0..n"
+    description: "运营者使用无人驾驶航空器"
+  pilot_controls_aircraft:
+    source: Pilot
+    target: UnmannedAircraft
+    join: {pilot_id: pilot_id}
+    link_type: enables
+    cardinality: "0..n"
+    description: "操控员操控无人驾驶航空器"
+  mission_has_pilot:
+    source: FlightMission
+    target: Pilot
+    join: {mission_id: pilot_id}
+    link_type: enables
+    cardinality: "1..1"
+    description: "飞行任务由特定操控员执行"
+  warning_triggers_response:
+    source: DisasterWarning
+    target: EmergencyResponse
+    join: {source_key: warning_id, target_key: response_id}
+    link_type: enables
+    cardinality: "0..1"
+    description: "气象预警信息可触发应急响应的启动"
+  project_has_contractor:
+    source: HighwayProject
+    target: Operator
+    join: {source_key: project_id, target_key: operator_id}
+    link_type: contains
+    cardinality: "1..n"
+    description: "工程项目包含施工单位/承包商"
+  event_affects_infrastructure:
+    source: HighwayTrafficEmergencyEvent
+    target: Tunnel
+    join: {source_key: event_id, target_key: tunnel_id}
+    link_type: causal
+    cardinality: "0..n"
+    description: "突发事件导致隧道受损"
+  event_has_road_network_survey:
+    source: HighwayTrafficEmergencyEvent
+    target: RoadNetworkDisasterSurvey
+    join: {event_id: event_id}
+    link_type: contains
+    cardinality: "1..1"
+    description: "突发事件触发路网灾情调查"
+  road_network_survey_has_route_survey:
+    source: RoadNetworkDisasterSurvey
+    target: RouteDisasterSurvey
+    join: {survey_id: survey_id}
+    link_type: contains
+    cardinality: "1..n"
+    description: "路网调查包含线路灾损调查"
+  route_survey_has_facility_inspection:
+    source: RouteDisasterSurvey
+    target: FacilityOnSiteInspection
+    join: {survey_id: survey_id}
+    link_type: contains
+    cardinality: "1..n"
+    description: "线路调查包含设施现场检查"
+
+functions:
+  apply_flight_permission:
+    summary: "提交飞行活动申请"
+    description: "向空中交通管理机构提出飞行活动申请"
+    group: "飞行管理"
+    function_type: business
+    writes_to: [FlightApplication]
+    involves_objects: [Operator, UnmannedAircraft, FlightApplication]
+    params:
+      operator_id: {type: str, description: "申请单位或个人ID"}
+      aircraft_id: {type: str, description: "无人驾驶航空器ID"}
+      is_emergency: {type: bool, description: "是否为紧急任务", default: false}
+    effects:
+      - {object: FlightApplication, field: application_status, set_to: "待审批"}
+    temporal_constraints:
+      - when: {is_emergency: "false"}
+        deadline: "T-1d 12:00"
+        sla: "应当在拟飞行前1日12时前提出申请"
+      - when: {is_emergency: "true"}
+        deadline: "T-30m"
+        sla: "执行紧急任务应当在计划起飞30分钟前提出申请"
+
+  get_aircraft_info:
+    summary: "获取航空器信息"
+    description: "查询无人驾驶航空器的详细参数"
+    group: "资产查询"
+    function_type: get
+    involves_objects: [UnmannedAircraft]
+    params:
+      drone_id: {type: str, description: "无人机编号"}
+
+  get_pilot_info:
+    summary: "获取操控员信息"
+    description: "查询操控员执照及身体状况"
+    group: "人员查询"
+    function_type: get
+    involves_objects: [Pilot]
+    params:
+      pilot_id: {type: str, description: "操控员执照编号"}
+
+  lookup_airspace:
+    summary: "查询空域类型"
+    description: "查询空域管制属性"
+    group: "空域管理"
+    function_type: lookup
+    involves_objects: [AirspaceType]
+    params:
+      airspace_id: {type: str, description: "空域ID"}
+
+  start_typhoon_defense_response:
+    summary: "启动台风防御响应"
+    description: "根据台风预警级别启动响应"
+    group: "防御响应"
+    function_type: business
+    writes_to: [EmergencyResponse]
+    involves_objects: [DisasterWarning, EmergencyResponse]
+    preconditions:
+      - {object: DisasterWarning, field: warning_type, operator: eq, value: "台风"}
+    effects:
+      - {object: EmergencyResponse, field: status, set_to: "启动中"}
+    params:
+      warning_id: {type: str, description: "预警ID"}
+      expected_wind_force: {type: int, description: "预计中心风力等级"}
+
+  report_emergency_info:
+    summary: "上报突发事件信息"
+    description: "在2小时内完成信息上报"
+    group: "指挥调度"
+    function_type: business
+    writes_to: [HighwayTrafficEmergencyEvent]
+    involves_objects: [HighwayTrafficEmergencyEvent]
+    params:
+      event_id: {type: str, description: "事件编号"}
+      report_method: {type: str, description: "报送方式: 电话/书面/电子邮件"}
+    temporal_constraints:
+      - when: {}
+        deadline: "event_time + 2h"
+        sla: "事件发生后2小时内完成信息上报"
+
+  evaluate_tunnel_damage:
+    summary: "隧道应急评估"
+    description: "对隧道抢通难度进行评估分级"
+    group: "隧道抢通"
+    function_type: business
+    writes_to: [Tunnel]
+    involves_objects: [Tunnel]
+    params:
+      tunnel_id: {type: str, description: "隧道编号"}
+      survey_data: {type: str, description: "调查资料内容"}
+
+  start_emergency_response:
+    summary: "启动应急响应"
+    description: "发现或接报灾害事件后启动响应"
+    group: "应急响应"
+    function_type: business
+    writes_to: [HighwayTrafficEmergencyEvent]
+    involves_objects: [HighwayTrafficEmergencyEvent]
+    effects:
+      - {object: HighwayTrafficEmergencyEvent, field: status, set_to: "响应中"}
+    params:
+      event_id: {type: str, description: "事件编号"}
+      initial_info: {type: str, description: "初步掌握的信息"}
+
+  conduct_facility_inspection:
+    summary: "开展设施现场检查"
+    description: "对结构物开展具体灾损形态、程度、通行能力评估"
+    group: "应急检查"
+    function_type: business
+    writes_to: [FacilityOnSiteInspection]
+    involves_objects: [FacilityOnSiteInspection]
+    params:
+      facility_id: {type: str, description: "设施ID"}
+      inspection_method: {type: str, description: "调查方式: 人工巡查/视频监控/航空遥感/卫星遥感"}
+
+rules:
+  aircraft_category_classification:
+    description: "按最大起飞重量分类无人驾驶航空器"
+    rule_type: classification
+    applies_to: [UnmannedAircraft]
+    result_field: category
+    conditions:
+      - {field: max_takeoff_weight_kg, operator: lte, value: 0.25, result: "微型"}
+      - {field: max_takeoff_weight_kg, operator: lte, value: 7, result: "轻型"}
+      - {field: max_takeoff_weight_kg, operator: lte, value: 25, result: "小型"}
+      - {field: max_takeoff_weight_kg, operator: lte, value: 150, result: "中型"}
+      - {field: max_takeoff_weight_kg, operator: gt, value: 150, result: "大型"}
+
+  pilot_alcohol_restriction:
+    description: "酒精含量限制判定"
+    rule_type: judgment
+    applies_to: [Pilot]
+    result_field: is_fit_to_fly
+    conditions:
+      - {field: blood_alcohol_content, operator: gte, value: 0.04, result: "不合格"}
+
+  typhoon_response_level_classification:
+    description: "根据台风预计风力确定防御响应等级"
+    rule_type: classification
+    applies_to: [DisasterWarning]
+    result_field: response_level
+    conditions:
+      - {field: expected_wind_force, operator: gte, value: 16, result: "一级"}
+      - {field: expected_wind_force, operator: gte, value: 14, result: "二级"}
+      - {field: expected_wind_force, operator: gte, value: 12, result: "三级"}
+      - {field: expected_wind_force, operator: gte, value: 8, result: "四级"}
+
+  infrastructure_damage_classification:
+    description: "公路基础设施损伤等级判定"
+    rule_type: classification
+    applies_to: [FacilityOnSiteInspection]
+    result_field: damage_degree
+    conditions:
+      - {field: damage_description, operator: eq, value: "无损伤或轻微损伤", result: "I"}
+      - {field: damage_description, operator: eq, value: "中等损伤", result: "II"}
+      - {field: damage_description, operator: eq, value: "严重损伤或坍塌", result: "III"}
+
+  infrastructure_clearance_suggestion:
+    description: "根据损伤等级确定抢通建议"
+    rule_type: classification
+    applies_to: [FacilityOnSiteInspection]
+    result_field: clearance_suggestion
+    conditions:
+      - {field: damage_degree, operator: eq, value: "I", result: "观察通行"}
+      - {field: damage_degree, operator: eq, value: "II", result: "限制通行并加强观测"}
+      - {field: damage_degree, operator: eq, value: "III", result: "禁止通行并实施抢通"}
+
+workflows:
+  flight_application_workflow:
+    description: "飞行活动申请审批流程"
+    trigger: "运行人提交飞行活动申请"
+    involves_objects: [Operator, FlightApplication]
+    steps:
+      - name: 提交申请
+        function: apply_flight_permission
+        description: "运行人提交申请信息"
+        next: 局方审查
+      - name: 局方审查
+        function: ""
+        description: "局方在20个工作日内进行审查并作出决定"
+        next: {批准: 飞行开始, 不予批准: 流程结束}
+        sla: "20个工作日"
+
+  typhoon_defense_workflow:
+    description: "台风防御响应流程"
+    trigger: "接收到台风预警信息"
+    involves_objects: [DisasterWarning, EmergencyResponse]
+    steps:
+      - name: 研判与建议
+        function: ""
+        description: "应急办研究提出启动建议并报批"
+        next: 启动响应
+      - name: 启动响应
+        function: start_typhoon_defense_response
+        description: "向受影响地区印发启动通知单"
+        next: 开展防御措施
+      - name: 开展防御措施
+        function: ""
+        description: "落实保通保畅、物资预置、交通管控等措施"
+        next: 总结评估
+      - name: 总结评估
+        function: ""
+        description: "响应终止后进行复盘评估"
+        next: ""
+
+  highway_emergency_disposal_workflow:
+    description: "公路交通突发事件应急处置全流程"
+    trigger: "突发事件发生"
+    involves_objects: [HighwayTrafficEmergencyEvent]
+    steps:
+      - name: 接报
+        function: ""
+        description: "接收突发事件信息"
+        next: 先期处置
+      - name: 先期处置
+        function: ""
+        description: "探明影响、疏散、维持秩序"
+        next: 信息上报
+      - name: 信息上报
+        function: report_emergency_info
+        description: "逐级上报相关机构"
+        next: 应急处置
+        sla: "2小时内"
+      - name: 应急处置
+        function: ""
+        description: "调度资源、实施抢通"
+        next: {事态得到控制: 应急终止, 事态未得到控制: 扩大应急}
+      - name: 应急终止
+        function: ""
+        description: "警戒解除、现场清理、善后处置"
+        next: 应急恢复
+      - name: 应急恢复
+        function: ""
+        description: "恢复正常交通秩序"
+        next: ""
+
+  highway_emergency_clearance_workflow:
+    description: "公路交通应急抢通全流程"
+    trigger: "发现或接报灾害事件信息"
+    involves_objects: [HighwayTrafficEmergencyEvent, RoadNetworkDisasterSurvey, RouteDisasterSurvey, FacilityOnSiteInspection]
+    steps:
+      - name: 启动应急响应
+        function: start_emergency_response
+        description: "研判灾情并启动响应"
+        next: 开展应急检查
+        sla: "迅速启动"
+      - name: 开展应急检查
+        function: conduct_facility_inspection
+        description: "包含路网灾情调查、线路灾损调查、设施现场检查"
+        next: {禁止通行并实施抢通: 现场应急抢通, 限制通行并加强观测: 设施现场检查, 观察通行: 设施现场检查}
+      - name: 现场应急抢通
+        function: ""
+        description: "实施抢修技术方案"
+        next: 应急通行评估
+      - name: 应急通行评估
+        function: ""
+        description: "评估是否满足应急通行条件"
+        next: {满足条件: 开放应急通行, 不满足条件: 制定绕行方案}

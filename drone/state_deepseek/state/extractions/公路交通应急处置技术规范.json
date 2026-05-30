@@ -1,0 +1,1293 @@
+{
+  "objects": [
+    {
+      "name": "RoadEmergencyEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "公路交通突发事件记录",
+      "description": "在自然灾害、事故等原因导致公路交通阻断情况下，需要及时抢通、恢复通行能力的紧急事件。",
+      "source": "公路交通应急处置技术规范.md§2.0.1",
+      "properties": [
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": true,
+          "description": "事件编号",
+          "source": "§5.3.3"
+        },
+        {
+          "name": "event_time",
+          "type": "str",
+          "required": false,
+          "description": "事件发生时间",
+          "source": "§5.3.3"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "required": false,
+          "description": "事件发生地点（路段编号、桩号等）",
+          "source": "§5.3.3"
+        },
+        {
+          "name": "event_type",
+          "type": "str",
+          "required": false,
+          "description": "事件类型：自然灾害/事故等",
+          "source": "§5.4.2"
+        },
+        {
+          "name": "event_level",
+          "type": "str",
+          "required": false,
+          "description": "事件级别：I级(特别重大)/II级(重大)/III级(较大)/IV级(一般)",
+          "source": "§5.2.1"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "事件起因、性质、基本过程、已造成的后果以及影响范围和事件发展趋势",
+          "source": "§5.3.3"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "事件状态：已接报/先期处置/应急响应/应急终止/总结评估",
+          "source": "§5.4.1, §5.4.5, §3.0.7"
+        },
+        {
+          "name": "reporter",
+          "type": "str",
+          "required": false,
+          "description": "信息报送单位、联系人和联系电话",
+          "source": "§5.3.3"
+        },
+        {
+          "name": "measures_taken",
+          "type": "str",
+          "required": false,
+          "description": "已采取的措施、下一步的工作计划",
+          "source": "§5.3.3"
+        }
+      ],
+      "status_transitions": {
+        "已接报": [
+          "先期处置"
+        ],
+        "先期处置": [
+          "应急响应"
+        ],
+        "应急响应": [
+          "应急终止"
+        ],
+        "应急终止": [
+          "总结评估"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "EmergencyResource",
+      "kind": "entity",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "应急资源（队伍、装备、物资）",
+      "description": "用于交通应急救援作业的各类车辆、装备、物资及器材。",
+      "source": "公路交通应急处置技术规范.md§10.2, §10.3",
+      "properties": [
+        {
+          "name": "resource_id",
+          "type": "str",
+          "required": true,
+          "description": "资源编号",
+          "source": "§10.2"
+        },
+        {
+          "name": "resource_type",
+          "type": "str",
+          "required": false,
+          "description": "资源类型：通用装备/专用装备/物资",
+          "source": "§10.2.4"
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "description": "资源名称",
+          "source": "§10.2"
+        },
+        {
+          "name": "category",
+          "type": "str",
+          "required": false,
+          "description": "装备分类：土方装备/破碎装备/桩工装备/混凝土装备/起重吊装装备/运输装备/生存保障装备/应急侦测装备/路基路面抢通装备/桥涵抢通装备/隧道抢通装备/事故处置装备/冰雪沙泥水火灾害处置装备",
+          "source": "§10.2.4"
+        },
+        {
+          "name": "weight_class",
+          "type": "str",
+          "required": false,
+          "description": "重量等级：微型(<1t)/轻型(1-12t)/中型(12-30t)/重型(>30t)",
+          "source": "§10.2.6"
+        },
+        {
+          "name": "deployment_mode",
+          "type": "str",
+          "required": false,
+          "description": "部署方式：人力携行/自行运输/陆地运输/空中运输",
+          "source": "§10.2.5"
+        },
+        {
+          "name": "environment_suitability",
+          "type": "str",
+          "required": false,
+          "description": "适用环境：全地形/高海拔/低承载/山地陡坡/高低温/常规地形",
+          "source": "§10.2.7"
+        },
+        {
+          "name": "intelligence_level",
+          "type": "str",
+          "required": false,
+          "description": "智能化等级：等级1(非智能化)/等级2(可遥控)/等级3(环境感知)/等级4(自适应操控)",
+          "source": "§10.2.8"
+        },
+        {
+          "name": "quantity",
+          "type": "int",
+          "required": false,
+          "description": "数量",
+          "source": "§10.2"
+        },
+        {
+          "name": "storage_location",
+          "type": "str",
+          "required": false,
+          "description": "储备地点",
+          "source": "§10.3.6"
+        },
+        {
+          "name": "reserve_level",
+          "type": "str",
+          "required": false,
+          "description": "储备层级：国家区域性/省级/市级/县级/公路养护队",
+          "source": "§10.3.6"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyPlan",
+      "kind": "entity",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "应急预案",
+      "description": "公路管养单位编制的突发事件应急预案和应急预案操作手册。",
+      "source": "公路交通应急处置技术规范.md§3.0.3",
+      "properties": [
+        {
+          "name": "plan_id",
+          "type": "str",
+          "required": true,
+          "description": "预案编号",
+          "source": "§3.0.3"
+        },
+        {
+          "name": "plan_name",
+          "type": "str",
+          "required": false,
+          "description": "预案名称",
+          "source": "§3.0.3"
+        },
+        {
+          "name": "event_type",
+          "type": "str",
+          "required": false,
+          "description": "适用事件类型",
+          "source": "§3.0.3"
+        },
+        {
+          "name": "organization",
+          "type": "str",
+          "required": false,
+          "description": "应急组织机构",
+          "source": "§5.1.2"
+        },
+        {
+          "name": "response_procedure",
+          "type": "str",
+          "required": false,
+          "description": "应急指挥调度程序",
+          "source": "§5.1.3"
+        },
+        {
+          "name": "resource_requirements",
+          "type": "str",
+          "required": false,
+          "description": "所需应急资源",
+          "source": "§10.2, §10.3"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyDrillRecord",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "应急演练记录",
+      "description": "定期组织开展应急培训和演练的记录，包括演练评估。",
+      "source": "公路交通应急处置技术规范.md§3.0.3",
+      "properties": [
+        {
+          "name": "drill_id",
+          "type": "str",
+          "required": true,
+          "description": "演练编号",
+          "source": "§3.0.3"
+        },
+        {
+          "name": "drill_time",
+          "type": "str",
+          "required": false,
+          "description": "演练时间",
+          "source": "§3.0.3"
+        },
+        {
+          "name": "drill_type",
+          "type": "str",
+          "required": false,
+          "description": "演练类型",
+          "source": "§3.0.3"
+        },
+        {
+          "name": "participants",
+          "type": "str",
+          "required": false,
+          "description": "参与人员/单位",
+          "source": "§3.0.3"
+        },
+        {
+          "name": "evaluation",
+          "type": "str",
+          "required": false,
+          "description": "演练评估结果",
+          "source": "§3.0.3"
+        },
+        {
+          "name": "improvements",
+          "type": "str",
+          "required": false,
+          "description": "改进措施",
+          "source": "§3.0.3"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyExpert",
+      "kind": "entity",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "应急专家库成员",
+      "description": "应急救援专家，用于辅助决策。",
+      "source": "公路交通应急处置技术规范.md§8.1.7",
+      "properties": [
+        {
+          "name": "expert_id",
+          "type": "str",
+          "required": true,
+          "description": "专家编号",
+          "source": "§8.1.7"
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "description": "姓名",
+          "source": "§8.1.7"
+        },
+        {
+          "name": "specialty",
+          "type": "str",
+          "required": false,
+          "description": "专业领域",
+          "source": "§8.1.7"
+        },
+        {
+          "name": "organization",
+          "type": "str",
+          "required": false,
+          "description": "所属单位",
+          "source": "§8.1.7"
+        },
+        {
+          "name": "contact",
+          "type": "str",
+          "required": false,
+          "description": "联系方式",
+          "source": "§8.1.7"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyCommunicationEquipment",
+      "kind": "entity",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "应急通信设备",
+      "description": "用于应急通信的各类设备，包括公网、专网、卫星、短波等。",
+      "source": "公路交通应急处置技术规范.md§10.4",
+      "properties": [
+        {
+          "name": "equipment_id",
+          "type": "str",
+          "required": true,
+          "description": "设备编号",
+          "source": "§10.4"
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "description": "设备名称",
+          "source": "§10.4.3"
+        },
+        {
+          "name": "communication_mode",
+          "type": "str",
+          "required": false,
+          "description": "通信方式：公网通信/专网通信/卫星通信/短波通信/无线通信",
+          "source": "§10.4.3"
+        },
+        {
+          "name": "core_function",
+          "type": "str",
+          "required": false,
+          "description": "核心功能：综合指挥/现场通信/指挥通信/信息安全",
+          "source": "§10.4.3"
+        },
+        {
+          "name": "deployment_level",
+          "type": "str",
+          "required": false,
+          "description": "配置部门：各级指挥中心救援队/救援队",
+          "source": "§10.4.3"
+        },
+        {
+          "name": "quantity",
+          "type": "int",
+          "required": false,
+          "description": "数量",
+          "source": "§10.4"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyLogisticsSupport",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "应急运输保障任务",
+      "description": "应急运输保障任务，包括人员、装备、物资的运输。",
+      "source": "公路交通应急处置技术规范.md§10.2.5",
+      "properties": [
+        {
+          "name": "task_id",
+          "type": "str",
+          "required": true,
+          "description": "任务编号",
+          "source": "§10.2.5"
+        },
+        {
+          "name": "task_type",
+          "type": "str",
+          "required": false,
+          "description": "任务类型：人员运输/装备运输/物资运输",
+          "source": "§10.2.5"
+        },
+        {
+          "name": "origin",
+          "type": "str",
+          "required": false,
+          "description": "出发地",
+          "source": "§10.2.5"
+        },
+        {
+          "name": "destination",
+          "type": "str",
+          "required": false,
+          "description": "目的地",
+          "source": "§10.2.5"
+        },
+        {
+          "name": "transport_mode",
+          "type": "str",
+          "required": false,
+          "description": "运输方式：自行/陆地/空中",
+          "source": "§10.2.5"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：待执行/执行中/已完成",
+          "source": "§10.2.5"
+        }
+      ],
+      "status_transitions": {
+        "待执行": [
+          "执行中"
+        ],
+        "执行中": [
+          "已完成"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "EmergencyCommunicationContact",
+      "kind": "entity",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "应急通讯联络信息表",
+      "description": "应急通讯联络信息，包括相关部门联系方式。",
+      "source": "公路交通应急处置技术规范.md§5.1.4",
+      "properties": [
+        {
+          "name": "contact_id",
+          "type": "str",
+          "required": true,
+          "description": "联络编号",
+          "source": "§5.1.4"
+        },
+        {
+          "name": "organization",
+          "type": "str",
+          "required": false,
+          "description": "单位名称",
+          "source": "§5.1.4"
+        },
+        {
+          "name": "contact_person",
+          "type": "str",
+          "required": false,
+          "description": "联系人",
+          "source": "§5.1.4"
+        },
+        {
+          "name": "phone",
+          "type": "str",
+          "required": false,
+          "description": "联系电话",
+          "source": "§5.1.4"
+        },
+        {
+          "name": "role",
+          "type": "str",
+          "required": false,
+          "description": "角色：应急管理/公安/环境/医疗等",
+          "source": "§5.1.4"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "RoadDefenseResponse",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "公路防御响应记录",
+      "description": "根据气象、自然资源等部门发布的预警信息，采取的防御响应措施记录。",
+      "source": "公路交通应急处置技术规范.md§3.0.5",
+      "properties": [
+        {
+          "name": "response_id",
+          "type": "str",
+          "required": true,
+          "description": "响应编号",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "warning_type",
+          "type": "str",
+          "required": false,
+          "description": "预警类型：气象/地质灾害等",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "warning_level",
+          "type": "str",
+          "required": false,
+          "description": "预警级别",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "response_time",
+          "type": "str",
+          "required": false,
+          "description": "响应时间",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "measures",
+          "type": "str",
+          "required": false,
+          "description": "防御响应措施",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：已启动/已解除",
+          "source": "§3.0.5"
+        }
+      ],
+      "status_transitions": {
+        "已启动": [
+          "已解除"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "WaterwayDefenseResponse",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "水路防御响应记录",
+      "description": "根据气象、自然资源等部门发布的预警信息，采取的防御响应措施记录。",
+      "source": "公路交通应急处置技术规范.md§3.0.5",
+      "properties": [
+        {
+          "name": "response_id",
+          "type": "str",
+          "required": true,
+          "description": "响应编号",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "warning_type",
+          "type": "str",
+          "required": false,
+          "description": "预警类型：气象/地质灾害等",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "warning_level",
+          "type": "str",
+          "required": false,
+          "description": "预警级别",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "response_time",
+          "type": "str",
+          "required": false,
+          "description": "响应时间",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "measures",
+          "type": "str",
+          "required": false,
+          "description": "防御响应措施",
+          "source": "§3.0.5"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：已启动/已解除",
+          "source": "§3.0.5"
+        }
+      ],
+      "status_transitions": {
+        "已启动": [
+          "已解除"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "FacilityInspection",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "设施应急调查/评估记录",
+      "description": "对路基路面、桥涵、隧道等设施的应急调查和评估记录。",
+      "source": "公路交通应急处置技术规范.md§6.1, §7.1, §8.2",
+      "properties": [
+        {
+          "name": "inspection_id",
+          "type": "str",
+          "required": true,
+          "description": "调查编号",
+          "source": "§6.1"
+        },
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": false,
+          "description": "关联事件编号",
+          "source": "§6.1"
+        },
+        {
+          "name": "facility_type",
+          "type": "str",
+          "required": false,
+          "description": "设施类型：路基路面/桥涵/隧道",
+          "source": "§6.1, §7.1, §8.2"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "required": false,
+          "description": "位置（桩号等）",
+          "source": "§6.1"
+        },
+        {
+          "name": "damage_grade",
+          "type": "str",
+          "required": false,
+          "description": "受损程度等级：I级(轻微)/II级(中等)/III级(严重)",
+          "source": "§6.2, §7.2, §8.2"
+        },
+        {
+          "name": "assessment_result",
+          "type": "str",
+          "required": false,
+          "description": "评估结论：正常通行/限制通行/禁止通行",
+          "source": "§6.2, §7.2, §8.3"
+        },
+        {
+          "name": "recommendation",
+          "type": "str",
+          "required": false,
+          "description": "处治建议",
+          "source": "§6.2, §7.2, §8.3"
+        },
+        {
+          "name": "inspector",
+          "type": "str",
+          "required": false,
+          "description": "调查评估人员",
+          "source": "§6.1"
+        },
+        {
+          "name": "inspection_time",
+          "type": "str",
+          "required": false,
+          "description": "调查时间",
+          "source": "§6.1"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "ClearancePlan",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "抢通方案",
+      "description": "针对路基路面、桥涵、隧道等设施的抢通方案。",
+      "source": "公路交通应急处置技术规范.md§6.4, §7.3, §8.5",
+      "properties": [
+        {
+          "name": "plan_id",
+          "type": "str",
+          "required": true,
+          "description": "方案编号",
+          "source": "§6.4"
+        },
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": false,
+          "description": "关联事件编号",
+          "source": "§6.4"
+        },
+        {
+          "name": "facility_type",
+          "type": "str",
+          "required": false,
+          "description": "设施类型：路基路面/桥涵/隧道",
+          "source": "§6.4, §7.3, §8.5"
+        },
+        {
+          "name": "clearance_target",
+          "type": "str",
+          "required": false,
+          "description": "抢通目标等级：I级(禁止通行并改道)/II级(限制性通行)/III级(基本抢险车辆通行)",
+          "source": "§8.4.1"
+        },
+        {
+          "name": "techniques",
+          "type": "str",
+          "required": false,
+          "description": "采用的抢通技术",
+          "source": "§6.4, §7.3, §8.5"
+        },
+        {
+          "name": "resources_required",
+          "type": "str",
+          "required": false,
+          "description": "所需资源",
+          "source": "§6.4, §7.3, §8.5"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：待实施/实施中/已完成",
+          "source": "§6.4"
+        }
+      ],
+      "status_transitions": {
+        "待实施": [
+          "实施中"
+        ],
+        "实施中": [
+          "已完成"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "TrafficControlMeasure",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "交通管制措施记录",
+      "description": "对限制通行或禁止通行路段采取的交通管制措施。",
+      "source": "公路交通应急处置技术规范.md§6.3, §7.3.3",
+      "properties": [
+        {
+          "name": "measure_id",
+          "type": "str",
+          "required": true,
+          "description": "措施编号",
+          "source": "§6.3"
+        },
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": false,
+          "description": "关联事件编号",
+          "source": "§6.3"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "required": false,
+          "description": "管制路段",
+          "source": "§6.3"
+        },
+        {
+          "name": "measure_type",
+          "type": "str",
+          "required": false,
+          "description": "管制措施类型：半幅通行/单车道居中通行/限速限载/分时控制/禁止通行",
+          "source": "§6.3.4"
+        },
+        {
+          "name": "start_time",
+          "type": "str",
+          "required": false,
+          "description": "开始时间",
+          "source": "§6.3"
+        },
+        {
+          "name": "end_time",
+          "type": "str",
+          "required": false,
+          "description": "结束时间",
+          "source": "§6.3"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：生效中/已解除",
+          "source": "§6.3"
+        }
+      ],
+      "status_transitions": {
+        "生效中": [
+          "已解除"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "AccidentEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "道路交通事故记录",
+      "description": "公路交通事故信息，包括事故类型、等级、处理等。",
+      "source": "公路交通应急处置技术规范.md§9.1, §9.2",
+      "properties": [
+        {
+          "name": "accident_id",
+          "type": "str",
+          "required": true,
+          "description": "事故编号",
+          "source": "§9.1"
+        },
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": false,
+          "description": "关联突发事件编号",
+          "source": "§9.1"
+        },
+        {
+          "name": "time",
+          "type": "str",
+          "required": false,
+          "description": "事故发生时间",
+          "source": "§9.1.1"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "required": false,
+          "description": "事故发生位置（路段编号、桩号、方向）",
+          "source": "§9.1.2"
+        },
+        {
+          "name": "accident_type",
+          "type": "str",
+          "required": false,
+          "description": "事故类型：抛锚/碰撞/碾压/翻车/坠车/落水/烧毁/货物散落",
+          "source": "§9.2.2"
+        },
+        {
+          "name": "accident_level",
+          "type": "str",
+          "required": false,
+          "description": "事故等级：I级(特大)/II级(重大)/III级(较大)/IV级(一般)",
+          "source": "§9.2.3"
+        },
+        {
+          "name": "vehicle_type",
+          "type": "str",
+          "required": false,
+          "description": "涉事车辆类型及数量",
+          "source": "§9.1.2"
+        },
+        {
+          "name": "cargo_type",
+          "type": "str",
+          "required": false,
+          "description": "货物类型（是否危化品）",
+          "source": "§9.1.2"
+        },
+        {
+          "name": "casualties",
+          "type": "str",
+          "required": false,
+          "description": "人员伤亡情况",
+          "source": "§9.1.2"
+        },
+        {
+          "name": "property_loss",
+          "type": "str",
+          "required": false,
+          "description": "财产损失",
+          "source": "§9.2.3"
+        },
+        {
+          "name": "traffic_impact",
+          "type": "str",
+          "required": false,
+          "description": "交通影响",
+          "source": "§9.2.3"
+        },
+        {
+          "name": "response_level",
+          "type": "str",
+          "required": false,
+          "description": "处理需求等级：I级(交通运输部)/II级(省级)/III级(市级)/IV级(县级)",
+          "source": "§9.2.4"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：待处理/处理中/已处理",
+          "source": "§9.3"
+        }
+      ],
+      "status_transitions": {
+        "待处理": [
+          "处理中"
+        ],
+        "处理中": [
+          "已处理"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "HazardousMaterial",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "危险品信息",
+      "description": "事故中涉及的危险物品信息，包括化学性质等。",
+      "source": "公路交通应急处置技术规范.md§9.1.2",
+      "properties": [
+        {
+          "name": "material_id",
+          "type": "str",
+          "required": true,
+          "description": "危险品编号",
+          "source": "§9.1.2"
+        },
+        {
+          "name": "accident_id",
+          "type": "str",
+          "required": false,
+          "description": "关联事故编号",
+          "source": "§9.1.2"
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "description": "危险品名称",
+          "source": "§9.1.2"
+        },
+        {
+          "name": "chemical_properties",
+          "type": "str",
+          "required": false,
+          "description": "化学性质：爆炸性/易燃性/毒害性/放射性/腐蚀性/传染病病原体",
+          "source": "§9.1.2"
+        },
+        {
+          "name": "quantity",
+          "type": "str",
+          "required": false,
+          "description": "数量",
+          "source": "§9.1.2"
+        },
+        {
+          "name": "leak_status",
+          "type": "str",
+          "required": false,
+          "description": "泄漏情况：未泄漏/已泄漏",
+          "source": "§9.1.2"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "TunnelEmergencyAssessment",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "隧道应急评估记录",
+      "description": "隧道应急评估结果，包括重要等级、抢通难度、次生事故风险等。",
+      "source": "公路交通应急处置技术规范.md§8.3",
+      "properties": [
+        {
+          "name": "assessment_id",
+          "type": "str",
+          "required": true,
+          "description": "评估编号",
+          "source": "§8.3"
+        },
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": false,
+          "description": "关联事件编号",
+          "source": "§8.3"
+        },
+        {
+          "name": "tunnel_name",
+          "type": "str",
+          "required": false,
+          "description": "隧道名称",
+          "source": "§8.3"
+        },
+        {
+          "name": "importance_level",
+          "type": "str",
+          "required": false,
+          "description": "隧道重要等级：一级/二级/三级",
+          "source": "§8.3.2"
+        },
+        {
+          "name": "clearance_difficulty",
+          "type": "str",
+          "required": false,
+          "description": "抢通难度等级：高难度/中等难度/低难度",
+          "source": "§8.3.7"
+        },
+        {
+          "name": "secondary_risk_level",
+          "type": "str",
+          "required": false,
+          "description": "次生事故风险等级：I级/II级/III级/IV级",
+          "source": "§8.3.5"
+        },
+        {
+          "name": "clearance_target",
+          "type": "str",
+          "required": false,
+          "description": "抢通目标等级：I级(禁止通行并改道)/II级(限制性通行)/III级(基本抢险车辆通行)",
+          "source": "§8.4.1"
+        },
+        {
+          "name": "assessment_time",
+          "type": "str",
+          "required": false,
+          "description": "评估时间",
+          "source": "§8.3"
+        },
+        {
+          "name": "assessor",
+          "type": "str",
+          "required": false,
+          "description": "评估人员",
+          "source": "§8.3"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "BridgeEmergencyAssessment",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "桥涵应急评估记录",
+      "description": "桥涵应急评估结果，包括整体稳定性、承载能力、通行能力评估。",
+      "source": "公路交通应急处置技术规范.md§7.2",
+      "properties": [
+        {
+          "name": "assessment_id",
+          "type": "str",
+          "required": true,
+          "description": "评估编号",
+          "source": "§7.2"
+        },
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": false,
+          "description": "关联事件编号",
+          "source": "§7.2"
+        },
+        {
+          "name": "bridge_name",
+          "type": "str",
+          "required": false,
+          "description": "桥梁名称",
+          "source": "§7.2"
+        },
+        {
+          "name": "overall_stability_grade",
+          "type": "str",
+          "required": false,
+          "description": "整体稳定性损伤等级：I级/II级/III级",
+          "source": "§7.2.4"
+        },
+        {
+          "name": "bearing_capacity_grade",
+          "type": "str",
+          "required": false,
+          "description": "承载能力损伤等级：I级/II级/III级",
+          "source": "§7.2.4"
+        },
+        {
+          "name": "deck_passability_grade",
+          "type": "str",
+          "required": false,
+          "description": "桥面通行能力损伤等级：I级/II级/III级",
+          "source": "§7.2.4"
+        },
+        {
+          "name": "overall_assessment",
+          "type": "str",
+          "required": false,
+          "description": "综合评估结论：正常通行/限制通行/禁止通行",
+          "source": "§7.2.5"
+        },
+        {
+          "name": "recommendation",
+          "type": "str",
+          "required": false,
+          "description": "处治建议",
+          "source": "§7.2"
+        },
+        {
+          "name": "assessment_time",
+          "type": "str",
+          "required": false,
+          "description": "评估时间",
+          "source": "§7.2"
+        },
+        {
+          "name": "assessor",
+          "type": "str",
+          "required": false,
+          "description": "评估人员",
+          "source": "§7.2"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "SubgradeEmergencyAssessment",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "路基路面应急评估记录",
+      "description": "路基路面应急评估结果，包括路基本体、边坡、支挡结构受损程度。",
+      "source": "公路交通应急处置技术规范.md§6.2",
+      "properties": [
+        {
+          "name": "assessment_id",
+          "type": "str",
+          "required": true,
+          "description": "评估编号",
+          "source": "§6.2"
+        },
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": false,
+          "description": "关联事件编号",
+          "source": "§6.2"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "required": false,
+          "description": "位置（桩号）",
+          "source": "§6.2"
+        },
+        {
+          "name": "subgrade_damage_grade",
+          "type": "str",
+          "required": false,
+          "description": "路基本体受损等级：I级/II级/III级",
+          "source": "§6.2.2"
+        },
+        {
+          "name": "slope_damage_grade",
+          "type": "str",
+          "required": false,
+          "description": "边坡受损等级：I级/II级/III级",
+          "source": "§6.2.3"
+        },
+        {
+          "name": "retaining_structure_damage_grade",
+          "type": "str",
+          "required": false,
+          "description": "支挡结构受损等级：I级/II级/III级",
+          "source": "§6.2.4"
+        },
+        {
+          "name": "overall_assessment",
+          "type": "str",
+          "required": false,
+          "description": "综合评估结论：正常通行/限制通行/禁止通行",
+          "source": "§6.2.5"
+        },
+        {
+          "name": "recommendation",
+          "type": "str",
+          "required": false,
+          "description": "处治建议",
+          "source": "§6.2.5"
+        },
+        {
+          "name": "assessment_time",
+          "type": "str",
+          "required": false,
+          "description": "评估时间",
+          "source": "§6.2"
+        },
+        {
+          "name": "assessor",
+          "type": "str",
+          "required": false,
+          "description": "评估人员",
+          "source": "§6.2"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyResponseEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "突发事件应急处置记录",
+      "description": "突发事件应急处置全过程记录，包括响应启动、指挥调度、资源调度等。",
+      "source": "公路交通应急处置技术规范.md§5.4",
+      "properties": [
+        {
+          "name": "response_id",
+          "type": "str",
+          "required": true,
+          "description": "响应编号",
+          "source": "§5.4"
+        },
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": false,
+          "description": "关联事件编号",
+          "source": "§5.4"
+        },
+        {
+          "name": "response_start_time",
+          "type": "str",
+          "required": false,
+          "description": "应急响应启动时间",
+          "source": "§5.4.1"
+        },
+        {
+          "name": "response_end_time",
+          "type": "str",
+          "required": false,
+          "description": "应急响应终止时间",
+          "source": "§5.4.5"
+        },
+        {
+          "name": "command_center",
+          "type": "str",
+          "required": false,
+          "description": ""
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "doc_name": "公路交通应急处置技术规范.md",
+    "doc_type": "技术标准",
+    "doc_summary": "公路交通应急处置技术规范，规定应急侦测、指挥调度、路基路面抢通等技术要求"
+  }
+}

@@ -1,0 +1,1348 @@
+{
+  "objects": [
+    {
+      "name": "EmergencyResponseEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "突发事件应急处置记录",
+      "description": "交通运输部应对各类突发事件的应急处置过程记录，包括响应级别、处置措施、总结评估等",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§4",
+      "properties": [
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": true,
+          "description": "突发事件编号",
+          "source": "§4.2"
+        },
+        {
+          "name": "event_type",
+          "type": "str",
+          "required": false,
+          "description": "事件类型：自然灾害/事故灾难/公共卫生/社会安全",
+          "source": "§1.3"
+        },
+        {
+          "name": "event_level",
+          "type": "str",
+          "required": false,
+          "description": "事件等级：特别重大/重大/较大/一般",
+          "source": "§1.4"
+        },
+        {
+          "name": "response_level",
+          "type": "str",
+          "required": false,
+          "description": "应急响应级别：一级/二级/三级/四级",
+          "source": "§4.1"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：响应中/已终止",
+          "source": "§4.5"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "事件描述",
+          "source": "§4.2"
+        },
+        {
+          "name": "start_time",
+          "type": "str",
+          "required": false,
+          "description": "响应启动时间",
+          "source": "§4.1"
+        },
+        {
+          "name": "end_time",
+          "type": "str",
+          "required": false,
+          "description": "响应终止时间",
+          "source": "§4.5"
+        },
+        {
+          "name": "lead_dept",
+          "type": "str",
+          "required": false,
+          "description": "牵头司局",
+          "source": "§4.4"
+        },
+        {
+          "name": "summary_report",
+          "type": "str",
+          "required": false,
+          "description": "总结评估报告",
+          "source": "§4.6"
+        }
+      ],
+      "status_transitions": {
+        "响应中": [
+          "已终止"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "DefenseResponseEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "防御响应记录（台风等自然灾害）",
+      "description": "针对台风、强降雨、低温雨雪冰冻等自然灾害的防御响应过程记录",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§3.3",
+      "properties": [
+        {
+          "name": "defense_id",
+          "type": "str",
+          "required": true,
+          "description": "防御响应编号",
+          "source": "§3.3"
+        },
+        {
+          "name": "disaster_type",
+          "type": "str",
+          "required": false,
+          "description": "灾害类型：台风/强降雨/低温雨雪冰冻/大雾/冬季大风/风暴潮/海冰/海啸等",
+          "source": "§3.3"
+        },
+        {
+          "name": "defense_level",
+          "type": "str",
+          "required": false,
+          "description": "防御响应级别：一级/二级/三级/四级",
+          "source": "§3.3.1"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：响应中/已终止",
+          "source": "§3.3.4"
+        },
+        {
+          "name": "start_time",
+          "type": "str",
+          "required": false,
+          "description": "启动时间",
+          "source": "§3.3.2"
+        },
+        {
+          "name": "end_time",
+          "type": "str",
+          "required": false,
+          "description": "终止时间",
+          "source": "§3.3.4"
+        },
+        {
+          "name": "lead_dept",
+          "type": "str",
+          "required": false,
+          "description": "牵头司局",
+          "source": "§3.3.2"
+        },
+        {
+          "name": "summary_report",
+          "type": "str",
+          "required": false,
+          "description": "总结评估报告",
+          "source": "§3.4.2"
+        }
+      ],
+      "status_transitions": {
+        "响应中": [
+          "已终止"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "TyphoonWarning",
+      "kind": "lookup_table",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "台风预警信息（来自气象部门）",
+      "description": "国家气象部门发布的台风预警信息，包括预警级别、中心风力、影响时间等",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§3.1",
+      "properties": [
+        {
+          "name": "warning_id",
+          "type": "str",
+          "required": true,
+          "description": "预警编号",
+          "source": "§3.1"
+        },
+        {
+          "name": "warning_level",
+          "type": "str",
+          "required": false,
+          "description": "预警级别：红色/橙色/黄色/蓝色",
+          "source": "§3.1"
+        },
+        {
+          "name": "center_wind_speed",
+          "type": "int",
+          "required": false,
+          "description": "中心风力（级）",
+          "source": "§3.3.2"
+        },
+        {
+          "name": "landfall_time",
+          "type": "str",
+          "required": false,
+          "description": "预计登陆时间",
+          "source": "§3.3.2"
+        },
+        {
+          "name": "affected_area",
+          "type": "str",
+          "required": false,
+          "description": "影响区域",
+          "source": "§3.1"
+        },
+        {
+          "name": "issue_time",
+          "type": "str",
+          "required": false,
+          "description": "发布时间",
+          "source": "§3.1"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "RoadEmergencyEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "公路交通突发事件记录",
+      "description": "因气象水文灾害、地震地质灾害等导致公路交通中断或需要应急通行保障的事件",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§公路交通突发事件应急预案1.4",
+      "properties": [
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": true,
+          "description": "事件编号",
+          "source": "§4.2"
+        },
+        {
+          "name": "event_type",
+          "type": "str",
+          "required": false,
+          "description": "事件类型：暴雨/低温雨雪冰冻/山洪/地震/滑坡/泥石流等",
+          "source": "§1.4"
+        },
+        {
+          "name": "event_level",
+          "type": "str",
+          "required": false,
+          "description": "事件等级：特别重大/重大/较大/一般",
+          "source": "§4.1"
+        },
+        {
+          "name": "response_level",
+          "type": "str",
+          "required": false,
+          "description": "应急响应级别：一级/二级/三级/四级",
+          "source": "§4.2"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：响应中/已终止",
+          "source": "§4.7"
+        },
+        {
+          "name": "road_section",
+          "type": "str",
+          "required": false,
+          "description": "受影响路段",
+          "source": "§3.3.3"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "事件描述",
+          "source": "§4.2"
+        },
+        {
+          "name": "start_time",
+          "type": "str",
+          "required": false,
+          "description": "响应启动时间",
+          "source": "§4.2"
+        },
+        {
+          "name": "end_time",
+          "type": "str",
+          "required": false,
+          "description": "响应终止时间",
+          "source": "§4.7"
+        },
+        {
+          "name": "summary_report",
+          "type": "str",
+          "required": false,
+          "description": "总结评估报告",
+          "source": "§4.8"
+        }
+      ],
+      "status_transitions": {
+        "响应中": [
+          "已终止"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "WaterwayEmergencyEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "水路交通突发事件记录",
+      "description": "造成或可能造成航道或港口中断、瘫痪、重大人员伤亡等的水路交通突发事件",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§水路交通突发事件应急预案1.4",
+      "properties": [
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": true,
+          "description": "事件编号",
+          "source": "§4.2"
+        },
+        {
+          "name": "event_type",
+          "type": "str",
+          "required": false,
+          "description": "事件类型：港口瘫痪/航道断航/紧急运输保障等",
+          "source": "§1.4.1"
+        },
+        {
+          "name": "event_level",
+          "type": "str",
+          "required": false,
+          "description": "事件等级：特别重大/重大/较大/一般",
+          "source": "§1.4.2"
+        },
+        {
+          "name": "response_level",
+          "type": "str",
+          "required": false,
+          "description": "应急响应级别：一级/二级",
+          "source": "§4.1"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：响应中/已终止",
+          "source": "§4.5"
+        },
+        {
+          "name": "waterway_section",
+          "type": "str",
+          "required": false,
+          "description": "受影响航道或港口",
+          "source": "§4.4"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "事件描述",
+          "source": "§4.2"
+        },
+        {
+          "name": "start_time",
+          "type": "str",
+          "required": false,
+          "description": "响应启动时间",
+          "source": "§4.1"
+        },
+        {
+          "name": "end_time",
+          "type": "str",
+          "required": false,
+          "description": "响应终止时间",
+          "source": "§4.5"
+        },
+        {
+          "name": "summary_report",
+          "type": "str",
+          "required": false,
+          "description": "总结评估报告",
+          "source": "§4.6.3"
+        }
+      ],
+      "status_transitions": {
+        "响应中": [
+          "已终止"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "RoadTransportEmergencyEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "道路运输突发事件记录",
+      "description": "因极端恶劣天气、自然灾害、公共卫生事件、安全生产事故等导致道路运输中断或需要应急运输保障的事件",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§道路运输突发事件应急预案1.4",
+      "properties": [
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": true,
+          "description": "事件编号",
+          "source": "§4.2"
+        },
+        {
+          "name": "event_type",
+          "type": "str",
+          "required": false,
+          "description": "事件类型：客运枢纽中断/重要物资运输/人员转运/安全事故等",
+          "source": "§1.4"
+        },
+        {
+          "name": "event_level",
+          "type": "str",
+          "required": false,
+          "description": "事件等级：特别重大/重大/较大/一般",
+          "source": "§1.4"
+        },
+        {
+          "name": "response_level",
+          "type": "str",
+          "required": false,
+          "description": "应急响应级别：一级/二级",
+          "source": "§4.1"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：响应中/已终止",
+          "source": "§4.5"
+        },
+        {
+          "name": "affected_area",
+          "type": "str",
+          "required": false,
+          "description": "受影响区域",
+          "source": "§4.2"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "事件描述",
+          "source": "§4.2"
+        },
+        {
+          "name": "start_time",
+          "type": "str",
+          "required": false,
+          "description": "响应启动时间",
+          "source": "§4.1"
+        },
+        {
+          "name": "end_time",
+          "type": "str",
+          "required": false,
+          "description": "响应终止时间",
+          "source": "§4.5"
+        },
+        {
+          "name": "summary_report",
+          "type": "str",
+          "required": false,
+          "description": "总结评估报告",
+          "source": "§4.7.2"
+        }
+      ],
+      "status_transitions": {
+        "响应中": [
+          "已终止"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "EngineeringAccidentEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "公路水运工程生产安全事故记录",
+      "description": "公路水运工程新建、改建和扩建活动中发生的生产安全事故",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§公路水运工程生产安全事故应急预案1.4",
+      "properties": [
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": true,
+          "description": "事故编号",
+          "source": "§4.2"
+        },
+        {
+          "name": "accident_level",
+          "type": "str",
+          "required": false,
+          "description": "事故等级：特别重大/重大/较大/一般",
+          "source": "§1.4"
+        },
+        {
+          "name": "response_level",
+          "type": "str",
+          "required": false,
+          "description": "应急响应级别：一级/二级",
+          "source": "§4.1"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：响应中/已终止",
+          "source": "§4.4"
+        },
+        {
+          "name": "project_name",
+          "type": "str",
+          "required": false,
+          "description": "工程项目名称",
+          "source": "§1.4"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "事故描述",
+          "source": "§4.2"
+        },
+        {
+          "name": "start_time",
+          "type": "str",
+          "required": false,
+          "description": "响应启动时间",
+          "source": "§4.1"
+        },
+        {
+          "name": "end_time",
+          "type": "str",
+          "required": false,
+          "description": "响应终止时间",
+          "source": "§4.4"
+        },
+        {
+          "name": "summary_report",
+          "type": "str",
+          "required": false,
+          "description": "总结评估报告",
+          "source": "§4.6.2"
+        }
+      ],
+      "status_transitions": {
+        "响应中": [
+          "已终止"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "EmergencyResource",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "应急资源（队伍、装备、物资）",
+      "description": "用于应急处置的应急救援队伍、装备、物资等资源信息",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§6",
+      "properties": [
+        {
+          "name": "resource_id",
+          "type": "str",
+          "required": true,
+          "description": "资源编号",
+          "source": "§6"
+        },
+        {
+          "name": "resource_type",
+          "type": "str",
+          "required": false,
+          "description": "资源类型：队伍/装备/物资",
+          "source": "§6"
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "description": "资源名称",
+          "source": "§6"
+        },
+        {
+          "name": "quantity",
+          "type": "int",
+          "required": false,
+          "description": "数量",
+          "source": "§6"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "required": false,
+          "description": "存放地点",
+          "source": "§6"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：可用/已调用",
+          "source": "§6"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyCommunicationEquipment",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "应急通信设备",
+      "description": "用于应急通信的设备，如应急通信车、单兵移动通信设备、卫星终端等",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§6.2",
+      "properties": [
+        {
+          "name": "equipment_id",
+          "type": "str",
+          "required": true,
+          "description": "设备编号",
+          "source": "§6.2"
+        },
+        {
+          "name": "equipment_type",
+          "type": "str",
+          "required": false,
+          "description": "设备类型：应急通信车/单兵设备/卫星终端/无人机等",
+          "source": "§6.2"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：良好/维修中/已调用",
+          "source": "§6.2"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "required": false,
+          "description": "存放地点",
+          "source": "§6.2"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyDrillRecord",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "应急演练记录",
+      "description": "应急预案演练的记录，包括演练时间、类型、评估结果等",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§7.2",
+      "properties": [
+        {
+          "name": "drill_id",
+          "type": "str",
+          "required": true,
+          "description": "演练编号",
+          "source": "§7.2"
+        },
+        {
+          "name": "drill_type",
+          "type": "str",
+          "required": false,
+          "description": "演练类型：桌面推演/实战演练/双盲演练",
+          "source": "§7.2"
+        },
+        {
+          "name": "drill_date",
+          "type": "str",
+          "required": false,
+          "description": "演练日期",
+          "source": "§7.2"
+        },
+        {
+          "name": "organizer",
+          "type": "str",
+          "required": false,
+          "description": "组织单位",
+          "source": "§7.2"
+        },
+        {
+          "name": "evaluation_report",
+          "type": "str",
+          "required": false,
+          "description": "评估报告",
+          "source": "§7.2"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyPlan",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "应急预案",
+      "description": "各级交通运输主管部门、企事业单位制定的应急预案",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§1.6",
+      "properties": [
+        {
+          "name": "plan_id",
+          "type": "str",
+          "required": true,
+          "description": "预案编号",
+          "source": "§1.6"
+        },
+        {
+          "name": "plan_name",
+          "type": "str",
+          "required": false,
+          "description": "预案名称",
+          "source": "§1.6"
+        },
+        {
+          "name": "plan_level",
+          "type": "str",
+          "required": false,
+          "description": "预案层级：国家/省/市/县/企业",
+          "source": "§1.6"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：现行/修订中/废止",
+          "source": "§7.3"
+        },
+        {
+          "name": "last_review_date",
+          "type": "str",
+          "required": false,
+          "description": "最近评估日期",
+          "source": "§7.3"
+        },
+        {
+          "name": "next_review_date",
+          "type": "str",
+          "required": false,
+          "description": "下次评估日期",
+          "source": "§7.3"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyLogisticsSupport",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "应急运输保障任务",
+      "description": "突发事件中需要交通运输部门提供应急运输保障的任务，包括人员转运、物资运输等",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§4.4",
+      "properties": [
+        {
+          "name": "task_id",
+          "type": "str",
+          "required": true,
+          "description": "任务编号",
+          "source": "§4.4"
+        },
+        {
+          "name": "task_type",
+          "type": "str",
+          "required": false,
+          "description": "任务类型：人员转运/物资运输/其他",
+          "source": "§4.4"
+        },
+        {
+          "name": "cargo_type",
+          "type": "str",
+          "required": false,
+          "description": "物资类型：煤炭/粮食/救灾物资等",
+          "source": "§4.4.3"
+        },
+        {
+          "name": "origin",
+          "type": "str",
+          "required": false,
+          "description": "起运地",
+          "source": "§4.4"
+        },
+        {
+          "name": "destination",
+          "type": "str",
+          "required": false,
+          "description": "目的地",
+          "source": "§4.4"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：待执行/执行中/已完成",
+          "source": "§4.4"
+        },
+        {
+          "name": "transport_mode",
+          "type": "str",
+          "required": false,
+          "description": "运输方式：公路/水路/多式联运",
+          "source": "§4.4"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyExpert",
+      "kind": "entity",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "应急专家库成员",
+      "description": "纳入交通运输部应急专家库的专家信息",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§6.4",
+      "properties": [
+        {
+          "name": "expert_id",
+          "type": "str",
+          "required": true,
+          "description": "专家编号",
+          "source": "§6.4"
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "description": "姓名",
+          "source": "§6.4"
+        },
+        {
+          "name": "specialty",
+          "type": "str",
+          "required": false,
+          "description": "专业领域",
+          "source": "§6.4"
+        },
+        {
+          "name": "affiliation",
+          "type": "str",
+          "required": false,
+          "description": "工作单位",
+          "source": "§6.4"
+        },
+        {
+          "name": "contact",
+          "type": "str",
+          "required": false,
+          "description": "联系方式",
+          "source": "§6.4"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EmergencyCommunicationContact",
+      "kind": "lookup_table",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "应急通讯联络信息表",
+      "description": "值守部门工作人员应急通讯联络信息，包括24小时值班电话、传真、负责人及值守人员联系方式",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§水路交通突发事件应急预案附件",
+      "properties": [
+        {
+          "name": "dept_name",
+          "type": "str",
+          "required": true,
+          "description": "单位或部门名称",
+          "source": "附件"
+        },
+        {
+          "name": "phone_24h",
+          "type": "str",
+          "required": false,
+          "description": "24小时值班电话",
+          "source": "附件"
+        },
+        {
+          "name": "fax_24h",
+          "type": "str",
+          "required": false,
+          "description": "24小时值班传真",
+          "source": "附件"
+        },
+        {
+          "name": "dept_head_name",
+          "type": "str",
+          "required": false,
+          "description": "部门负责人姓名",
+          "source": "附件"
+        },
+        {
+          "name": "dept_head_phone",
+          "type": "str",
+          "required": false,
+          "description": "部门负责人座机",
+          "source": "附件"
+        },
+        {
+          "name": "dept_head_mobile",
+          "type": "str",
+          "required": false,
+          "description": "部门负责人移动电话",
+          "source": "附件"
+        },
+        {
+          "name": "duty_officer_name",
+          "type": "str",
+          "required": false,
+          "description": "部门值守人员姓名",
+          "source": "附件"
+        },
+        {
+          "name": "duty_officer_phone",
+          "type": "str",
+          "required": false,
+          "description": "部门值守人员座机",
+          "source": "附件"
+        },
+        {
+          "name": "duty_officer_mobile",
+          "type": "str",
+          "required": false,
+          "description": "部门值守人员移动电话",
+          "source": "附件"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "RoadDefenseResponse",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "公路防御响应记录",
+      "description": "针对暴雨、低温雨雪冰冻、山洪、地质灾害等预警的公路防御响应过程记录",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§公路交通突发事件应急预案3.3",
+      "properties": [
+        {
+          "name": "defense_id",
+          "type": "str",
+          "required": true,
+          "description": "防御响应编号",
+          "source": "§3.3"
+        },
+        {
+          "name": "warning_type",
+          "type": "str",
+          "required": false,
+          "description": "预警类型：暴雨/低温雨雪冰冻/山洪/地质灾害等",
+          "source": "§3.3"
+        },
+        {
+          "name": "defense_level",
+          "type": "str",
+          "required": false,
+          "description": "防御响应级别：一级/二级/三级/四级",
+          "source": "§3.3.1"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：响应中/已终止",
+          "source": "§3.3.4"
+        },
+        {
+          "name": "start_time",
+          "type": "str",
+          "required": false,
+          "description": "启动时间",
+          "source": "§3.3.2"
+        },
+        {
+          "name": "end_time",
+          "type": "str",
+          "required": false,
+          "description": "终止时间",
+          "source": "§3.3.4"
+        },
+        {
+          "name": "affected_provinces",
+          "type": "str",
+          "required": false,
+          "description": "受影响省份",
+          "source": "§3.3.3"
+        },
+        {
+          "name": "measures",
+          "type": "str",
+          "required": false,
+          "description": "已采取的防御措施",
+          "source": "§3.3.3"
+        }
+      ],
+      "status_transitions": {
+        "响应中": [
+          "已终止"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "WaterwayDefenseResponse",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "水路防御响应记录",
+      "description": "针对大风、台风、强降雨、大雾等恶劣天气以及洪水的港口和航道防御响应过程记录",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§水路交通突发事件应急预案3.3",
+      "properties": [
+        {
+          "name": "defense_id",
+          "type": "str",
+          "required": true,
+          "description": "防御响应编号",
+          "source": "§3.3"
+        },
+        {
+          "name": "warning_type",
+          "type": "str",
+          "required": false,
+          "description": "预警类型：大风/台风/强降雨/大雾/洪水等",
+          "source": "§3.3"
+        },
+        {
+          "name": "defense_level",
+          "type": "str",
+          "required": false,
+          "description": "防御响应级别",
+          "source": "§3.3"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：响应中/已终止",
+          "source": "§3.3"
+        },
+        {
+          "name": "start_time",
+          "type": "str",
+          "required": false,
+          "description": "启动时间",
+          "source": "§3.3"
+        },
+        {
+          "name": "end_time",
+          "type": "str",
+          "required": false,
+          "description": "终止时间",
+          "source": "§3.3"
+        },
+        {
+          "name": "affected_ports",
+          "type": "str",
+          "required": false,
+          "description": "受影响港口",
+          "source": "§3.3.1"
+        },
+        {
+          "name": "affected_waterways",
+          "type": "str",
+          "required": false,
+          "description": "受影响航道",
+          "source": "§3.3.1"
+        }
+      ],
+      "status_transitions": {
+        "响应中": [
+          "已终止"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "EngineeringProject",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "公路水运工程项目",
+      "description": "经依法审批、核准或者备案的公路水运工程项目",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§公路水运工程生产安全事故应急预案1.4",
+      "properties": [
+        {
+          "name": "project_id",
+          "type": "str",
+          "required": true,
+          "description": "项目编号",
+          "source": "§1.4"
+        },
+        {
+          "name": "project_name",
+          "type": "str",
+          "required": false,
+          "description": "项目名称",
+          "source": "§1.4"
+        },
+        {
+          "name": "project_type",
+          "type": "str",
+          "required": false,
+          "description": "项目类型：公路/水运",
+          "source": "§1.4"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "建设状态：在建/竣工",
+          "source": "§1.4"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "required": false,
+          "description": "项目地点",
+          "source": "§1.4"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EngineeringAccidentInvestigationReport",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "工程事故技术分析报告",
+      "description": "公路水运工程生产安全事故的技术调查分析评估报告",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§公路水运工程生产安全事故应急预案4.7",
+      "properties": [
+        {
+          "name": "report_id",
+          "type": "str",
+          "required": true,
+          "description": "报告编号",
+          "source": "§4.7"
+        },
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": false,
+          "description": "关联事故编号",
+          "source": "§4.7"
+        },
+        {
+          "name": "subjective_factors",
+          "type": "str",
+          "required": false,
+          "description": "主观因素（安全管理、技术管理等）",
+          "source": "§4.7"
+        },
+        {
+          "name": "objective_factors",
+          "type": "str",
+          "required": false,
+          "description": "客观因素（工程地质、水文、气象等）",
+          "source": "§4.7"
+        },
+        {
+          "name": "improvement_suggestions",
+          "type": "str",
+          "required": false,
+          "description": "行业监管改进建议",
+          "source": "§4.7"
+        },
+        {
+          "name": "submission_date",
+          "type": "str",
+          "required": false,
+          "description": "提交日期",
+          "source": "§4.7"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "RoadTransportEmergencyFleet",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "道路运输应急保障车队",
+      "description": "用于道路运输突发事件应急保障的车队信息",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§道路运输突发事件应急预案5.1",
+      "properties": [
+        {
+          "name": "fleet_id",
+          "type": "str",
+          "required": true,
+          "description": "车队编号",
+          "source": "§5.1"
+        },
+        {
+          "name": "fleet_name",
+          "type": "str",
+          "required": false,
+          "description": "车队名称",
+          "source": "§5.1"
+        },
+        {
+          "name": "operator",
+          "type": "str",
+          "required": false,
+          "description": "运营企业",
+          "source": "§5.1"
+        },
+        {
+          "name": "vehicle_count",
+          "type": "int",
+          "required": false,
+          "description": "车辆数量",
+          "source": "§5.1"
+        },
+        {
+          "name": "capacity",
+          "type": "str",
+          "required": false,
+          "description": "运力描述",
+          "source": "§5.1"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：待命/已调用",
+          "source": "§5.1"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "WaterwayEmergencyFleet",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "水路应急运输保障船队",
+      "description": "用于水路突发事件应急运输保障的船队信息",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§水路交通突发事件应急预案5.1.3",
+      "properties": [
+        {
+          "name": "fleet_id",
+          "type": "str",
+          "required": true,
+          "description": "船队编号",
+          "source": "§5.1.3"
+        },
+        {
+          "name": "fleet_name",
+          "type": "str",
+          "required": false,
+          "description": "船队名称",
+          "source": "§5.1.3"
+        },
+        {
+          "name": "operator",
+          "type": "str",
+          "required": false,
+          "description": "运营企业",
+          "source": "§5.1.3"
+        },
+        {
+          "name": "vessel_count",
+          "type": "int",
+          "required": false,
+          "description": "船舶数量",
+          "source": "§5.1.3"
+        },
+        {
+          "name": "capacity",
+          "type": "str",
+          "required": false,
+          "description": "运力描述",
+          "source": "§5.1.3"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态：待命/已调用",
+          "source": "§5.1.3"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "EngineeringEmergencyTeam",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "公路水运工程应急救援队伍",
+      "description": "公路水运工程项目的兼职或专职抢险救援队伍",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§公路水运工程生产安全事故应急预案5.1",
+      "properties": [
+        {
+          "name": "team_id",
+          "type": "str",
+          "required": true,
+          "description": "队伍编号",
+          "source": "§5.1"
+        },
+        {
+          "name": "team_name",
+          "type": "str",
+          "required": false,
+          "description": "队伍名称",
+          "source": "§5.1"
+        },
+        {
+          "name": "team_type",
+          "type": "str",
+          "required": false,
+          "description": "队伍类型：专职/兼职",
+          "source": "§5.1"
+        },
+        {
+          "name": "affiliated_project",
+          "type": "str",
+          "required": false,
+          "description": "所属项目",
+          "source": "§5.1"
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "doc_name": "S1_交通运输综合应急预案等5项2026附件.md",
+    "doc_type": "管理预案",
+    "doc_summary": "交通运输综合应急预案，规定突发事件应急处置的体制机制、预防预警、应急响应等"
+  }
+}

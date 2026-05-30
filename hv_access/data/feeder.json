@@ -1,13 +1,7 @@
 [
-  {"feeder_id": "F001", "busbar_id": "B001", "substation_id": "S001", "openable_capacity": 8000, "max_load_rate": 0.55, "connected_user_count": 25, "loss_rate": 0.04, "line_type": "架空"},
-  {"feeder_id": "F002", "busbar_id": "B002", "substation_id": "S001", "openable_capacity": 6000, "max_load_rate": 0.65, "connected_user_count": 30, "loss_rate": 0.05, "line_type": "电缆"},
-  {"feeder_id": "F003", "busbar_id": "B003", "substation_id": "S001", "openable_capacity": 3000, "max_load_rate": 0.85, "connected_user_count": 55, "loss_rate": 0.06, "line_type": "架空"},
-  {"feeder_id": "F004", "busbar_id": "B003", "substation_id": "S001", "openable_capacity": 5000, "max_load_rate": 0.70, "connected_user_count": 35, "loss_rate": 0.05, "line_type": "电缆"},
-  {"feeder_id": "F005", "busbar_id": "B004", "substation_id": "S001", "openable_capacity": 7000, "max_load_rate": 0.50, "connected_user_count": 18, "loss_rate": 0.04, "line_type": "电缆"},
-  {"feeder_id": "F006", "busbar_id": "B005", "substation_id": "S002", "openable_capacity": 9000, "max_load_rate": 0.45, "connected_user_count": 15, "loss_rate": 0.03, "line_type": "架空"},
-  {"feeder_id": "F007", "busbar_id": "B006", "substation_id": "S002", "openable_capacity": 8000, "max_load_rate": 0.55, "connected_user_count": 20, "loss_rate": 0.04, "line_type": "电缆"},
-  {"feeder_id": "F008", "busbar_id": "B007", "substation_id": "S002", "openable_capacity": 6000, "max_load_rate": 0.60, "connected_user_count": 22, "loss_rate": 0.05, "line_type": "架空"},
-  {"feeder_id": "F009", "busbar_id": "B007", "substation_id": "S002", "openable_capacity": 4000, "max_load_rate": 0.78, "connected_user_count": 40, "loss_rate": 0.06, "line_type": "电缆"},
-  {"feeder_id": "F010", "busbar_id": "B008", "substation_id": "S002", "openable_capacity": 10000, "max_load_rate": 0.40, "connected_user_count": 10, "loss_rate": 0.03, "line_type": "电缆"},
-  {"feeder_id": "F011", "busbar_id": "B009", "substation_id": "S003", "openable_capacity": 7000, "max_load_rate": 0.50, "connected_user_count": 20, "loss_rate": 0.04, "line_type": "电缆"}
+  {"feeder_id": "F001", "name": "嘉定变921线", "busbar_id": "BUS001", "substation_id": "SS001", "transformer_id": "MT001", "max_load_rate": 0.62, "openable_capacity_kva": 7200, "connected_users": 28, "loss_rate": 0.04},
+  {"feeder_id": "F002", "name": "嘉定变922线", "busbar_id": "BUS001", "substation_id": "SS001", "transformer_id": "MT001", "max_load_rate": 0.75, "openable_capacity_kva": 4800, "connected_users": 42, "loss_rate": 0.055},
+  {"feeder_id": "F003", "name": "嘉定变923线", "busbar_id": "BUS002", "substation_id": "SS001", "transformer_id": "MT002", "max_load_rate": 0.85, "openable_capacity_kva": 2100, "connected_users": 48, "loss_rate": 0.068},
+  {"feeder_id": "F004", "name": "安亭变921线", "busbar_id": "BUS003", "substation_id": "SS002", "transformer_id": "MT003", "max_load_rate": 0.78, "openable_capacity_kva": 5500, "connected_users": 35, "loss_rate": 0.05},
+  {"feeder_id": "F005", "name": "安亭变922线", "busbar_id": "BUS004", "substation_id": "SS002", "transformer_id": "MT004", "max_load_rate": 0.45, "openable_capacity_kva": 12000, "connected_users": 15, "loss_rate": 0.03}
 ]

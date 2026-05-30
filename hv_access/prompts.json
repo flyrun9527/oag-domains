@@ -1,40 +1,73 @@
 [
   {
-    "group": "标准流程",
+    "group": "基础数据查询",
     "items": [
-      { "prompt": "帮我处理申请 R001", "desc": "示范医院 5000kVA 新装 → 双电源" },
-      { "prompt": "R002 嘉定大学的接入方案", "desc": "3000kVA 新装 → 单电源" },
-      { "prompt": "R005 国庆灯光秀临时用电方案", "desc": "1500kVA 临时 → 单电源" }
-    ]
-  },
-  {
-    "group": "增容场景",
-    "items": [
-      { "prompt": "R003 时代商超要增容，能不能做？", "desc": "8000kVA 增容 → 跳过 search，评估原点" }
-    ]
-  },
-  {
-    "group": "救济/兜底",
-    "items": [
-      { "prompt": "R004 云端数据中心 18000kVA 新装方案", "desc": "特级用户 → filter 全失败 → 新出线兜底" },
-      { "prompt": "F003 馈线超载了，能做负荷划接吗？", "desc": "馈线间负荷转移评估" },
-      { "prompt": "R001 附近有没有变电站可以新出线？", "desc": "变电站新出线评估" }
+      {"prompt": "嘉定变电站的基本信息", "desc": "查询 Substation SS001"},
+      {"prompt": "嘉定变#1主变的负载率和可开放容量是多少？", "desc": "查询 MainTransformer MT001"},
+      {"prompt": "嘉定变921线的负载情况如何？接入了多少用户？", "desc": "查询 Feeder F001"},
+      {"prompt": "用户坐标(121.251, 31.380)附近1000米内有哪些电源接入点？", "desc": "get_access_points 空间查询"},
+      {"prompt": "F001馈线有哪些联络开关？", "desc": "get_feeder_tie_switches"},
+      {"prompt": "嘉定变的两台主变之间有联络开关吗？", "desc": "get_transformer_tie_switches"}
     ]
   },
   {
     "group": "规则查询",
     "items": [
-      { "prompt": "查所有特级行业有哪些", "desc": "浏览 ImportanceLevelMap 规则表" },
-      { "prompt": "行业编码 D4411 对应什么重要性等级？", "desc": "行业→等级反查" },
-      { "prompt": "一级负荷一级用户需要什么电源结构？", "desc": "(负荷,等级)→电源结构要求" }
+      {"prompt": "医院属于什么重要性等级？", "desc": "lookup_importance_level industry_code=A01"},
+      {"prompt": "数据中心的重要性等级是什么？", "desc": "lookup_importance_level industry_code=B01"},
+      {"prompt": "一级负荷一级用户需要什么电源结构？", "desc": "lookup_source_requirement"},
+      {"prompt": "查看所有行业的重要性等级映射", "desc": "query ImportanceLevelMap 全表"},
+      {"prompt": "二级负荷二级用户是双回路还是单电源？", "desc": "lookup_source_requirement load_level=二级 importance_level=二级"}
     ]
   },
   {
-    "group": "电网数据探索",
+    "group": "新装接入（标准流程）",
     "items": [
-      { "prompt": "R001 附近有哪些电源点？", "desc": "空间查询受电点周边电源点" },
-      { "prompt": "F001 馈线的负载率和可开放容量是多少？", "desc": "查询馈线状态" },
-      { "prompt": "T001 主变的当前状态？", "desc": "查询主变负载率/可开放容量" }
+      {"prompt": "帮我处理R001嘉定示范医院的新装申请", "desc": "完整 new_access 工作流：get_request→lookup→search→filter→compose→score→finalize"},
+      {"prompt": "R002嘉定大学新装3000kVA，请生成接入方案", "desc": "二级用户标准流程，双回路方案"},
+      {"prompt": "R005国庆灯光秀临时用电1500kVA，请设计方案", "desc": "临时用电标准流程"}
+    ]
+  },
+  {
+    "group": "增容接入",
+    "items": [
+      {"prompt": "R003时代商超要从3000kVA增容到8000kVA，原电源点AP005，能做吗？", "desc": "增容流程：get_request→识别ExpandRequest→跳过search→filter(AP005)→判断结果"},
+      {"prompt": "时代商超增容，原线路F004负载率78%，增容5000kVA后能行吗？", "desc": "检验F1约束(80%)和F2约束(可开放容量)"}
+    ]
+  },
+  {
+    "group": "特殊场景",
+    "items": [
+      {"prompt": "R004云端数据中心18000kVA特级用户，请设计接入方案", "desc": "大容量特级用户：search→filter可能全失败→触发new_feeder→搜索15km内变电站"},
+      {"prompt": "嘉定变923线负载率85%超过80%了，如果要在这条线上接入怎么办？", "desc": "F1失败→transfer_feeder_load→选相邻馈线划接"},
+      {"prompt": "安亭变#1主变负载率82%超标，有什么办法？", "desc": "F7失败→transfer_transformer_load→选同站另一台主变划接"},
+      {"prompt": "所有电源点都不满足约束，附近也找不到可以划接的线路，怎么办？", "desc": "全部失败→new_feeder→搜索变电站→若无解→NoSolutionVerdict"}
+    ]
+  },
+  {
+    "group": "筛选与约束",
+    "items": [
+      {"prompt": "对AP001到AP007这7个电源点做硬约束筛选，单路容量2500kVA", "desc": "filter_sources 批量筛选，各点按F1-F7逐条校验"},
+      {"prompt": "AP004所在的F003馈线负载率85%，这个点能用吗？具体哪条约束不满足？", "desc": "F1失败（>80%），需要说明原因和救济措施"},
+      {"prompt": "环网柜AP002备用间隔3个，满足F3约束吗？", "desc": "F3要求≥2，AP002=3，通过"}
+    ]
+  },
+  {
+    "group": "评分与方案输出",
+    "items": [
+      {"prompt": "R001的候选方案已生成，请评分并输出最终方案", "desc": "score_plans→finalize_plans"},
+      {"prompt": "双电源方案和双回路方案哪个评分更高？为什么？", "desc": "对比可靠性评分：双电源100 vs 双回路90"},
+      {"prompt": "同时供电互为备用和一主一备的方案，可靠性评分差多少？", "desc": "运行方式维度：互为备用100 vs 一主一备80"}
+    ]
+  },
+  {
+    "group": "开放性问题",
+    "items": [
+      {"prompt": "如果客户预算有限，是选距离近但容量紧张的电源点，还是距离远但容量充足的？", "desc": "距离评分(40%) vs 容量评分(30%)的权衡"},
+      {"prompt": "嘉定变两台主变一台负载率65%一台72%，如果两个申请同时来，应该怎么分配？", "desc": "多申请并发时的容量分配策略"},
+      {"prompt": "一个5000kVA的用户，是走单路大容量接入，还是分两路各2500kVA？各有什么利弊？", "desc": "单路vs双路的可靠性、成本、运维权衡"},
+      {"prompt": "现有电网中哪条馈线最容易超载？应该提前做什么准备？", "desc": "需要分析所有馈线负载率，找出风险点"},
+      {"prompt": "如果明年这个区域用电量增长20%，现有变电站容量够吗？", "desc": "容量规划前瞻性分析"}
     ]
   }
 ]

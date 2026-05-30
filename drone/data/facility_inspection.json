@@ -1,0 +1,5 @@
+[
+  {"inspection_id": "INS001", "event_id": "E001", "facility_type": "桥梁", "facility_id": "B001", "facility_name": "龙门山大桥", "damage_summary": "桥墩倾斜，主梁横向位移，支座脱落", "overall_damage_grade": "III", "access_recommendation": "", "inspection_time": "2026-05-30 15:30:00"},
+  {"inspection_id": "INS002", "event_id": "E001", "facility_type": "隧道", "facility_id": "T001", "facility_name": "龙门山隧道", "damage_summary": "衬砌裂缝贯通，洞口边仰坡局部滑塌", "overall_damage_grade": "II", "access_recommendation": "", "inspection_time": "2026-05-30 15:45:00"},
+  {"inspection_id": "INS003", "event_id": "E001", "facility_type": "路段", "facility_id": "S001", "facility_name": "G318 K120-K135段", "damage_summary": "路面裂缝宽度3mm，轻微沉降", "overall_damage_grade": "I", "access_recommendation": "", "inspection_time": "2026-05-30 16:00:00"}
+]

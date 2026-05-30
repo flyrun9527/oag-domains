@@ -1,0 +1,41 @@
+{
+  "elapsed_seconds": 228.4,
+  "llm_usage": {
+    "prompt_tokens": 41311,
+    "completion_tokens": 20855,
+    "calls": 4
+  },
+  "call_log": [
+    {
+      "prompt_chars": 55972,
+      "completion_chars": 18860,
+      "elapsed_s": 80.9,
+      "prompt_tokens": 20312,
+      "completion_tokens": 6673
+    },
+    {
+      "prompt_chars": 19417,
+      "completion_chars": 18881,
+      "elapsed_s": 68.0,
+      "prompt_tokens": 6890,
+      "completion_tokens": 6679
+    },
+    {
+      "prompt_chars": 19637,
+      "completion_chars": 18885,
+      "elapsed_s": 69.0,
+      "prompt_tokens": 6948,
+      "completion_tokens": 6681
+    },
+    {
+      "prompt_chars": 19822,
+      "completion_chars": 2164,
+      "elapsed_s": 10.2,
+      "prompt_tokens": 7161,
+      "completion_tokens": 822
+    }
+  ],
+  "model": "gemma-4-26B-A4B-it-UD-Q4_K_M.gguf",
+  "doc_count": 5,
+  "total_doc_chars": 246384
+}

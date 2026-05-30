@@ -1,190 +1,196 @@
 from __future__ import annotations
 
+import json
+import math
+from typing import Any
+
 from oag.registry import FunctionRegistry
 from oag.schema import Ontology
 from oag.store import Store
 
-from . import interfaces as iface
-from .assess import assess_event_level
-from .control import set_traffic_control
-from .detour import generate_detour
-from .dispatch import dispatch_resources
-from .evaluate import evaluate_traffic
-from .inspect import inspect_facility
-from .lookups import (
-    lookup_bridge_type,
-    lookup_clearance_technique,
-    lookup_damage_grade,
-    lookup_event_level,
-    lookup_response_level,
-    lookup_traffic_control,
-    lookup_tunnel_importance,
-    lookup_tunnel_target,
-    # Drone lookup functions
-    lookup_drone_class,
-    lookup_operator_license_rule,
-    lookup_operation_class,
-    lookup_airspace_rule,
-    lookup_flight_approval_rule,
-    lookup_emergency_flight_rule,
-    lookup_preflight_check,
-    lookup_maintenance_rule,
-    lookup_payload_type,
-    lookup_s3_regulation,
-    lookup_s4_regulation,
-)
-from .plan import generate_clearance_plans
-from .score import score_plans
-from .recon import plan_recon_mission, dispatch_drone, collect_recon_data
-from .compliance import check_compliance, request_flight_approval, check_airspace_conflict
-from .patrol import schedule_patrol
-from .maintenance import log_maintenance
-from .warning import trigger_defense_response, intensify_patrol
-from .report import generate_event_report
-from .airspace_coord import coordinate_airspace
-
-# 只装载业务规则表 + 事件样例。公路基础设施走 mock 接口，不入库
-FIELD_MAPPINGS: dict[str, dict[str, str]] = {}
-
 DATA_FILES = {
-    "DamageGradeStandard": "damage_grade_standard.json",
-    "EventLevelStandard": "event_level_standard.json",
-    "ClearanceTechniqueRule": "clearance_technique_rule.json",
-    "TrafficControlRule": "traffic_control_rule.json",
-    "TunnelImportanceLevel": "tunnel_importance_level.json",
-    "TunnelDifficultyMatrix": "tunnel_difficulty_matrix.json",
-    "TunnelTargetMatrix": "tunnel_target_matrix.json",
-    "BridgeTypeSelection": "bridge_type_selection.json",
-    "ResponseLevelRule": "response_level_rule.json",
-    "DisasterEvent": "disaster_event.json",
-    "AccidentEvent": "accident_event.json",
-    # Drone rule data
-    "DroneClassRule": "drone_class_rule.json",
-    "OperatorLicenseRule": "operator_license_rule.json",
-    "OperationClassRule": "operation_class_rule.json",
-    "AirspaceRule": "airspace_rule.json",
-    "FlightApprovalRule": "flight_approval_rule.json",
-    "EmergencyFlightRule": "emergency_flight_rule.json",
-    "PreflightCheckRule": "preflight_check_rule.json",
-    "DroneMaintenanceRule": "drone_maintenance_rule.json",
-    "PayloadTypeRule": "payload_type_rule.json",
-    "S3Regulation": "s3_regulation.json",
-    "S4Regulation": "s4_regulation.json",
-    "DefenseResponseLevelRule": "defense_response_level_rule.json",
-    "WeatherWarning": "weather_warning.json",
-    # 实体数据
     "RoadSegment": "road_segment.json",
     "Bridge": "bridge.json",
     "Tunnel": "tunnel.json",
     "EmergencyDepot": "emergency_depot.json",
     "RescueTeam": "rescue_team.json",
-    "EquipmentStock": "equipment_stock.json",
-    "MaterialStock": "material_stock.json",
     "Drone": "drone.json",
     "DroneOperator": "drone_operator.json",
     "DroneBase": "drone_base.json",
     "AirspaceZone": "airspace_zone.json",
+    "DamageGradeStandard": "damage_grade_standard.json",
+    "EventLevelStandard": "event_level_standard.json",
+    "ClearanceTechniqueRule": "clearance_technique_rule.json",
+    "TrafficControlRule": "traffic_control_rule.json",
+    "ResponseLevelRule": "response_level_rule.json",
+    "DroneClassRule": "drone_class_rule.json",
+    "OperatorLicenseRule": "operator_license_rule.json",
+    "AirspaceRule": "airspace_rule.json",
+    "FlightApprovalRule": "flight_approval_rule.json",
+    "PayloadTypeRule": "payload_type_rule.json",
+    "WeatherWarning": "weather_warning.json",
+    "DisasterEvent": "disaster_event.json",
+    "AccidentEvent": "accident_event.json",
+    "FacilityInspection": "facility_inspection.json",
 }
 
 
+def _haversine(lng1, lat1, lng2, lat2):
+    R = 6371
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _get_event(store: Store, event_id: str = "", **kw) -> dict:
+    for etype in ("DisasterEvent", "AccidentEvent"):
+        row = store.query_by_id(etype, event_id)
+        if row:
+            row["event_type"] = etype
+            return row
+    return {"error": f"未找到事件 {event_id}"}
+
+
+def _get_affected_facilities(store: Store, event_id: str = "", radius_km: float = 5, **kw) -> dict:
+    event = _get_event(store, event_id)
+    if "error" in event:
+        return event
+    lng, lat = event.get("lng", 0), event.get("lat", 0)
+    if not lng or not lat:
+        return {"error": "事件缺少坐标信息"}
+
+    results = {"event_id": event_id, "radius_km": radius_km, "facilities": []}
+    for ftype, id_field in [("RoadSegment", "segment_id"), ("Bridge", "bridge_id"), ("Tunnel", "tunnel_id")]:
+        for row in store.query(ftype):
+            dist = _haversine(lng, lat, row.get("lng", 0), row.get("lat", 0))
+            if dist <= radius_km:
+                results["facilities"].append({
+                    "facility_type": ftype, "facility_id": row[id_field],
+                    "name": row.get("name", row.get("road_name", "")),
+                    "distance_km": round(dist, 2),
+                })
+    return results
+
+
+def _get_depots_in_range(store: Store, lng: float = 0, lat: float = 0, radius_km: float = 100, **kw) -> list:
+    results = []
+    for row in store.query("EmergencyDepot"):
+        dist = _haversine(lng, lat, row.get("lng", 0), row.get("lat", 0))
+        if dist <= radius_km:
+            row["distance_km"] = round(dist, 2)
+            results.append(row)
+    return sorted(results, key=lambda x: x["distance_km"])
+
+
+def _get_rescue_teams_in_range(store: Store, lng: float = 0, lat: float = 0, radius_km: float = 100, **kw) -> list:
+    results = []
+    for row in store.query("RescueTeam"):
+        if not row.get("available"):
+            continue
+        dist = _haversine(lng, lat, row.get("lng", 0), row.get("lat", 0))
+        if dist <= radius_km:
+            row["distance_km"] = round(dist, 2)
+            results.append(row)
+    return sorted(results, key=lambda x: x["distance_km"])
+
+
+def _get_drones_in_range(store: Store, lng: float = 0, lat: float = 0, radius_km: float = 50, **kw) -> list:
+    results = []
+    bases = {b["base_id"]: b for b in store.query("DroneBase")}
+    for drone in store.query("Drone"):
+        if drone.get("status") != "可用":
+            continue
+        base = bases.get(drone.get("base_id", ""))
+        if not base:
+            continue
+        dist = _haversine(lng, lat, base.get("lng", 0), base.get("lat", 0))
+        if dist <= radius_km:
+            drone["distance_km"] = round(dist, 2)
+            drone["base_name"] = base.get("name", "")
+            results.append(drone)
+    return sorted(results, key=lambda x: x["distance_km"])
+
+
+def _simple_getter(store: Store, object_type: str, id_field: str, **kw) -> dict:
+    id_val = kw.get(id_field, "")
+    row = store.query_by_id(object_type, id_val)
+    return row if row else {"error": f"未找到 {object_type} {id_val}"}
+
+
 def register(registry: FunctionRegistry, store: Store, ontology: Ontology):
-    iface.bind_store(store)
-    # 接口包装函数(mock)
-    interface_fns = [
-        ("get_event",                   lambda event_id="": iface.get_event(event_id)),
-        ("get_road_segment",            lambda segment_id="": iface.get_road_segment(segment_id)),
-        ("get_bridge_status",           lambda bridge_id="": iface.get_bridge_status(bridge_id)),
-        ("get_tunnel_status",           lambda tunnel_id="": iface.get_tunnel_status(tunnel_id)),
-        ("get_affected_facilities",     iface.get_affected_facilities),
-        ("get_depots_in_range",         iface.get_depots_in_range),
-        ("get_rescue_teams_in_range",   iface.get_rescue_teams_in_range),
-        ("get_equipment_by_depot",      iface.get_equipment_by_depot),
-        ("get_material_by_depot",       iface.get_material_by_depot),
-        # mock-only 列表函数（生产对接真接口后移除）
-        ("list_all_road_segment",       iface.list_all_road_segment),
-        ("list_all_bridge",             iface.list_all_bridge),
-        ("list_all_tunnel",             iface.list_all_tunnel),
-        ("list_all_emergency_depot",    iface.list_all_emergency_depot),
-        ("list_all_rescue_team",        iface.list_all_rescue_team),
-        ("list_all_equipment_stock",    iface.list_all_equipment_stock),
-        ("list_all_material_stock",     iface.list_all_material_stock),
-        # Drone interface functions
-        ("get_drone",                   lambda drone_id="": iface.get_drone(drone_id)),
-        ("get_drone_operator",          lambda operator_id="": iface.get_drone_operator(operator_id)),
-        ("get_drone_base",              lambda base_id="": iface.get_drone_base(base_id)),
-        ("get_airspace_zone",           lambda zone_id="": iface.get_airspace_zone(zone_id)),
-        ("get_drones_in_range",         iface.get_drones_in_range),
-        ("get_operators_available",     iface.get_operators_available),
-        # Drone UI-only list functions
-        ("list_all_drone",              iface.list_all_drone),
-        ("list_all_drone_operator",     iface.list_all_drone_operator),
-        ("list_all_drone_base",         iface.list_all_drone_base),
-        ("list_all_airspace_zone",      iface.list_all_airspace_zone),
-        # Weather warning interface functions
-        ("get_weather_warning",         iface.get_weather_warning),
-        ("list_all_weather_warning",    iface.list_all_weather_warning),
-    ]
-    for name, fn in interface_fns:
-        registry.register(name, fn, ontology.functions.get(name))
+    fn_map = {
+        "get_event": lambda **kw: _get_event(store, **kw),
+        "get_affected_facilities": lambda **kw: _get_affected_facilities(store, **kw),
+        "get_road_segment": lambda **kw: _simple_getter(store, "RoadSegment", "segment_id", **kw),
+        "get_bridge_status": lambda **kw: _simple_getter(store, "Bridge", "bridge_id", **kw),
+        "get_tunnel_status": lambda **kw: _simple_getter(store, "Tunnel", "tunnel_id", **kw),
+        "get_depots_in_range": lambda **kw: _get_depots_in_range(store, **kw),
+        "get_rescue_teams_in_range": lambda **kw: _get_rescue_teams_in_range(store, **kw),
+        "get_drone": lambda **kw: _simple_getter(store, "Drone", "drone_id", **kw),
+        "get_drone_operator": lambda **kw: _simple_getter(store, "DroneOperator", "operator_id", **kw),
+        "get_drone_base": lambda **kw: _simple_getter(store, "DroneBase", "base_id", **kw),
+        "get_airspace_zone": lambda **kw: _simple_getter(store, "AirspaceZone", "zone_id", **kw),
+        "get_drones_in_range": lambda **kw: _get_drones_in_range(store, **kw),
+        "get_operators_available": lambda **kw: store.query("DroneOperator", filters={"available": 1}),
+        "get_weather_warning": lambda **kw: store.query("WeatherWarning", filters={"warning_id": kw["warning_id"]} if kw.get("warning_id") else None),
+    }
 
-    # 业务规则查询(走 store)
-    lookup_fns = [
-        ("lookup_damage_grade",         lookup_damage_grade),
-        ("lookup_event_level",          lookup_event_level),
-        ("lookup_clearance_technique",  lookup_clearance_technique),
-        ("lookup_traffic_control",      lookup_traffic_control),
-        ("lookup_tunnel_importance",    lookup_tunnel_importance),
-        ("lookup_tunnel_target",        lookup_tunnel_target),
-        ("lookup_bridge_type",          lookup_bridge_type),
-        ("lookup_response_level",       lookup_response_level),
-        # Drone lookup functions
-        ("lookup_drone_class",          lookup_drone_class),
-        ("lookup_operator_license_rule", lookup_operator_license_rule),
-        ("lookup_operation_class",      lookup_operation_class),
-        ("lookup_airspace_rule",        lookup_airspace_rule),
-        ("lookup_flight_approval_rule", lookup_flight_approval_rule),
-        ("lookup_emergency_flight_rule", lookup_emergency_flight_rule),
-        ("lookup_preflight_check",      lookup_preflight_check),
-        ("lookup_maintenance_rule",     lookup_maintenance_rule),
-        ("lookup_payload_type",         lookup_payload_type),
-        ("lookup_s3_regulation",        lookup_s3_regulation),
-        ("lookup_s4_regulation",        lookup_s4_regulation),
-    ]
-    for name, fn in lookup_fns:
-        registry.register(
-            name,
-            lambda s=store, f=fn, **kw: f(s, **kw),
-            ontology.functions.get(name),
-        )
+    for name in list(fn_map.keys()):
+        func_def = ontology.functions.get(name)
+        if func_def:
+            registry.register(name, fn_map[name], func_def)
 
-    # 业务编排函数(注入 store)
-    business_fns = [
-        ("inspect_facility",            inspect_facility),
-        ("assess_event_level",          assess_event_level),
-        ("generate_clearance_plans",    generate_clearance_plans),
-        ("score_plans",                 score_plans),
-        ("dispatch_resources",          dispatch_resources),
-        ("set_traffic_control",         set_traffic_control),
-        ("evaluate_traffic",            evaluate_traffic),
-        ("generate_detour",             generate_detour),
-        # Drone business functions
-        ("plan_recon_mission",          plan_recon_mission),
-        ("dispatch_drone",              dispatch_drone),
-        ("collect_recon_data",          collect_recon_data),
-        ("check_compliance",            check_compliance),
-        ("request_flight_approval",     request_flight_approval),
-        ("check_airspace_conflict",     check_airspace_conflict),
-        ("schedule_patrol",             schedule_patrol),
-        ("log_maintenance",             log_maintenance),
-        # Warning, report, airspace coordination
-        ("trigger_defense_response",    trigger_defense_response),
-        ("intensify_patrol",            intensify_patrol),
-        ("generate_event_report",       generate_event_report),
-        ("coordinate_airspace",         coordinate_airspace),
+    lookup_map = {
+        "lookup_damage_grade": ("DamageGradeStandard", ["facility_type", "damage_grade"]),
+        "lookup_event_level": ("EventLevelStandard", ["level"]),
+        "lookup_clearance_technique": ("ClearanceTechniqueRule", ["facility_type", "damage_type"]),
+        "lookup_traffic_control": ("TrafficControlRule", ["damage_grade", "facility_type"]),
+        "lookup_response_level": ("ResponseLevelRule", ["event_level"]),
+        "lookup_drone_class": ("DroneClassRule", ["category"]),
+        "lookup_operator_license_rule": ("OperatorLicenseRule", ["drone_category", "operation_type"]),
+        "lookup_airspace_rule": ("AirspaceRule", ["airspace_type"]),
+        "lookup_flight_approval_rule": ("FlightApprovalRule", ["scenario"]),
+        "lookup_payload_type": ("PayloadTypeRule", ["payload_type", "scenario"]),
+    }
+
+    for fn_name, (obj_type, filter_fields) in lookup_map.items():
+        func_def = ontology.functions.get(fn_name)
+        if not func_def:
+            continue
+
+        def _make_lookup(ot, fields):
+            def _lookup(**kw):
+                filters = {}
+                for f in fields:
+                    v = kw.get(f, "")
+                    if v:
+                        filters[f] = v
+                return store.query(ot, filters=filters if filters else None)
+            return _lookup
+
+        registry.register(fn_name, _make_lookup(obj_type, filter_fields), func_def)
+
+    stub_fns = [
+        "inspect_facility", "assess_event_level",
+        "generate_clearance_plans", "score_plans",
+        "dispatch_resources", "set_traffic_control",
+        "evaluate_traffic", "generate_detour",
+        "plan_recon_mission", "check_compliance",
+        "request_flight_approval", "dispatch_drone",
+        "collect_recon_data", "schedule_patrol",
+        "log_maintenance", "trigger_defense_response",
+        "intensify_patrol", "generate_event_report",
+        "get_equipment_by_depot", "get_material_by_depot",
     ]
-    for name, fn in business_fns:
-        registry.register(
-            name,
-            lambda s=store, f=fn, **kw: f(s, **kw),
-            ontology.functions.get(name),
-        )
+    for fn_name in stub_fns:
+        func_def = ontology.functions.get(fn_name)
+        if not func_def:
+            continue
+
+        def _make_stub(name):
+            def _stub(**kw):
+                return {"status": "mock", "function": name, "args": kw, "message": f"{name} 已模拟执行（mock 模式）"}
+            return _stub
+
+        registry.register(fn_name, _make_stub(fn_name), func_def)

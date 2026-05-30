@@ -1,0 +1,397 @@
+{
+  "objects": [
+    {
+      "name": "HighwayTrafficEmergencyEvent",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "公路交通突发事件",
+      "description": "在自然灾害、事故等原因导致公路交通阻断情况下，需要及时抢通、恢复通行能力的紧急事件。",
+      "source": "公路交通应急处置技术规范.md§2.0.1",
+      "properties": [
+        {
+          "name": "event_id",
+          "type": "str",
+          "required": true,
+          "description": "事件唯一标识",
+          "source": "§1.0"
+        },
+        {
+          "name": "event_level",
+          "type": "str",
+          "description": "事件级别: I级(特别重大)/II级(重大)/III级(较大)/IV级(一般)",
+          "source": "§5.2.1"
+        },
+        {
+          "name": "event_type",
+          "type": "str",
+          "description": "事件类型",
+          "source": "§5.4.2"
+        },
+        {
+          "name": "occurrence_time",
+          "type": "str",
+          "description": "发生时间",
+          "source": "§5.3.3"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "description": "发生地点",
+          "source": "§5.3.3"
+        },
+        {
+          "name": "consequences",
+          "type": "str",
+          "description": "已造成的后果",
+          "source": "§5.3.3"
+        }
+      ],
+      "status_transitions": {
+        "接报": [
+          "先期处置",
+          "信息上报"
+        ],
+        "应急处置": [
+          "应急终止",
+          "扩大应急"
+        ],
+        "应急终止": [
+          "应急恢复"
+        ]
+      }
+    },
+    {
+      "name": "Tunnel",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "公路隧道设施",
+      "description": "公路交通网络中的隧道设施",
+      "source": "公路交通应急处置技术规范.md§1.0.2",
+      "properties": [
+        {
+          "name": "tunnel_id",
+          "type": "str",
+          "required": true,
+          "description": "隧道编号",
+          "source": "§1.0"
+        },
+        {
+          "name": "importance_level",
+          "type": "str",
+          "description": "隧道重要等级: 一级/二级/三级",
+          "source": "§8.3.1"
+        },
+        {
+          "name": "technical_status_category",
+          "type": "str",
+          "description": "技术状况评定类别: 1-5类",
+          "source": "§8.2.5"
+        }
+      ]
+    },
+    {
+      "name": "Bridge",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "公路桥梁设施",
+      "description": "公路交通网络中的桥梁设施",
+      "source": "公路交通应急处置技术规范.md§1.0.2",
+      "properties": [
+        {
+          "name": "bridge_id",
+          "type": "str",
+          "required": true,
+          "description": "桥梁编号",
+          "source": "§1.0"
+        },
+        {
+          "name": "structure_type",
+          "type": "str",
+          "description": "结构形式: 简支/连续/悬臂/桁架/吊桥/拱桥/斜拉桥等",
+          "source": "附录1§桥梁基本资料"
+        }
+      ]
+    },
+    {
+      "name": "EmergencyResource",
+      "kind": "lookup_table",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "应急资源配置表",
+      "description": "包括通用装备、专用装备、物资等",
+      "source": "公路交通应急处置技术规范.md§10.2",
+      "properties": [
+        {
+          "name": "resource_id",
+          "type": "str",
+          "required": true,
+          "description": "资源唯一标识",
+          "source": "§10.2"
+        },
+        {
+          "name": "resource_type",
+          "type": "str",
+          "description": "类型: 通用装备/专用装备/物资",
+          "source": "§10.2"
+        },
+        {
+          "name": "weight_level",
+          "type": "str",
+          "description": "重量等级: 微型/轻型/中型/重型",
+          "source": "§10.2.6"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "name": "event_affects_infrastructure",
+      "source": "HighwayTrafficEmergencyEvent",
+      "target": "Tunnel",
+      "join": {
+        "source_key": "event_id",
+        "target_key": "event_id"
+      },
+      "link_type": "causal",
+      "cardinality": "0..n",
+      "description": "突发事件导致隧道受损"
+    },
+    {
+      "name": "event_affects_bridge",
+      "source": "HighwayTrafficEmergencyEvent",
+      "target": "Bridge",
+      "join": {
+        "source_key": "event_id",
+        "target_key": "event_id"
+      },
+      "link_type": "causal",
+      "cardinality": "0..n",
+      "description": "突发事件导致桥梁受损"
+    }
+  ],
+  "functions": [
+    {
+      "name": "report_emergency_info",
+      "summary": "上报突发事件信息",
+      "description": "根据事件级别，在2小时内以电话、书面或电子邮件等形式上报相关机构",
+      "function_type": "business",
+      "group": "指挥调度",
+      "params": [
+        {
+          "name": "event_id",
+          "type": "str",
+          "description": "事件编号",
+          "default": null
+        },
+        {
+          "name": "report_method",
+          "type": "str",
+          "description": "报送方式: 电话/书面/电子邮件",
+          "default": null
+        }
+      ],
+      "writes_to": [
+        "HighwayTrafficEmergencyEvent"
+      ],
+      "involves_objects": [
+        "HighwayTrafficEmergencyEvent"
+      ],
+      "temporal_constraints": [
+        {
+          "when": {},
+          "deadline": "event_time + 2h",
+          "sla": "事件发生后2小时内完成信息上报"
+        }
+      ],
+      "source": "§5.3.2"
+    },
+    {
+      "name": "evaluate_tunnel_damage",
+      "summary": "隧道应急评估",
+      "description": "根据隧道应急调查资料，对隧道抢通难度进行评估分级",
+      "function_type": "business",
+      "group": "隧道抢通",
+      "params": [
+        {
+          "name": "tunnel_id",
+          "type": "str",
+          "description": "隧道编号",
+          "default": null
+        },
+        {
+          "name": "survey_data",
+          "type": "str",
+          "description": "调查资料内容",
+          "default": null
+        }
+      ],
+      "writes_to": [
+        "Tunnel"
+      ],
+      "involves_objects": [
+        "Tunnel"
+      ],
+      "source": "§8.1.5"
+    }
+  ],
+  "rules": [
+    {
+      "name": "tunnel_importance_classification",
+      "description": "根据年日均交通量和公路等级判定隧道重要等级",
+      "rule_type": "classification",
+      "applies_to": [
+        "Tunnel"
+      ],
+      "result_field": "importance_level",
+      "source": "§8.3.1",
+      "conditions": [
+        {
+          "field": "annual_traffic_volume",
+          "operator": "gte",
+          "value": 10001,
+          "result": "一级(高速/一级公路)"
+        }
+      ]
+    },
+    {
+      "name": "bridge_stability_assessment",
+      "description": "桥梁整体稳定性损伤等级判定",
+      "rule_type": "classification",
+      "applies_to": [
+        "Bridge"
+      ],
+      "result_field": "stability_damage_level",
+      "source": "附录2§2.1",
+      "conditions": [
+        {
+          "field": "main_beam_displacement",
+          "operator": "gt",
+          "value": "明显",
+          "result": "III级"
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "name": "highway_emergency_disposal_workflow",
+      "description": "公路交通突发事件应急处置全流程",
+      "trigger": "突发事件发生",
+      "involves_objects": [
+        "HighwayTrafficEmergencyEvent"
+      ],
+      "steps": [
+        {
+          "name": "接报",
+          "function": "",
+          "description": "接收突发事件信息",
+          "next": "先期处置",
+          "sla": null
+        },
+        {
+          "name": "先期处置",
+          "function": "",
+          "description": "探明影响、疏散、维持秩序",
+          "next": "信息上报",
+          "sla": null
+        },
+        {
+          "name": "信息上报",
+          "function": "report_emergency_info",
+          "description": "逐级上报相关机构",
+          "next": "应急处置",
+          "sla": "2小时内"
+        },
+        {
+          "name": "应急处置",
+          "function": "",
+          "description": "调度资源、实施抢通",
+          "next": {
+            "事态得到控制": "应急终止",
+            "事态未得到控制": "扩大应急"
+          },
+          "sla": null
+        },
+        {
+          "name": "应急终止",
+          "function": "",
+          "description": "警戒解除、现场清理、善后处置",
+          "next": "应急恢复",
+          "sla": null
+        },
+        {
+          "name": "应急恢复",
+          "function": "",
+          "description": "恢复正常交通秩序",
+          "next": "",
+          "sla": null
+        }
+      ]
+    },
+    {
+      "name": "tunnel_emergency_rescue_workflow",
+      "description": "隧道抢通工作流程",
+      "trigger": "隧道发生险情",
+      "involves_objects": [
+        "Tunnel"
+      ],
+      "steps": [
+        {
+          "name": "应急响应阶段",
+          "function": "",
+          "description": "人员疏散、应急侦测",
+          "next": "应急指挥调度",
+          "sla": null
+        },
+        {
+          "name": "应急指挥调度",
+          "function": "",
+          "description": "做出抢通目标决策",
+          "next": "应急调查阶段",
+          "sla": null
+        },
+        {
+          "name": "应急调查阶段",
+          "function": "",
+          "description": "收集灾害类型、规模、严重程度等资料",
+          "next": "应急评估阶段",
+          "sla": null
+        },
+        {
+          "name": "应急评估阶段",
+          "function": "evaluate_tunnel_damage",
+          "description": "评定重要等级、抢通难度、次生风险",
+          "next": "应急实施阶段",
+          "sla": null
+        },
+        {
+          "name": "应急实施阶段",
+          "function": "",
+          "description": "开展抢通工作",
+          "next": "永久性修复",
+          "sla": null
+        },
+        {
+          "name": "永久性修复",
+          "function": "",
+          "description": "恢复隧道原有承载能力",
+          "next": "",
+          "sla": null
+        }
+      ]
+    }
+  ],
+  "key_constraints": [
+    "公路应急组织机构获取突发事件信息后应在 2 小时内以电话、书面或电子邮件等形式上报相关机构 (5.3.2)",
+    "隧道抢通目标等级Ⅰ级时，抢通目标为禁止通行并另行改道 (8.4.1)",
+    "隧道内发生有毒有害气体泄漏、瓦斯浓度超标时，应立即禁止通行，抢通目标应设定为Ⅰ级 (8.4.4)"
+  ],
+  "_meta": {
+    "doc_name": "公路交通应急处置技术规范.md",
+    "doc_type": "技术标准",
+    "doc_summary": "规定公路交通突发事件应急侦测、指挥调度及路基路面抢修的技术要求。"
+  }
+}

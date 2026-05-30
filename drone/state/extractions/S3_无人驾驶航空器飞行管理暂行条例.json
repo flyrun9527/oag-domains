@@ -1,0 +1,374 @@
+{
+  "objects": [
+    {
+      "name": "UnmannedAircraft",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "无人驾驶航空器(按性能指标分为微型、轻型、小型、中型、大型)",
+      "description": "没有机载驾驶员、自备动力系统的航空器",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章",
+      "properties": [
+        {
+          "name": "aircraft_id",
+          "type": "str",
+          "required": true,
+          "description": "唯一产品识别码",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章"
+        },
+        {
+          "name": "category",
+          "type": "str",
+          "required": false,
+          "description": "分类: 微型/轻型/小型/中型/大型",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章"
+        },
+        {
+          "name": "max_takeoff_weight_kg",
+          "type": "float",
+          "required": false,
+          "description": "最大起飞重量(kg)",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第六章"
+        },
+        {
+          "name": "empty_weight_kg",
+          "type": "float",
+          "required": false,
+          "description": "空机重量(kg)",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第六章"
+        },
+        {
+          "name": "max_flight_altitude_m",
+          "type": "float",
+          "required": false,
+          "description": "最大飞行真高(m)",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第六章"
+        },
+        {
+          "name": "max_horizontal_speed_kmh",
+          "type": "float",
+          "required": false,
+          "description": "最大平飞速度(km/h)",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第六章"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 适航/非适航/缺陷/改装",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章"
+        }
+      ],
+      "status_transitions": {
+        "适航": [
+          "非适航"
+        ],
+        "非适航": [
+          "适航"
+        ]
+      }
+    },
+    {
+      "name": "Operator",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "无人驾驶航空器运营单位或个人",
+      "description": "从事无人驾驶航空器飞行活动的单位或个人",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章",
+      "properties": [
+        {
+          "name": "operator_id",
+          "type": "str",
+          "required": true,
+          "description": "运营者唯一标识",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章"
+        },
+        {
+          "name": "is_commercial",
+          "type": "bool",
+          "required": false,
+          "description": "是否从事经营性活动",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章"
+        },
+        {
+          "name": "has_operating_certificate",
+          "type": "bool",
+          "required": false,
+          "description": "是否取得运营合格证",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章"
+        }
+      ]
+    },
+    {
+      "name": "Pilot",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "无人驾驶航空器操控员",
+      "description": "负责操控无人驾驶航空器的人员",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章",
+      "properties": [
+        {
+          "name": "pilot_id",
+          "type": "str",
+          "required": true,
+          "description": "操控员执照编号",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章"
+        },
+        {
+          "name": "license_type",
+          "type": "str",
+          "required": false,
+          "description": "执照类型: 操控员执照/操作证书/无需执照",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章"
+        },
+        {
+          "name": "civil_capacity",
+          "type": "str",
+          "required": false,
+          "description": "民事行为能力: 完全/限制/无",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第二章"
+        }
+      ]
+    },
+    {
+      "name": "FlightApplication",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "飞行活动申请记录",
+      "description": "向空中交通管理机构提交的飞行申请",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第三章",
+      "properties": [
+        {
+          "name": "application_id",
+          "type": "str",
+          "required": true,
+          "description": "申请编号",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第三章"
+        },
+        {
+          "name": "application_status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 待审批/已批准/不予批准",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第三章"
+        },
+        {
+          "name": "is_emergency",
+          "type": "bool",
+          "required": false,
+          "description": "是否为紧急任务",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第三章"
+        }
+      ]
+    },
+    {
+      "name": "AirspaceType",
+      "kind": "lookup_table",
+      "data_source": "human_confirmed",
+      "mutability": "read_only",
+      "summary": "空域类型配置表",
+      "description": "管制空域与适飞空域的定义",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第三章",
+      "properties": [
+        {
+          "name": "type_name",
+          "type": "str",
+          "required": true,
+          "description": "空域类型: 管制空域/适飞空域",
+          "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第三章"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "name": "operator_operates_aircraft",
+      "source": "Operator",
+      "target": "UnmannedAircraft",
+      "join": {
+        "operator_id": "operator_id"
+      },
+      "link_type": "enables",
+      "cardinality": "0..n",
+      "description": "运营者使用无人驾驶航空器"
+    },
+    {
+      "name": "pilot_controls_aircraft",
+      "source": "Pilot",
+      "target": "UnmannedAircraft",
+      "join": {
+        "pilot_id": "pilot_id"
+      },
+      "link_type": "enables",
+      "cardinality": "0..n",
+      "description": "操控员操控无人驾驶航空器"
+    }
+  ],
+  "functions": [
+    {
+      "name": "apply_flight_permission",
+      "summary": "提交飞行活动申请",
+      "description": "向空中交通管理机构提出飞行活动申请，包括单位、人员、机型、航线、高度等信息",
+      "function_type": "business",
+      "group": "飞行管理",
+      "params": [
+        {
+          "name": "operator_id",
+          "type": "str",
+          "description": "申请单位或个人ID",
+          "default": null
+        },
+        {
+          "name": "aircraft_id",
+          "type": "str",
+          "description": "无人驾驶航空器ID",
+          "default": null
+        },
+        {
+          "name": "is_emergency",
+          "type": "bool",
+          "description": "是否为紧急任务",
+          "default": false
+        }
+      ],
+      "writes_to": [
+        "FlightApplication"
+      ],
+      "involves_objects": [
+        "Operator",
+        "UnmannedAircraft",
+        "FlightApplication"
+      ],
+      "preconditions": [],
+      "effects": [
+        {
+          "object": "FlightApplication",
+          "field": "application_status",
+          "set_to": "待审批"
+        }
+      ],
+      "temporal_constraints": [
+        {
+          "when": {
+            "is_emergency": false
+          },
+          "deadline": "T-1d 12:00",
+          "sla": "应当在拟飞行前1日12时前提出申请"
+        },
+        {
+          "when": {
+            "is_emergency": true
+          },
+          "deadline": "T-30m",
+          "sla": "执行紧急任务应当在计划起飞30分钟前提出申请"
+        }
+      ],
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第三章"
+    }
+  ],
+  "rules": [
+    {
+      "name": "aircraft_category_classification",
+      "description": "按最大起飞重量分类无人驾驶航空器",
+      "rule_type": "classification",
+      "applies_to": [
+        "UnmannedAircraft"
+      ],
+      "result_field": "category",
+      "source": "S3_无人驾驶航空器飞行管理暂行条例.md§第六章",
+      "conditions": [
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "lte",
+          "value": 0.25,
+          "result": "微型"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "gt",
+          "value": 0.25,
+          "result": "其他"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "lte",
+          "value": 7,
+          "result": "轻型"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "gt",
+          "value": 7,
+          "result": "其他"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "lte",
+          "value": 25,
+          "result": "小型"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "gt",
+          "value": 25,
+          "result": "其他"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "lte",
+          "value": 150,
+          "result": "中型"
+        },
+        {
+          "field": "max_takeoff_weight_kg",
+          "operator": "gt",
+          "value": 150,
+          "result": "大型"
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "name": "flight_approval_workflow",
+      "description": "飞行申请审批流程",
+      "trigger": "提交飞行申请",
+      "involves_objects": [
+        "FlightApplication"
+      ],
+      "steps": [
+        {
+          "name": "提交申请",
+          "function": "apply_flight_permission",
+          "description": "申请人提交飞行计划",
+          "next": "审批决策"
+        },
+        {
+          "name": "审批决策",
+          "function": "",
+          "description": "空中交通管理机构作出批准或不予批准的决定",
+          "next": {
+            "已批准": "准备起飞",
+            "不予批准": "申请终止"
+          }
+        }
+      ]
+    }
+  ],
+  "key_constraints": [
+    "从事中型、大型民用无人驾驶航空器系统的设计、生产、进口、飞行和维修活动，应当依法向国务院民用航空主管部门申请取得适航许可。(第八条)",
+    "使用除微型以外的民用无人驾驶航空器从事飞行活动的单位应当取得民用无人驾驶航空器运营合格证。(第十一条)",
+    "未经空中交通管理机构批准，不得在管制空域内实施无人驾驶航空器飞行活动。(第十九条)",
+    "操控小型、中型、大型民用无人驾驶航空器飞行的人员应当取得操控员执照。(第十六条)",
+    "操控微型无人驾驶航空器的，应当保持视距内飞行。(第三十二条第5款)",
+    "受到酒精类饮料、麻醉剂或者其他药物影响时，不得操控无人驾驶航空器。(第三十二条第9款)"
+  ],
+  "_meta": {
+    "doc_name": "S3_无人驾驶航空器飞行管理暂行条例.md",
+    "doc_type": "法规",
+    "doc_summary": "由国务院发布的关于规范无人驾驶航空器飞行及相关活动管理的行政法规。"
+  }
+}

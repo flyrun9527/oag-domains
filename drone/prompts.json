@@ -1,73 +1,148 @@
 [
   {
-    "group": "应急处置全流程",
+    "group": "基础数据查询",
     "items": [
-      {"prompt": "E004洪水事件影响了哪些设施，请检查评估并制定抢通方案", "desc": "多设施: 岷江大桥+二郎山隧道+路段"},
-      {"prompt": "E005冰雪灾害事件，天台山桥和天台山隧道都受损，请制定应急处置方案", "desc": "冰雪场景: 抢通+资源调度"},
-      {"prompt": "E006崩塌事件，青龙桥附近大块岩石落入路面，请制定应急处置方案并规划无人机侦测", "desc": "崩塌+无人机跨域"},
-      {"prompt": "E001滑坡事件影响了G318国道K150处，请完成从侦测到通行评估的全流程", "desc": "完整11步workflow"}
+      {"prompt": "查一下G318公路有哪些路段？", "desc": "查询 RoadSegment"},
+      {"prompt": "龙门山大桥的基本信息", "desc": "查询 Bridge B001"},
+      {"prompt": "龙门山隧道有多长？什么类型？", "desc": "查询 Tunnel T001"},
+      {"prompt": "都江堰附近有哪些应急物资储备点？", "desc": "空间查询 EmergencyDepot"},
+      {"prompt": "目前有几架可用的无人机？分别是什么型号？", "desc": "查询 Drone status=可用"},
+      {"prompt": "张明操控员的资质情况如何？有超视距等级吗？", "desc": "查询 DroneOperator OP001"}
     ]
   },
   {
-    "group": "设施检查与评估",
+    "group": "规则查询",
     "items": [
-      {"prompt": "对E002事件中的桥梁进行检查评估", "desc": "桥梁: 蒲阳河特大桥"},
-      {"prompt": "E003事件中龙门山隧道洞口被泥石流掩埋，检查评估损伤等级", "desc": "隧道检查"},
-      {"prompt": "E004事件中有哪些设施受损，分别是什么损伤等级", "desc": "多设施损伤对比"},
-      {"prompt": "损伤等级III的桥梁应该采取什么通行建议和交通管制", "desc": "规则: 损伤→通行"}
+      {"prompt": "桥梁损伤等级II对应什么通行建议？", "desc": "查询 DamageGradeStandard"},
+      {"prompt": "无人机分类标准是什么？各类别的重量范围？", "desc": "查询 DroneClassRule"},
+      {"prompt": "小型无人机超视距飞行需要什么资质？", "desc": "查询 OperatorLicenseRule"},
+      {"prompt": "在管制空域飞行需要什么审批？", "desc": "查询 AirspaceRule"},
+      {"prompt": "应急抢险飞行的快速审批流程是什么？提前多久申请？", "desc": "查询 FlightApprovalRule 应急场景"},
+      {"prompt": "路基路面发生坍塌有哪些抢通技术可选？", "desc": "查询 ClearanceTechniqueRule"},
+      {"prompt": "III级事件对应什么响应级别和负责机构？", "desc": "查询 ResponseLevelRule"}
     ]
   },
   {
-    "group": "方案与资源",
+    "group": "灾害事件处置（简单）",
     "items": [
-      {"prompt": "为E002事件生成候选抢通方案并进行三维评分", "desc": "方案: 时效40%+安全30%+经济30%"},
-      {"prompt": "E004事件需要调度哪些应急资源，最近的储备点在哪", "desc": "资源: 就近便捷原则"},
-      {"prompt": "桥梁垮塌后有哪些便桥类型可选，各自的架设时效和承载力", "desc": "查规则: 便桥选型"},
-      {"prompt": "隧道抢通难度如何评定，一级隧道高难度对应什么目标", "desc": "查规则: 隧道抢通矩阵"},
-      {"prompt": "E004事件无法在时限内抢通，请生成绕行方案", "desc": "绕行方案"}
+      {"prompt": "G318公路K125附近发生地震，创建一个灾害事件", "desc": "创建 DisasterEvent"},
+      {"prompt": "事件E001影响范围内有哪些设施？", "desc": "调用 get_affected_facilities"},
+      {"prompt": "对龙门山大桥B001进行检查评估", "desc": "调用 inspect_facility"},
+      {"prompt": "损伤等级III的设施应该采取什么交通管制？", "desc": "apply_rule damage_to_access + 查询 TrafficControlRule"},
+      {"prompt": "为事件E001生成一份首报", "desc": "调用 generate_event_report report_type=首报"}
+    ]
+  },
+  {
+    "group": "灾害事件处置（完整流程）",
+    "items": [
+      {"prompt": "G318公路K125+500处发生6.5级地震，启动应急响应全流程", "desc": "触发 emergency_response 工作流，从灾情接报到信息报送"},
+      {"prompt": "都江堰至映秀段发生暴雨引发泥石流，阻断G318公路，请处理", "desc": "完整流程：创建事件→设施检查→方案生成→资源调度→管制→评估→报送"},
+      {"prompt": "G318龙门山隧道洞口被滑坡掩埋，需要抢通", "desc": "隧道场景：检查→查抢通技术→生成方案→评分→调度→评估"}
     ]
   },
   {
     "group": "无人机侦测",
     "items": [
-      {"prompt": "为E002地震事件规划无人机侦测任务，检查合规性并提交飞行审批", "desc": "完整出动流程: 选机→合规→审批→采集"},
-      {"prompt": "UAV005远征者是什么类别的无人机，操控它需要什么执照", "desc": "中型无人机资质"},
-      {"prompt": "UAV008运输鲲属于什么类别，需要适航证吗", "desc": "大型无人机: 适航+执照"},
-      {"prompt": "泥石流灾害应该搭载什么载荷的无人机", "desc": "载荷匹配: 光学+红外"},
-      {"prompt": "隧道洞口侦测应该用什么无人机和载荷", "desc": "载荷匹配: 视频摄像机"},
-      {"prompt": "查询当前可用的无人机和操控员，谁有超视距资质", "desc": "资源查询+资质筛选"},
-      {"prompt": "UAV004为什么不能派出执行任务", "desc": "状态: 维护中不可派遣"}
+      {"prompt": "为事件E001规划一次无人机侦测任务", "desc": "调用 plan_recon_mission"},
+      {"prompt": "对侦测任务进行出动前合规检查", "desc": "调用 check_compliance，校验四维合规"},
+      {"prompt": "宏观灾情侦测应该搭载什么载荷？", "desc": "查询 PayloadTypeRule"},
+      {"prompt": "附近50公里内有哪些可用无人机？选一架派出去侦测", "desc": "get_drones_in_range → plan_recon_mission → check_compliance → request_flight_approval → dispatch_drone"},
+      {"prompt": "DRN003无人机目前是维护中，能派它去执行任务吗？", "desc": "测试 constraints: 维护中无人机不可派遣"}
     ]
   },
   {
-    "group": "预警与报告",
+    "group": "无人机出动完整流程",
     "items": [
-      {"prompt": "收到暴雨红色预警，应启动什么级别的防御响应", "desc": "规则: 红色→一级"},
-      {"prompt": "黄色预警和蓝色预警分别对应什么响应级别", "desc": "规则: 预警级别对照"},
-      {"prompt": "为E004洪水事件生成灾情首报", "desc": "首报: 快速+ReconData"},
-      {"prompt": "事件级别I级和II级分别需要多长时间处理", "desc": "响应级别时限"},
-      {"prompt": "E002事件已完成抢通，请生成终报", "desc": "终报: 全面总结"}
+      {"prompt": "为地震事件E001执行完整的无人机侦测流程：从任务规划到数据采集", "desc": "触发 drone_dispatch 工作流全流程"},
+      {"prompt": "紧急情况，需要立即派无人机侦测龙门山大桥受损情况，走应急快速审批", "desc": "应急场景：plan_recon_mission → check_compliance → request_flight_approval(应急快速) → dispatch_drone"}
     ]
   },
   {
-    "group": "法规与规则查询",
+    "group": "气象预警与防御",
     "items": [
-      {"prompt": "小型无人机在管制空域飞行需要什么条件和审批", "desc": "S3: 空域+审批"},
-      {"prompt": "应急抢险任务的飞行审批最短提前多久", "desc": "S3第29条: 30分钟/特别紧急随时"},
-      {"prompt": "微型无人机和轻型无人机有什么区别，分别需要什么资质", "desc": "S3分类对比"},
-      {"prompt": "查询暂行条例第二十九条关于应急飞行的规定", "desc": "S3原文检索"},
-      {"prompt": "无人机飞行前需要做哪些检查项目", "desc": "S4飞行前检查清单"},
-      {"prompt": "开放类、特定类、审定类运行有什么区别", "desc": "S4运行分类"},
-      {"prompt": "无人机维护保养有哪些规定，日常和定期各多久一次", "desc": "S4维护规则"}
+      {"prompt": "收到橙色暴雨预警，影响G318全线，启动防御响应", "desc": "触发 weather_defense 工作流"},
+      {"prompt": "红色台风预警，对应什么级别的防御响应？应采取哪些措施？", "desc": "apply_rule warning_to_defense + trigger_defense_response"},
+      {"prompt": "预警升级为红色，需要加密巡检频率", "desc": "调用 intensify_patrol"}
     ]
   },
   {
-    "group": "综合分析",
+    "group": "综合场景",
     "items": [
-      {"prompt": "目前有多少起进行中的灾害事件，分别是什么类型和级别", "desc": "事件总览"},
-      {"prompt": "哪些无人机有激光雷达载荷，适合桥梁精细检测", "desc": "载荷能力筛选"},
-      {"prompt": "比较路基沉陷和路基坍塌各有哪些抢通技术可选", "desc": "技术对比"},
-      {"prompt": "A003隧道追尾事故需要什么处置措施", "desc": "交通事故处置（非设施损伤）"}
+      {"prompt": "暴雨预警升级后，G318公路K130处发生山体滑坡阻断交通。请从预警响应开始，完成灾情侦测、设施检查、抢通方案制定和信息报送的全过程", "desc": "跨工作流：weather_defense → emergency_response + drone_dispatch，测试多工作流协同"},
+      {"prompt": "事件E001的龙门山大桥损伤III级无法抢通，需要绕行方案", "desc": "走绕行分支：inspect结果III级 → generate_detour"},
+      {"prompt": "事件E001已处置完毕，通行评估通过，请生成终报并终止响应", "desc": "收尾流程：evaluate_traffic → generate_event_report(终报)"},
+      {"prompt": "对比一下两架可用无人机DRN001和DRN002，哪架更适合桥梁精细检测？", "desc": "查询无人机参数 + 载荷匹配 + 续航对比"},
+      {"prompt": "当前所有进行中的事件有哪些？各自处理到什么阶段了？", "desc": "查询 DisasterEvent/AccidentEvent status=进行中 + summarize_progress"}
+    ]
+  },
+  {
+    "group": "开放性问题（领域推理）",
+    "items": [
+      {"prompt": "如果地震同时损坏了桥梁和隧道，应该优先抢通哪个？为什么？", "desc": "需要 LLM 综合考虑交通量、绕行可能性、抢通难度等因素做判断"},
+      {"prompt": "冬季低温雨雪天气下，无人机侦测有哪些特殊风险和注意事项？", "desc": "需要 LLM 结合无人机性能参数和气象条件推理，不是简单查表"},
+      {"prompt": "一条隧道损伤等级评为II级，但隧道内有积水且通风系统损坏，你认为应该允许通行吗？", "desc": "规则说II级→限制通行，但实际情况可能需要更保守的判断"},
+      {"prompt": "如果事件发生在深夜且通信中断，应急响应流程需要做哪些调整？", "desc": "考虑极端条件对标准流程的影响，需要灵活应变"},
+      {"prompt": "我们只有两架无人机，但有三个受损设施需要侦测，如何安排任务优先级和顺序？", "desc": "资源有限时的优先级排序，需要考虑距离、紧急程度、续航能力"},
+      {"prompt": "暴雨还在持续，抢通方案选择上应该偏向快速临时修复还是等雨停后彻底修复？", "desc": "时效性 vs 安全性的权衡决策"},
+      {"prompt": "龙门山大桥损坏严重，架设应急钢桥需要12小时，但绕行只增加40分钟。你建议哪个方案？", "desc": "需要综合评估抢通成本、绕行代价、后续影响"},
+      {"prompt": "无人机侦测数据显示桥墩有45度倾斜，但系统损伤评级只给了II级，这合理吗？", "desc": "质疑系统评估结果，需要 LLM 具备领域常识来判断"},
+      {"prompt": "如何利用无人机巡检数据建立设施健康档案，用于灾前预防？", "desc": "超出当前应急场景，探讨预防性维护的可能性"},
+      {"prompt": "假设明天有台风登陆，请帮我制定一个72小时的应急准备计划", "desc": "需要时间线规划能力，结合预警流程和资源预置"},
+      {"prompt": "从法规角度看，我们的无人机应急侦测流程是否完全合规？有没有潜在的法律风险？", "desc": "需要 LLM 对照 S3/S4 法规条文审视当前流程"},
+      {"prompt": "如果桥梁抢通过程中发生余震，现场指挥应该如何决策？", "desc": "动态风险评估，标准流程未覆盖的突发情况"}
+    ]
+  },
+  {
+    "group": "业务处置流程（地震场景）",
+    "items": [
+      {"prompt": "今天14:30，G318公路K128+200处发生5.8级地震，初步报告龙门山大桥和龙门山隧道可能受损，请立即启动应急响应", "desc": "创建事件→查影响设施→逐个检查→评估事件等级→报送首报"},
+      {"prompt": "刚才的地震事件，检查结果出来了：龙门山大桥损伤III级、龙门山隧道损伤II级。请制定抢通方案并调度资源", "desc": "续接上一步→generate_clearance_plans→score_plans→dispatch_resources→set_traffic_control"},
+      {"prompt": "地震事件E001，桥梁方案已执行完毕，请做通行评估，如果通过就出终报", "desc": "evaluate_traffic→判断结果→generate_event_report(终报)或generate_detour"}
+    ]
+  },
+  {
+    "group": "业务处置流程（暴雨泥石流场景）",
+    "items": [
+      {"prompt": "气象台发布黄色暴雨预警W001，影响G318都江堰至映秀段，请启动防御响应并加密巡检", "desc": "trigger_defense_response→intensify_patrol"},
+      {"prompt": "预警升级为橙色，巡检发现S210省道K8处发生泥石流，阻断双向交通。请处理", "desc": "防御响应升级→创建DisasterEvent→启动emergency_response"},
+      {"prompt": "S210泥石流事件，需要派无人机去现场看看灾情范围，然后再安排检查", "desc": "plan_recon_mission→drone_dispatch流程→collect_recon_data→inspect_facility"},
+      {"prompt": "泥石流事件检查结果：路基路面III级损伤，查一下有什么清淤技术，生成方案并评分", "desc": "lookup_clearance_technique(泥石流)→generate_clearance_plans→score_plans"}
+    ]
+  },
+  {
+    "group": "业务处置流程（交通事故场景）",
+    "items": [
+      {"prompt": "G318公路K132处发生一起货车翻车事故，货物散落占用双向车道，请处理", "desc": "创建AccidentEvent→set_traffic_control(封闭)→不需要inspect_facility"},
+      {"prompt": "翻车事故现场已清理完毕，请解除交通管制并出事故报告", "desc": "更新TrafficControl状态→generate_event_report(终报)→终止事件"}
+    ]
+  },
+  {
+    "group": "业务处置流程（无人机全流程）",
+    "items": [
+      {"prompt": "地震后需要对龙门山大桥做精细检测，请选一架合适的无人机、检查合规、申请审批、派出去，然后采集数据", "desc": "查载荷需求(激光雷达)→get_drones_in_range→plan_recon_mission→check_compliance→request_flight_approval→dispatch_drone→collect_recon_data"},
+      {"prompt": "灾后需要对G318全线三个设施同时做无人机侦测，请安排", "desc": "多任务并行：为每个设施规划任务→dispatch_workers并行执行合规检查和审批"},
+      {"prompt": "操控员张明带DRN001去侦测龙门山隧道洞口，需要搭载视频摄像机，请走完出动流程", "desc": "指定drone_id和operator_id的plan_recon_mission→完整drone_dispatch流程"}
+    ]
+  },
+  {
+    "group": "业务处置流程（多事件并发）",
+    "items": [
+      {"prompt": "同一天发生两起事件：G318 K125地震和S210 K8泥石流。请分别处理，先处理更紧急的那个", "desc": "两个事件的assess_event_level→比较级别→优先处理高级别→两条线并行推进"},
+      {"prompt": "龙门山大桥III级损伤抢通预计要18小时，超出了III级事件6小时的响应时限，该怎么办？", "desc": "check_sla发现超时→考虑generate_detour→同时继续抢通→调整信息报送策略"},
+      {"prompt": "暴雨预警期间又发生了地震，防御响应和应急响应需要并行运转，请处理", "desc": "两个工作流同时活跃：weather_defense持续+emergency_response启动"}
+    ]
+  },
+  {
+    "group": "规则引擎（apply_rule）",
+    "items": [
+      {"prompt": "对检查记录INS001应用损伤分级规则，判断龙门山大桥的通行建议", "desc": "apply_rule damage_to_access on FacilityInspection INS001，应返回'禁止通行并实施抢通'"},
+      {"prompt": "对检查记录INS002应用损伤分级规则，龙门山隧道的通行建议是什么？", "desc": "apply_rule damage_to_access on FacilityInspection INS002，应返回'限制通行并加强观测'"},
+      {"prompt": "对事件E001的所有检查记录批量应用损伤分级规则", "desc": "apply_rule_batch damage_to_access on FacilityInspection，3条记录分别得出通行建议"},
+      {"prompt": "无人机DRN001的最大起飞重量是9.2kg，按规则它属于什么类别？", "desc": "apply_rule drone_weight_classification on Drone DRN001，应返回'小型'"},
+      {"prompt": "分别判断三架无人机DRN001、DRN002、DRN003各属于什么类别", "desc": "apply_rule_batch drone_weight_classification on Drone，DRN001=小型、DRN002=轻型、DRN003=小型"},
+      {"prompt": "事件E001的级别是III，用规则判断应该启动几级响应", "desc": "apply_rule event_to_response on DisasterEvent E001，应返回'三级'"},
+      {"prompt": "预警W001是黄色暴雨预警，对应几级防御响应？用规则计算", "desc": "apply_rule warning_to_defense on WeatherWarning W001，应返回'三级'"},
+      {"prompt": "路段S001的检查记录INS003是I级损伤，确认一下通行建议", "desc": "apply_rule damage_to_access on FacilityInspection INS003，应返回'观察通行'"}
     ]
   }
 ]

@@ -1,0 +1,50 @@
+[
+  {
+    "layer": "objects",
+    "target": "FlightMission",
+    "issue": "缺乏关键业务属性，仅包含飞行动态数据，无法支撑飞行任务与人员、航空器的关联。",
+    "fix": "增加 mission_status (状态), pilot_id (关联操控员), aircraft_id (关联航空器), start_time (开始时间) 等属性。"
+  },
+  {
+    "layer": "links",
+    "target": "mission_has_pilot",
+    "issue": "Join 逻辑错误。join 字段使用了 {mission_id: pilot_id}，这在逻辑上是不匹配的，应该是 mission_id 对 mission_id 或 pilot_id 对 pilot_id。",
+    "fix": "将 join 修改为 {mission_id: mission_id} 或确保 source 和 target 的关联键语义一致。"
+  },
+  {
+    "layer": "functions",
+    "target": "evaluate_tunnel_damage",
+    "issue": "函数定义不完整。writes_to 引用了 Tunnel，但 effects 中没有定义对 Tunnel 状态或属性的具体变更，且缺乏对评估结果（如损伤等级）的写入逻辑。",
+    "fix": "在 effects 中增加对 Tunnel 属性（如 technical_status_category）的 set_to 操作，并明确参数如何影响对象。"
+  },
+  {
+    "layer": "functions",
+    "target": "conduct_facility_inspection",
+    "issue": "参数与对象属性不一致。params 中使用了 facility_id，但 FacilityOnSiteInspection 对象中并没有 facility_id 属性，只有 inspection_id。",
+    "fix": "在 FacilityOnSiteInspection 对象中增加 facility_id 属性，或者将函数参数改为 inspection_id。"
+  },
+  {
+    "layer": "rules",
+    "target": "infrastructure_damage_classification",
+    "issue": "规则逻辑依赖于非结构化文本。该规则通过判断 damage_description (字符串) 是否等于“无损伤或轻微损伤”来分类，这在实际系统中极难实现且不可靠。",
+    "fix": "应将 damage_description 改为结构化的枚举值或数值等级，规则基于这些结构化字段进行判断。"
+  },
+  {
+    "layer": "workflows",
+    "target": "highway_emergency_clearance_workflow",
+    "issue": "步骤跳转逻辑与规则/函数不匹配。'开展应急检查' 步骤的 next 逻辑依赖于 '禁止通行并实施抢通' 等描述，而这些描述实际上是 rules (infrastructure_clearance_suggestion) 的结果，而非直接的状态或函数返回值。",
+    "fix": "明确 workflow 的 next 节点应基于对象状态的变化或函数的返回值，建议通过引入一个中间状态（如 inspection_result）来驱动跳转。"
+  },
+  {
+    "layer": "objects",
+    "target": "HighwayTrafficEmergencyEvent",
+    "issue": "状态机不完整。status_transitions 定义了 [发现/响应中/检查中/抢通中/已完成]，但 transitions 逻辑中未定义这些状态之间的流转路径（例如：响应中 -> 检查中）。",
+    "fix": "为 status 属性补充完整的 status_transitions 映射表。"
+  },
+  {
+    "layer": "objects",
+    "target": "FlightApplication",
+    "issue": "属性冗余且冲突。同时存在 application_status 和 status 两个字段，且描述完全一致。",
+    "fix": "删除其中一个字段，统一使用 application_status。"
+  }
+]

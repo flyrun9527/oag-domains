@@ -1,0 +1,1434 @@
+name: "交通运输应急与无人机飞行管理领域本体"
+description: "涵盖无人驾驶航空器飞行管理、交通运输突发事件应急处置、公路交通应急抢通等领域的实体、规则和业务过程，支持飞行活动申请审批、合规检查、应急响应、设施评估、资源调度等核心业务流程。"
+
+objects:
+  - name: Drone
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "无人驾驶航空器（按性能指标分类）"
+    description: "无人驾驶航空器，是指没有机载驾驶员、自备动力系统的航空器。按照性能指标分为微型、轻型、小型、中型和大型。"
+    properties:
+      - name: drone_id
+        type: str
+        required: true
+        description: "无人驾驶航空器唯一标识（如产品识别码或登记号）"
+      - name: category
+        type: str
+        required: false
+        description: "分类：微型/轻型/小型/中型/大型"
+      - name: max_takeoff_weight_kg
+        type: float
+        required: false
+        description: "最大起飞重量（千克）"
+      - name: empty_weight_kg
+        type: float
+        required: false
+        description: "空机重量（千克）"
+      - name: max_flight_height_m
+        type: float
+        required: false
+        description: "最大飞行真高（米）"
+      - name: max_speed_kmh
+        type: float
+        required: false
+        description: "最大平飞速度（千米/小时）"
+      - name: product_identification_code
+        type: str
+        required: false
+        description: "唯一产品识别码"
+      - name: owner
+        type: str
+        required: false
+        description: "所有者信息（实名登记）"
+      - name: registration_status
+        type: str
+        required: false
+        description: "实名登记状态：已登记/未登记"
+      - name: airworthiness_certificate
+        type: str
+        required: false
+        description: "适航许可（中型、大型需取得）"
+      - name: operator_license
+        type: str
+        required: false
+        description: "运营合格证（使用除微型外的单位需取得）"
+      - name: pilot_license
+        type: str
+        required: false
+        description: "操控员执照（操控小型、中型、大型需取得）"
+      - name: insurance_status
+        type: str
+        required: false
+        description: "责任保险投保状态：已投保/未投保"
+      - name: airspace_keeping_capability
+        type: bool
+        required: false
+        description: "是否具备空域保持能力"
+      - name: reliable_monitored_capability
+        type: bool
+        required: false
+        description: "是否具备可靠被监视能力"
+      - name: radio_frequency
+        type: str
+        required: false
+        description: "指挥控制链路无线电频率"
+    status_transitions: {}
+    constraints: []
+
+  - name: FlightMission
+    kind: entity
+    data_source: agent_generated
+    mutability: mutable
+    summary: "飞行活动申请及执行记录"
+    description: "组织无人驾驶航空器飞行活动的单位或者个人需提交的飞行活动申请，包含飞行任务、空域、时间等信息。"
+    properties:
+      - name: mission_id
+        type: str
+        required: true
+        description: "飞行活动申请编号"
+      - name: applicant
+        type: str
+        required: false
+        description: "组织飞行活动的单位或者个人"
+      - name: pilot_info
+        type: str
+        required: false
+        description: "操控人员信息以及有关资质证书"
+      - name: drone_type
+        type: str
+        required: false
+        description: "无人驾驶航空器的类型"
+      - name: drone_quantity
+        type: int
+        required: false
+        description: "无人驾驶航空器数量"
+      - name: drone_performance
+        type: str
+        required: false
+        description: "主要性能指标"
+      - name: drone_registration
+        type: str
+        required: false
+        description: "登记管理信息"
+      - name: mission_type
+        type: str
+        required: false
+        description: "飞行任务性质和飞行方式"
+      - name: special_mission_approval
+        type: str
+        required: false
+        description: "执行国家规定的特殊通用航空飞行任务的批准文件"
+      - name: takeoff_site
+        type: str
+        required: false
+        description: "起飞、降落和备降机场（场地）"
+      - name: communication_method
+        type: str
+        required: false
+        description: "通信联络方法"
+      - name: estimated_start_time
+        type: str
+        required: false
+        description: "预计飞行开始时刻"
+      - name: estimated_end_time
+        type: str
+        required: false
+        description: "预计飞行结束时刻"
+      - name: flight_route
+        type: str
+        required: false
+        description: "飞行航线、高度、速度和空域范围，进出空域方法"
+      - name: control_link_frequency
+        type: str
+        required: false
+        description: "指挥控制链路无线电频率以及占用带宽"
+      - name: communication_navigation_surveillance_capability
+        type: str
+        required: false
+        description: "通信、导航和被监视能力"
+      - name: transponder_code
+        type: str
+        required: false
+        description: "二次雷达应答机或自动监视设备代码申请"
+      - name: emergency_procedure
+        type: str
+        required: false
+        description: "应急处置程序"
+      - name: special_flight_support
+        type: str
+        required: false
+        description: "特殊飞行保障需求"
+      - name: approval_status
+        type: str
+        required: false
+        description: "批准状态：已批准/未批准/待审批"
+      - name: approval_authority
+        type: str
+        required: false
+        description: "批准机构（空中交通管理机构）"
+      - name: report_time
+        type: str
+        required: false
+        description: "计划起飞1小时前报告预计起飞时刻和准备情况"
+      - name: actual_start_time
+        type: str
+        required: false
+        description: "实际起飞时间"
+      - name: actual_end_time
+        type: str
+        required: false
+        description: "实际结束时间"
+      - name: flight_status
+        type: str
+        required: false
+        description: "飞行状态：申请中/已批准/已起飞/飞行中/已结束/异常"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 待审批/已批准/已拒绝/执行中/已完成/已取消"
+      - name: flight_type
+        type: str
+        required: false
+        description: "运行分类: 开放类/特定类/审定类"
+      - name: operation_type
+        type: str
+        required: false
+        description: "运行种类: 留空飞行/航线飞行/其他飞行"
+      - name: business_type
+        type: str
+        required: false
+        description: "经营种类: 载客类/载人类/载货类/培训类/其他类"
+      - name: drone_id
+        type: str
+        required: false
+        description: "使用的无人驾驶航空器编号"
+      - name: pilot_license_id
+        type: str
+        required: false
+        description: "操控员执照编号"
+      - name: operation_certificate_id
+        type: str
+        required: false
+        description: "运营合格证编号"
+      - name: airworthiness_certificate_id
+        type: str
+        required: false
+        description: "适航证编号"
+      - name: registration_id
+        type: str
+        required: false
+        description: "实名登记号"
+      - name: flight_area
+        type: str
+        required: false
+        description: "飞行区域描述"
+      - name: flight_time
+        type: str
+        required: false
+        description: "飞行时间"
+      - name: emergency_plan
+        type: str
+        required: false
+        description: "紧急情况处置预案"
+    status_transitions:
+      "申请中":
+        - "已批准"
+        - "未批准"
+      "已批准":
+        - "已起飞"
+      "已起飞":
+        - "飞行中"
+      "飞行中":
+        - "已结束"
+        - "异常"
+      "异常":
+        - "已结束"
+      "待审批":
+        - "已批准"
+        - "已拒绝"
+      "已批准":
+        - "执行中"
+      "已拒绝": []
+      "执行中":
+        - "已完成"
+        - "已取消"
+      "已完成": []
+      "已取消": []
+    constraints: []
+
+  - name: ControlledAirspace
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "无人驾驶航空器管制空域"
+    description: "国家根据需要划设的无人驾驶航空器管制空域，包括真高120米以上空域、空中禁区、空中限制区等。"
+    properties:
+      - name: airspace_id
+        type: str
+        required: true
+        description: "空域编号"
+      - name: type
+        type: str
+        required: false
+        description: "空域类型：管制空域/适飞空域"
+      - name: horizontal_range
+        type: str
+        required: false
+        description: "水平范围"
+      - name: vertical_range
+        type: str
+        required: false
+        description: "垂直范围（如真高120米以上）"
+      - name: usage_time
+        type: str
+        required: false
+        description: "使用时间"
+      - name: description
+        type: str
+        required: false
+        description: "空域描述（如机场周边、军事禁区等）"
+      - name: name
+        type: str
+        required: false
+        description: "空域名称"
+      - name: spatial_range
+        type: str
+        required: false
+        description: "空间范围描述"
+      - name: effective_time
+        type: str
+        required: false
+        description: "有效时间"
+      - name: access_conditions
+        type: str
+        required: false
+        description: "准入条件"
+      - name: capacity
+        type: int
+        required: false
+        description: "容量(最多可接受的无人驾驶航空器数量)"
+    status_transitions: {}
+    constraints: []
+
+  - name: PilotLicense
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "民用无人驾驶航空器操控员执照"
+    description: "操控小型、中型、大型民用无人驾驶航空器飞行的人员需取得的操控员执照。"
+    properties:
+      - name: license_id
+        type: str
+        required: true
+        description: "操控员执照编号"
+      - name: holder_name
+        type: str
+        required: false
+        description: "持有人姓名"
+      - name: civil_capacity
+        type: str
+        required: false
+        description: "民事行为能力：完全/限制/无"
+      - name: training_status
+        type: str
+        required: false
+        description: "安全操控培训考核状态：合格/不合格"
+      - name: health_status
+        type: str
+        required: false
+        description: "无可能影响操控的疾病病史、无吸毒行为记录"
+      - name: criminal_record
+        type: str
+        required: false
+        description: "近5年内无危害国家安全等故意犯罪记录"
+      - name: valid_until
+        type: str
+        required: false
+        description: "执照有效期"
+      - name: license_type
+        type: str
+        required: false
+        description: "执照类型: 小型/中型/大型"
+      - name: category_rating
+        type: str
+        required: false
+        description: "类别等级: 飞机/飞艇/滑翔机/旋翼飞行器/动力升空器/自由气球/特殊类"
+      - name: class_rating
+        type: str
+        required: false
+        description: "级别等级"
+      - name: type_rating
+        type: str
+        required: false
+        description: "型别等级"
+      - name: beyond_visual_line_of_sight_rating
+        type: str
+        required: false
+        description: "超视距等级"
+      - name: instructor_rating
+        type: str
+        required: false
+        description: "教员等级"
+      - name: holder_id
+        type: str
+        required: false
+        description: "持有人身份证明"
+      - name: issue_date
+        type: str
+        required: false
+        description: "颁发日期"
+      - name: expiry_date
+        type: str
+        required: false
+        description: "有效期至(执照有效期6年)"
+      - name: medical_certificate
+        type: str
+        required: false
+        description: "体检合格证编号(如适用)"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 有效/过期/暂扣/吊销/注销"
+    status_transitions:
+      "有效":
+        - "过期"
+        - "暂扣"
+        - "吊销"
+        - "注销"
+      "过期":
+        - "有效"
+      "暂扣":
+        - "有效"
+        - "吊销"
+      "吊销": []
+      "注销": []
+    constraints: []
+
+  - name: OperationCertificate
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "民用无人驾驶航空器运营合格证"
+    description: "使用除微型以外的民用无人驾驶航空器从事飞行活动的单位需取得的运营合格证。"
+    properties:
+      - name: certificate_id
+        type: str
+        required: true
+        description: "运营合格证编号"
+      - name: unit_name
+        type: str
+        required: false
+        description: "单位名称"
+      - name: management_structure
+        type: str
+        required: false
+        description: "管理机构、管理人员情况"
+      - name: qualified_pilots
+        type: str
+        required: false
+        description: "符合规定的操控人员"
+      - name: equipment_facilities
+        type: str
+        required: false
+        description: "符合安全运营要求的无人驾驶航空器及有关设施、设备"
+      - name: management_system
+        type: str
+        required: false
+        description: "安全运营的管理制度和操作规程"
+      - name: business_type
+        type: str
+        required: false
+        description: "经营性/非经营性"
+      - name: valid_until
+        type: str
+        required: false
+        description: "有效期"
+      - name: holder_name
+        type: str
+        required: false
+        description: "合格证持有人名称"
+      - name: holder_address
+        type: str
+        required: false
+        description: "主运行基地地址"
+      - name: issue_date
+        type: str
+        required: false
+        description: "生效日期"
+      - name: expiry_date
+        type: str
+        required: false
+        description: "有效期至(24个日历月)"
+      - name: operation_types
+        type: str
+        required: false
+        description: "被批准的运行种类: 留空飞行/航线飞行/其他飞行"
+      - name: business_types
+        type: str
+        required: false
+        description: "被批准的经营种类: 载客类/载人类/载货类/培训类/其他类"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 有效/暂停/吊销/注销"
+    status_transitions:
+      "有效":
+        - "暂停"
+        - "吊销"
+        - "注销"
+      "暂停":
+        - "有效"
+        - "吊销"
+      "吊销": []
+      "注销": []
+    constraints: []
+
+  - name: AirworthinessCertificate
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "适航许可"
+    description: "从事中型、大型民用无人驾驶航空器系统的设计、生产、进口、飞行和维修活动需取得的适航许可。"
+    properties:
+      - name: certificate_id
+        type: str
+        required: true
+        description: "适航许可编号"
+      - name: drone_type
+        type: str
+        required: false
+        description: "无人驾驶航空器类型"
+      - name: holder
+        type: str
+        required: false
+        description: "持有人（单位/个人）"
+      - name: valid_until
+        type: str
+        required: false
+        description: "有效期"
+      - name: certificate_type
+        type: str
+        required: false
+        description: "证件类型: 标准适航证/特殊适航证/特许飞行证/出口适航证"
+      - name: drone_id
+        type: str
+        required: false
+        description: "适用的无人驾驶航空器编号"
+      - name: holder_name
+        type: str
+        required: false
+        description: "所有人或占有人名称"
+      - name: issue_date
+        type: str
+        required: false
+        description: "颁发日期"
+      - name: expiry_date
+        type: str
+        required: false
+        description: "有效期(适航证长期有效，特许飞行证由局方规定)"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 有效/暂停/吊销/注销"
+    status_transitions:
+      "有效":
+        - "暂停"
+        - "吊销"
+        - "注销"
+      "暂停":
+        - "有效"
+        - "吊销"
+      "吊销": []
+      "注销": []
+    constraints: []
+
+  - name: FlightIncidentReport
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "飞行安全问题报告"
+    description: "无人驾驶航空器飞行发生异常情况导致飞行安全问题时，组织飞行活动的单位或者个人应在降落后24小时内向空中交通管理机构报告。"
+    properties:
+      - name: report_id
+        type: str
+        required: true
+        description: "报告编号"
+      - name: mission_id
+        type: str
+        required: false
+        description: "关联的飞行活动申请编号"
+      - name: incident_time
+        type: str
+        required: false
+        description: "异常发生时间"
+      - name: description
+        type: str
+        required: false
+        description: "异常情况描述"
+      - name: handling_measures
+        type: str
+        required: false
+        description: "处置措施"
+      - name: report_time
+        type: str
+        required: false
+        description: "报告时间（降落后24小时内）"
+      - name: drone_id
+        type: str
+        required: false
+        description: "涉及的无人驾驶航空器编号"
+      - name: incident_type
+        type: str
+        required: false
+        description: "问题类型: 故障/失效/缺陷/事故/其他"
+      - name: reporter
+        type: str
+        required: false
+        description: "报告人"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 已报告/处理中/已关闭"
+    status_transitions:
+      "已报告":
+        - "处理中"
+      "处理中":
+        - "已关闭"
+      "已关闭": []
+    constraints: []
+
+  - name: DroneRegistration
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "民用无人驾驶航空器实名登记"
+    description: "民用无人驾驶航空器所有者应当依法进行实名登记。"
+    properties:
+      - name: registration_id
+        type: str
+        required: true
+        description: "登记编号"
+      - name: drone_id
+        type: str
+        required: false
+        description: "无人驾驶航空器标识"
+      - name: owner_name
+        type: str
+        required: false
+        description: "所有者姓名或单位名称"
+      - name: registration_date
+        type: str
+        required: false
+        description: "登记日期"
+      - name: nationality_registration
+        type: str
+        required: false
+        description: "国籍登记（涉及境外飞行时）"
+      - name: owner_contact
+        type: str
+        required: false
+        description: "所有人联系信息"
+      - name: usage
+        type: str
+        required: false
+        description: "使用用途"
+      - name: issue_date
+        type: str
+        required: false
+        description: "登记日期"
+      - name: expiry_date
+        type: str
+        required: false
+        description: "有效期至(注销登记之日止)"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 有效/注销"
+    status_transitions:
+      "有效":
+        - "注销"
+      "注销": []
+    constraints: []
+
+  - name: AgriculturalDroneOperatorCertificate
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "农用无人驾驶航空器操作证书"
+    description: "从事常规农用无人驾驶航空器作业飞行活动的人员需取得的操作证书。"
+    properties:
+      - name: certificate_id
+        type: str
+        required: true
+        description: "操作证书编号"
+      - name: holder_name
+        type: str
+        required: false
+        description: "持有人姓名"
+      - name: training_provider
+        type: str
+        required: false
+        description: "培训考核机构（农用无人驾驶航空器系统生产者）"
+      - name: valid_until
+        type: str
+        required: false
+        description: "有效期"
+      - name: issue_date
+        type: str
+        required: false
+        description: "颁发日期"
+      - name: expiry_date
+        type: str
+        required: false
+        description: "有效期"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 有效/过期/注销"
+    status_transitions:
+      "有效":
+        - "过期"
+        - "注销"
+      "过期": []
+      "注销": []
+    constraints: []
+
+  - name: DroneDefectRecall
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "无人驾驶航空器缺陷召回记录"
+    description: "微型、轻型、小型民用无人驾驶航空器系统投放市场后发现缺陷的，生产者、进口商应当停止生产、销售，召回缺陷产品。"
+    properties:
+      - name: recall_id
+        type: str
+        required: true
+        description: "召回记录编号"
+      - name: drone_model
+        type: str
+        required: false
+        description: "无人驾驶航空器型号"
+      - name: defect_description
+        type: str
+        required: false
+        description: "缺陷描述"
+      - name: recall_date
+        type: str
+        required: false
+        description: "召回日期"
+      - name: status
+        type: str
+        required: false
+        description: "召回状态：进行中/已完成"
+    status_transitions:
+      "已发起":
+        - "进行中"
+      "进行中":
+        - "已完成"
+      "已完成": []
+    constraints: []
+
+  - name: DroneModificationRecord
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "无人驾驶航空器改装记录"
+    description: "对微型、轻型、小型民用无人驾驶航空器系统进行改装，或改变出厂性能参数时，需在监管服务平台更新信息。"
+    properties:
+      - name: modification_id
+        type: str
+        required: true
+        description: "改装记录编号"
+      - name: drone_id
+        type: str
+        required: false
+        description: "无人驾驶航空器标识"
+      - name: modification_description
+        type: str
+        required: false
+        description: "改装内容描述"
+      - name: changed_parameters
+        type: str
+        required: false
+        description: "变更的性能参数（空域保持能力、可靠被监视能力、速度、高度等）"
+      - name: update_time
+        type: str
+        required: false
+        description: "信息更新时间"
+      - name: modification_type
+        type: str
+        required: false
+        description: "更改类型: 重大设计更改/非重大设计更改"
+      - name: description
+        type: str
+        required: false
+        description: "改装描述"
+      - name: approval_status
+        type: str
+        required: false
+        description: "批准状态: 已批准/待批准/无需批准"
+      - name: modification_date
+        type: str
+        required: false
+        description: "改装日期"
+    status_transitions:
+      "待批准":
+        - "已批准"
+        - "无需批准"
+      "已批准": []
+      "无需批准": []
+    constraints: []
+
+  - name: DroneCountermeasureDevice
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "无人驾驶航空器反制设备"
+    description: "专门用于防控无人驾驶航空器违规飞行，具有干扰、截控、捕获、摧毁等功能的设备。"
+    properties:
+      - name: device_id
+        type: str
+        required: true
+        description: "反制设备编号"
+      - name: owner
+        type: str
+        required: false
+        description: "拥有单位（军队、警察、高风险反恐重点目标管理单位）"
+      - name: type
+        type: str
+        required: false
+        description: "设备类型"
+      - name: installation_location
+        type: str
+        required: false
+        description: "设置地点"
+      - name: supervision_authority
+        type: str
+        required: false
+        description: "指导监督机构（公安机关或有关军事机关）"
+      - name: device_type
+        type: str
+        required: false
+        description: "设备类型"
+      - name: location
+        type: str
+        required: false
+        description: "部署位置"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 启用/停用"
+    status_transitions:
+      "启用":
+        - "停用"
+      "停用":
+        - "启用"
+    constraints: []
+
+  - name: DroneViolationReport
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "无人驾驶航空器违规飞行举报/报告"
+    description: "任何单位或者个人发现违反本条例规定行为的，可以向空中交通管理机构、民用航空管理部门或者当地公安机关举报。"
+    properties:
+      - name: report_id
+        type: str
+        required: true
+        description: "举报/报告编号"
+      - name: reporter
+        type: str
+        required: false
+        description: "举报人信息（可选匿名）"
+      - name: violation_description
+        type: str
+        required: false
+        description: "违规行为描述"
+      - name: report_time
+        type: str
+        required: false
+        description: "举报时间"
+      - name: handling_status
+        type: str
+        required: false
+        description: "处理状态：待处理/处理中/已处理"
+      - name: drone_id
+        type: str
+        required: false
+        description: "违规无人驾驶航空器编号"
+      - name: violation_type
+        type: str
+        required: false
+        description: "违规类型: 无执照飞行/超范围飞行/未登记飞行/其他"
+      - name: description
+        type: str
+        required: false
+        description: "违规描述"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 已报告/处理中/已结案"
+    status_transitions:
+      "已报告":
+        - "处理中"
+      "处理中":
+        - "已结案"
+      "已结案": []
+    constraints: []
+
+  - name: DroneEmergencyPlan
+    kind: entity
+    data_source: agent_generated
+    mutability: mutable
+    summary: "无人驾驶航空器飞行紧急情况处置预案"
+    description: "使用无人驾驶航空器的单位或者个人应当按照有关规定，制定飞行紧急情况处置预案。"
+    properties:
+      - name: plan_id
+        type: str
+        required: true
+        description: "预案编号"
+      - name: unit_name
+        type: str
+        required: false
+        description: "制定单位或个人"
+      - name: content
+        type: str
+        required: false
+        description: "预案内容"
+      - name: last_review_date
+        type: str
+        required: false
+        description: "最近审查日期"
+      - name: mission_id
+        type: str
+        required: false
+        description: "关联的飞行任务编号"
+      - name: emergency_landing_sites
+        type: str
+        required: false
+        description: "紧急备降地点"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 已制定/已更新/已执行"
+    status_transitions:
+      "已制定":
+        - "已更新"
+        - "已执行"
+      "已更新":
+        - "已执行"
+      "已执行": []
+    constraints: []
+
+  - name: FlightApproval
+    kind: entity
+    data_source: agent_generated
+    mutability: mutable
+    summary: "飞行活动审批记录"
+    description: "飞行活动申请的审批结果记录"
+    properties:
+      - name: approval_id
+        type: str
+        required: true
+        description: "审批编号"
+      - name: mission_id
+        type: str
+        required: false
+        description: "关联的飞行任务编号"
+      - name: approval_status
+        type: str
+        required: false
+        description: "审批状态: 已批准/已拒绝/待审批"
+      - name: approval_time
+        type: str
+        required: false
+        description: "审批时间"
+      - name: approver
+        type: str
+        required: false
+        description: "审批人"
+      - name: remarks
+        type: str
+        required: false
+        description: "审批意见"
+    status_transitions:
+      "待审批":
+        - "已批准"
+        - "已拒绝"
+      "已批准": []
+      "已拒绝": []
+    constraints: []
+
+  - name: ComplianceCheck
+    kind: entity
+    data_source: agent_generated
+    mutability: mutable
+    summary: "合规检查记录"
+    description: "飞行活动前的合规检查记录，包括操控员执照、运营合格证、适航证、实名登记等检查"
+    properties:
+      - name: check_id
+        type: str
+        required: true
+        description: "检查编号"
+      - name: mission_id
+        type: str
+        required: false
+        description: "关联的飞行任务编号"
+      - name: pilot_license_valid
+        type: bool
+        required: false
+        description: "操控员执照是否有效"
+      - name: operation_certificate_valid
+        type: bool
+        required: false
+        description: "运营合格证是否有效"
+      - name: airworthiness_certificate_valid
+        type: bool
+        required: false
+        description: "适航证是否有效"
+      - name: registration_valid
+        type: bool
+        required: false
+        description: "实名登记是否有效"
+      - name: overall_result
+        type: str
+        required: false
+        description: "总体结果: 通过/不通过"
+      - name: check_time
+        type: str
+        required: false
+        description: "检查时间"
+    status_transitions: {}
+    constraints: []
+
+  - name: SafetyTrainingCertificate
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "安全操控理论培训合格证明"
+    description: "操控轻型民用无人驾驶航空器在管制空域内飞行所需的安全操控理论培训合格证明"
+    properties:
+      - name: certificate_id
+        type: str
+        required: true
+        description: "合格证明编号"
+      - name: holder_name
+        type: str
+        required: false
+        description: "持有人姓名"
+      - name: issue_date
+        type: str
+        required: false
+        description: "颁发日期"
+      - name: expiry_date
+        type: str
+        required: false
+        description: "有效期"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 有效/过期"
+    status_transitions:
+      "有效":
+        - "过期"
+      "过期": []
+    constraints: []
+
+  - name: FlightLog
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "飞行经历记录"
+    description: "操控员飞行经历记录信息，包括训练时间和航空经历"
+    properties:
+      - name: log_id
+        type: str
+        required: true
+        description: "记录编号"
+      - name: pilot_license_id
+        type: str
+        required: false
+        description: "操控员执照编号"
+      - name: flight_date
+        type: str
+        required: false
+        description: "飞行日期"
+      - name: flight_duration
+        type: float
+        required: false
+        description: "飞行时长(小时)"
+      - name: flight_type
+        type: str
+        required: false
+        description: "飞行类型: 训练/检查/作业/其他"
+      - name: drone_id
+        type: str
+        required: false
+        description: "使用的无人驾驶航空器编号"
+      - name: remarks
+        type: str
+        required: false
+        description: "备注"
+    status_transitions: {}
+    constraints: []
+
+  - name: MaintenanceRecord
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    summary: "维修记录"
+    description: "无人驾驶航空器系统的维修工作记录"
+    properties:
+      - name: record_id
+        type: str
+        required: true
+        description: "记录编号"
+      - name: drone_id
+        type: str
+        required: false
+        description: "无人驾驶航空器编号"
+      - name: maintenance_type
+        type: str
+        required: false
+        description: "维修类型: 检查/测试/修理/排故/换件/翻修"
+      - name: description
+        type: str
+        required: false
+        description: "维修内容描述"
+      - name: maintenance_date
+        type: str
+        required: false
+        description: "维修日期"
+      - name: maintenance_person
+        type: str
+        required: false
+        description: "维修人员"
+      - name: release_certificate
+        type: str
+        required: false
+        description: "维修放行证明"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 已完成/待完成"
+    status_transitions:
+      "待完成":
+        - "已完成"
+      "已完成": []
+    constraints: []
+
+  - name: AirTrafficServiceProvider
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    summary: "民用无人驾驶航空器航行服务提供方"
+    description: "提供民用无人驾驶航空器空中交通服务的机构"
+    properties:
+      - name: provider_id
+        type: str
+        required: true
+        description: "服务提供方编号"
+      - name: name
+        type: str
+        required: false
+        description: "名称"
+      - name: service_types
+        type: str
+        required: false
+        description: "提供的服务类型: 管制类/协同类/信息类"
+      - name: service_area
+        type: str
+        required: false
+        description: "服务区域"
+      - name: status
+        type: str
+        required: false
+        description: "状态: 运营中/暂停/注销"
+    status_transitions:
+      "运营中":
+        - "暂停"
+        - "注销"
+      "暂停":
+        - "运营中"
+      "注销": []
+    constraints: []
+
+  - name: TypeCertificate
+    kind
+
+links:
+  - name: mission_has_drone
+    source: FlightMission
+    target: Drone
+    join:
+      source_key: drone_type
+      target_key: category
+    link_type: contains
+    cardinality: "1..n"
+    description: "飞行活动申请中使用的无人驾驶航空器"
+  - name: drone_has_registration
+    source: Drone
+    target: DroneRegistration
+    join:
+      source_key: drone_id
+      target_key: drone_id
+    link_type: contains
+    cardinality: "1..1"
+    description: "无人驾驶航空器拥有实名登记"
+
+functions:
+  - name: get_drone_info
+    summary: 查询无人驾驶航空器信息
+    description: 根据drone_id查询无人驾驶航空器的详细信息，包括分类、性能参数、登记状态等。
+    function_type: get
+    group: 无人机管理
+    params:
+      - name: drone_id
+        type: str
+        description: 无人驾驶航空器唯一标识
+        default: null
+    writes_to: []
+    involves_objects:
+      - Drone
+    preconditions: []
+    effects: []
+    temporal_constraints: []
+    hint: ""
+
+  - name: get_pilot_license
+    summary: 查询操控员执照信息
+    description: 根据license_id查询操控员执照信息。
+    function_type: get
+    group: 人员管理
+    params:
+      - name: license_id
+        type: str
+        description: 操控员执照编号
+        default: null
+    writes_to: []
+    involves_objects:
+      - PilotLicense
+    preconditions: []
+    effects: []
+    temporal_constraints: []
+    hint: ""
+
+  - name: get_operation_certificate
+    summary: 查询运营合格证信息
+    description: 根据certificate_id查询运营合格证信息。
+    function_type: get
+    group: 单位管理
+    params:
+      - name: certificate_id
+        type: str
+        description: 运营合格证编号
+        default: null
+    writes_to: []
+    involves_objects:
+      - OperationCertificate
+    preconditions: []
+    effects: []
+    temporal_constraints: []
+    hint: ""
+
+  - name: get_airworthiness_certificate
+    summary: 查询适航许可信息
+    description: 根据certificate_id查询适航许可信息。
+    function_type: get
+    group: 适航管理
+    params:
+      - name: certificate_id
+        type: str
+        description: 适航许可编号
+        default: null
+    writes_to: []
+    involves_objects:
+      - AirworthinessCertificate
+    preconditions: []
+    effects: []
+    temporal_constraints: []
+    hint: ""
+
+  - name: get_drone_registration
+    summary: 查询无人驾驶航空器实名登记信息
+    description: 根据registration_id或drone_id查询实名登记信息。
+    function_type: get
+    group: 登记管理
+    params:
+      - name: drone_id
+        type: str
+        description: 无人驾驶航空器标识
+        default: null
+    writes_to: []
+    involves_objects:
+      - DroneRegistration
+    preconditions: []
+    effects: []
+    temporal_constraints: []
+    hint: ""
+
+  - name: get_agricultural_operator_certificate
+    summary: 查询农用无人驾驶航空器操作证书
+    description: 根据certificate_id查询操作证书信息。
+    function_type: get
+    group: 人员管理
+    params:
+      - name: certificate_id
+        type: str
+        description: 操作证书编号
+        default: null
+    writes_to: []
+    involves_objects:
+      - AgriculturalDroneOperatorCertificate
+    preconditions: []
+    effects: []
+    temporal_constraints: []
+    hint: ""
+
+  - name: get_controlled_airspace
+    summary: 查询管制空域信息
+    description: 根据空域编号或位置查询管制空域信息。
+    function_type: lookup
+    group: 空域管理
+    params:
+      - name: airspace_id
+        type: str
+        description: 空域编号
+        default: null
+    writes_to: []
+    involves_objects:
+      - ControlledAirspace
+    preconditions: []
+    effects: []
+    temporal_constraints: []
+    hint: ""
+
+  - name: submit_flight_mission_application
+    summary: 提交飞行活动申请
+    description: 组织无人驾驶航空器飞行活动的单位或者个人在拟飞行前1日12时前向空中交通管理机构提出飞行活动申请。
+    function_type: business
+    group: 飞行活动管理
+    params:
+      - name: applicant
+        type: str
+        description: 组织飞行活动的单位或者个人
+        default: null
+      - name: pilot_info
+        type: str
+        description: 操控人员信息以及有关资质证书
+        default: null
+      - name: drone_type
+        type: str
+        description: 无人驾驶航空器的类型
+        default: null
+      - name: drone_quantity
+        type: int
+        description: 无人驾驶航空器数量
+        default: null
+      - name: drone_performance
+        type: str
+        description: 主要性能指标
+        default: null
+      - name: drone_registration
+        type: str
+        description: 登记管理信息
+        default: null
+      - name: mission_type
+        type: str
+        description: 飞行任务性质和飞行方式
+        default: null
+      - name: special_mission_approval
+        type: str
+        description: 执行国家规定的特殊通用航空飞行任务的批准文件
+        default: null
+      - name: takeoff_site
+        type: str
+        description: 起飞、降落和备降机场（场地）
+        default: null
+      - name: communication_method
+        type: str
+        description: 通信联络方法
+        default: null
+      - name: estimated_start_time
+        type: str
+        description: 预计飞行开始时刻
+        default: null
+      - name: estimated_end_time
+        type: str
+        description: 预计飞行结束时刻
+        default: null
+      - name: flight_route
+        type: str
+        description: 飞行航线、高度、速度和空域范围，进出空域方法
+        default: null
+      - name: control_link_frequency
+        type: str
+        description: 指挥控制链路无线电频率以及占用带宽
+        default: null
+    writes_to:
+      - FlightMissionApplication
+    involves_objects:
+      - FlightMissionApplication
+      - Drone
+      - PilotLicense
+      - OperationCertificate
+      - AirworthinessCertificate
+      - DroneRegistration
+      - AgriculturalDroneOperatorCertificate
+      - ControlledAirspace
+    preconditions: []
+    effects: []
+    temporal_constraints:
+      - when: before_flight
+        deadline: "1 day before estimated_start_time at 12:00"
+        sla: "estimated_start_time - 1 day, 12:00"
+    hint: "申请时需确保所有涉及的资质证书（操控员执照、运营合格证、适航许可、实名登记等）有效，且飞行空域不在管制空域内或已获得管制空域使用许可。"
+
+rules:
+  - rule_type: classification
+    applies_to: FlightMission
+    conditions:
+      - field: mission_type
+        operator: equals
+        value: "commercial"
+        result: requires_approval
+      - field: mission_type
+        operator: equals
+        value: "private"
+        result: no_approval_required
+  - rule_type: judgment
+    applies_to: FlightMission
+    conditions:
+      - field: altitude
+        operator: greater_than
+        value: 400
+        result: restricted_airspace
+      - field: altitude
+        operator: less_than_or_equal
+        value: 400
+        result: unrestricted_airspace
+  - rule_type: qualification
+    applies_to: Pilot
+    conditions:
+      - field: license_type
+        operator: equals
+        value: "commercial"
+        result: can_operate_commercial_missions
+      - field: license_type
+        operator: equals
+        value: "private"
+        result: can_operate_private_missions_only
+  - rule_type: threshold
+    applies_to: FlightMission
+    conditions:
+      - field: flight_duration_minutes
+        operator: greater_than
+        value: 120
+        result: requires_rest_period
+      - field: flight_duration_minutes
+        operator: less_than_or_equal
+        value: 120
+        result: no_rest_period_required
+
+workflows: []

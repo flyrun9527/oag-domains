@@ -1,0 +1,62 @@
+{
+  "elapsed_seconds": 130.3,
+  "llm_usage": {
+    "prompt_tokens": 62877,
+    "completion_tokens": 26485,
+    "calls": 7
+  },
+  "call_log": [
+    {
+      "prompt_chars": 125255,
+      "completion_chars": 28792,
+      "elapsed_s": 40.5,
+      "prompt_tokens": 38374,
+      "completion_tokens": 8192
+    },
+    {
+      "prompt_chars": 11919,
+      "completion_chars": 455,
+      "elapsed_s": 1.6,
+      "prompt_tokens": 3731,
+      "completion_tokens": 136
+    },
+    {
+      "prompt_chars": 7625,
+      "completion_chars": 5053,
+      "elapsed_s": 8.0,
+      "prompt_tokens": 2467,
+      "completion_tokens": 1460
+    },
+    {
+      "prompt_chars": 1518,
+      "completion_chars": 1266,
+      "elapsed_s": 2.4,
+      "prompt_tokens": 615,
+      "completion_tokens": 309
+    },
+    {
+      "prompt_chars": 1532,
+      "completion_chars": 13,
+      "elapsed_s": 0.8,
+      "prompt_tokens": 624,
+      "completion_tokens": 4
+    },
+    {
+      "prompt_chars": 30423,
+      "completion_chars": 28792,
+      "elapsed_s": 38.3,
+      "prompt_tokens": 8716,
+      "completion_tokens": 8192
+    },
+    {
+      "prompt_chars": 29225,
+      "completion_chars": 28792,
+      "elapsed_s": 38.3,
+      "prompt_tokens": 8350,
+      "completion_tokens": 8192
+    }
+  ],
+  "model": "deepseek-chat",
+  "doc_count": 5,
+  "total_doc_chars": 246384
+}

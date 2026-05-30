@@ -1,0 +1,351 @@
+{
+  "objects": [
+    {
+      "name": "EmergencyResponse",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "应急响应记录",
+      "description": "交通运输部或地方各级交通运输主管部门启动的应急响应记录",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§4.1",
+      "properties": [
+        {
+          "name": "response_id",
+          "type": "str",
+          "required": true,
+          "description": "响应唯一编号",
+          "source": "§4.1"
+        },
+        {
+          "name": "event_type",
+          "type": "str",
+          "required": false,
+          "description": "事件类型(如台风、地震、事故等)",
+          "source": "§4.1"
+        },
+        {
+          "name": "response_level",
+          "type": "str",
+          "required": false,
+          "description": "响应等级: 一级/二级/三级/四级",
+          "source": "§4.1"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "当前状态: 启动中/调整中/终止/降级",
+          "source": "§4.5"
+        }
+      ],
+      "status_transitions": {
+        "启动中": [
+          "调整中",
+          "终止",
+          "降级"
+        ],
+        "调整中": [
+          "终止",
+          "降级"
+        ],
+        "降级": [
+          "终止"
+        ]
+      }
+    },
+    {
+      "name": "DisasterWarning",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "自然灾害预警信息",
+      "description": "气象、海洋、水文等部门发布的预警信息",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§3.1",
+      "properties": [
+        {
+          "name": "warning_id",
+          "type": "str",
+          "required": true,
+          "description": "预警唯一编号",
+          "source": "§3.1"
+        },
+        {
+          "name": "warning_type",
+          "type": "str",
+          "required": false,
+          "description": "预警类型(如台风、暴雨、大雾等)",
+          "source": "§3.1"
+        },
+        {
+          "name": "warning_level_color",
+          "type": "str",
+          "required": false,
+          "description": "预警级别颜色: 红色/橙色/黄色/蓝色",
+          "source": "§3.1"
+        },
+        {
+          "name": "impact_scope",
+          "type": "str",
+          "required": false,
+          "description": "影响范围(时间、地点、强度、范围)",
+          "source": "§3.1"
+        }
+      ]
+    },
+    {
+      "name": "HighwayProject",
+      "kind": "entity",
+      "data_source": "human_confirmed",
+      "mutability": "mutable",
+      "summary": "公路水运工程项目",
+      "description": "公路水运工程建设项目",
+      "source": "公路水运工程生产安全事故应急预案§1.6.1",
+      "properties": [
+        {
+          "name": "project_id",
+          "type": "str",
+          "required": true,
+          "description": "项目唯一编号",
+          "source": "§1.6.1"
+        },
+        {
+          "name": "construction_unit",
+          "type": "str",
+          "required": false,
+          "description": "建设单位名称",
+          "source": "§1.6.1"
+        },
+        {
+          "name": "contractor",
+          "type": "str",
+          "required": false,
+          "description": "施工单位名称",
+          "source": "§1.6.1"
+        }
+      ]
+    },
+    {
+      "name": "UnmannedAircraft",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "无人机(单机，按drone_id查)",
+      "description": "无人驾驶航空器",
+      "source": "前序文档",
+      "properties": [
+        {
+          "name": "category",
+          "type": "str",
+          "required": false,
+          "description": "分类: 微型/轻型/小型/中型/大型",
+          "source": "前序文档"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "name": "warning_triggers_response",
+      "source": "DisasterWarning",
+      "target": "EmergencyResponse",
+      "join": {
+        "source_key": "warning_id",
+        "target_key": "event_id"
+      },
+      "link_type": "enables",
+      "cardinality": "0..1",
+      "description": "气象预警信息可触发应急响应的启动"
+    },
+    {
+      "name": "project_has_contractor",
+      "source": "HighwayProject",
+      "target": "Operator",
+      "join": {
+        "source_key": "project_id",
+        "target_key": "operator_id"
+      },
+      "link_type": "contains",
+      "cardinality": "1..n",
+      "description": "工程项目包含施工单位/承包商"
+    }
+  ],
+  "functions": [
+    {
+      "name": "start_typhoon_defense_response",
+      "summary": "启动台风防御响应",
+      "description": "根据台风预警级别和预计风力，启动相应级别的台风防御响应",
+      "function_type": "business",
+      "group": "防御响应",
+      "params": [
+        {
+          "name": "warning_id",
+          "type": "str",
+          "description": "预警ID",
+          "default": null
+        },
+        {
+          "name": "expected_wind_force",
+          "type": "int",
+          "description": "预计中心风力等级",
+          "default": null
+        }
+      ],
+      "writes_to": [
+        "EmergencyResponse"
+      ],
+      "involves_objects": [
+        "DisasterWarning",
+        "EmergencyResponse"
+      ],
+      "preconditions": [
+        {
+          "object": "DisasterWarning",
+          "field": "warning_type",
+          "operator": "eq",
+          "value": "台风"
+        }
+      ],
+      "effects": [
+        {
+          "object": "EmergencyResponse",
+          "field": "status",
+          "set_to": "启动中"
+        }
+      ],
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§3.3.2"
+    },
+    {
+      "name": "report_accident_info",
+      "summary": "报送事故信息",
+      "description": "向上一级主管部门报送突发事件信息",
+      "function_type": "business",
+      "group": "信息报告",
+      "params": [
+        {
+          "name": "event_id",
+          "type": "str",
+          "description": "事件ID",
+          "default": null
+        },
+        {
+          "name": "content",
+          "type": "str",
+          "description": "信息内容(时间、地点、性质、影响等)",
+          "default": null
+        }
+      ],
+      "writes_to": [
+        "EmergencyResponse"
+      ],
+      "involves_objects": [
+        "EmergencyResponse"
+      ],
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§4.2"
+    }
+  ],
+  "rules": [
+    {
+      "name": "typhoon_response_level_classification",
+      "description": "根据台风预计风力确定防御响应等级",
+      "rule_type": "classification",
+      "applies_to": [
+        "DisasterWarning"
+      ],
+      "result_field": "response_level",
+      "source": "S1_交通运输综合应急预案等5项2026附件.md§附件1.1",
+      "conditions": [
+        {
+          "field": "expected_wind_force",
+          "operator": "gte",
+          "value": 16,
+          "result": "一级"
+        },
+        {
+          "field": "expected_wind_force",
+          "operator": "gte",
+          "value": 14,
+          "result": "二级"
+        },
+        {
+          "field": "expected_wind_force",
+          "operator": "gte",
+          "value": 12,
+          "result": "三级"
+        },
+        {
+          "field": "expected_wind_force",
+          "operator": "gte",
+          "value": 8,
+          "result": "四级"
+        }
+      ]
+    },
+    {
+      "name": "highway_accident_level_classification",
+      "description": "根据人员伤亡或经济损失判定公路交通突发事件等级",
+      "rule_type": "classification",
+      "applies_to": [
+        "EmergencyResponse"
+      ],
+      "result_field": "response_level",
+      "source": "公路交通突发事件应急预案§4.1",
+      "conditions": [
+        {
+          "field": "casualty_count",
+          "operator": "gte",
+          "value": 30,
+          "result": "特别重大"
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "name": "typhoon_defense_workflow",
+      "description": "台风防御响应流程",
+      "trigger": "接收到台风预警信息",
+      "involves_objects": [
+        "DisasterWarning",
+        "EmergencyResponse"
+      ],
+      "steps": [
+        {
+          "name": "研判与建议",
+          "function": "",
+          "description": "应急办研究提出启动建议并报批",
+          "next": "启动响应",
+          "sla": "视情"
+        },
+        {
+          "name": "启动响应",
+          "function": "start_typhoon_defense_response",
+          "description": "向受影响地区印发启动通知单",
+          "next": "开展防御措施"
+        },
+        {
+          "name": "开展防御措施",
+          "function": "",
+          "description": "落实保通保畅、物资预置、交通管控等措施",
+          "next": "总结评估"
+        },
+        {
+          "name": "总结评估",
+          "function": "",
+          "description": "响应终止后进行复盘评估",
+          "next": ""
+        }
+      ]
+    }
+  ],
+  "key_constraints": [
+    "台风登陆前8小时内，预计中心风力达到16级时，分管部领导及有关司局负责人在部值守 (S1_交通运输综合应急预案等5项2026附件.md§3.3.2.1)",
+    "一级应急响应终止后，牵头司局应及时会同有关司局进行复盘评估 (S1_交通运输综合应急预案等5项2026附件.md§3.4.2)",
+    "公路水运工程特别重大事故现场工作组抵达事故现场后，应及时与应急救援现场指挥部取得联系 (公路水运工程生产安全事故应急预案§4.3.1.1)",
+    "公路水运工程项目参建单位应至少每半年组织一次应急演练 (公路水运工程生产安全事故应急预案§6.2)"
+  ],
+  "_meta": {
+    "doc_name": "S1_交通运输综合应急预案等5项2026附件.md",
+    "doc_type": "管理预案",
+    "doc_summary": "规定交通运输领域应对突发事件的体制机制、职责分工及应急保障要求。"
+  }
+}

@@ -1,0 +1,1363 @@
+{
+  "objects": [
+    {
+      "name": "FlightMission",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "飞行活动申请及执行记录",
+      "description": "飞行活动申请及执行记录，包含申请信息、审批状态、执行情况等",
+      "source": "S4_CCAR-92§92.503(c)",
+      "properties": [
+        {
+          "name": "mission_id",
+          "type": "str",
+          "required": true,
+          "description": "飞行活动申请编号",
+          "source": "§92.503(c)"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 待审批/已批准/已拒绝/执行中/已完成/已取消",
+          "source": "§92.503(c)"
+        },
+        {
+          "name": "flight_type",
+          "type": "str",
+          "required": false,
+          "description": "运行分类: 开放类/特定类/审定类",
+          "source": "§92.7"
+        },
+        {
+          "name": "operation_type",
+          "type": "str",
+          "required": false,
+          "description": "运行种类: 留空飞行/航线飞行/其他飞行",
+          "source": "§92.643(a)"
+        },
+        {
+          "name": "business_type",
+          "type": "str",
+          "required": false,
+          "description": "经营种类: 载客类/载人类/载货类/培训类/其他类",
+          "source": "§92.643(b)"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "使用的无人驾驶航空器编号",
+          "source": "§92.617(a)"
+        },
+        {
+          "name": "pilot_license_id",
+          "type": "str",
+          "required": false,
+          "description": "操控员执照编号",
+          "source": "§92.51(b)"
+        },
+        {
+          "name": "operation_certificate_id",
+          "type": "str",
+          "required": false,
+          "description": "运营合格证编号",
+          "source": "§92.603(a)"
+        },
+        {
+          "name": "airworthiness_certificate_id",
+          "type": "str",
+          "required": false,
+          "description": "适航证编号",
+          "source": "§92.617(a)"
+        },
+        {
+          "name": "registration_id",
+          "type": "str",
+          "required": false,
+          "description": "实名登记号",
+          "source": "§92.617(a)"
+        },
+        {
+          "name": "flight_area",
+          "type": "str",
+          "required": false,
+          "description": "飞行区域描述",
+          "source": "§92.503(c)"
+        },
+        {
+          "name": "flight_time",
+          "type": "str",
+          "required": false,
+          "description": "飞行时间",
+          "source": "§92.503(c)"
+        },
+        {
+          "name": "emergency_plan",
+          "type": "str",
+          "required": false,
+          "description": "紧急情况处置预案",
+          "source": "§92.623(e)"
+        }
+      ],
+      "status_transitions": {
+        "待审批": [
+          "已批准",
+          "已拒绝"
+        ],
+        "已批准": [
+          "执行中",
+          "已取消"
+        ],
+        "执行中": [
+          "已完成",
+          "已取消"
+        ],
+        "已拒绝": [],
+        "已完成": [],
+        "已取消": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "PilotLicense",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "民用无人驾驶航空器操控员执照",
+      "description": "民用无人驾驶航空器操控员执照，包括小型、中型、大型执照，以及各类等级签注",
+      "source": "S4_CCAR-92§92.53",
+      "properties": [
+        {
+          "name": "license_id",
+          "type": "str",
+          "required": true,
+          "description": "执照编号",
+          "source": "§92.53"
+        },
+        {
+          "name": "license_type",
+          "type": "str",
+          "required": false,
+          "description": "执照类型: 小型/中型/大型",
+          "source": "§92.53(a)"
+        },
+        {
+          "name": "category_rating",
+          "type": "str",
+          "required": false,
+          "description": "类别等级: 飞机/飞艇/滑翔机/旋翼飞行器/动力升空器/自由气球/特殊类",
+          "source": "§92.53(b)(1)"
+        },
+        {
+          "name": "class_rating",
+          "type": "str",
+          "required": false,
+          "description": "级别等级",
+          "source": "§92.53(b)(2)"
+        },
+        {
+          "name": "type_rating",
+          "type": "str",
+          "required": false,
+          "description": "型别等级",
+          "source": "§92.53(c)"
+        },
+        {
+          "name": "beyond_visual_line_of_sight_rating",
+          "type": "str",
+          "required": false,
+          "description": "超视距等级",
+          "source": "§92.53(d)"
+        },
+        {
+          "name": "instructor_rating",
+          "type": "str",
+          "required": false,
+          "description": "教员等级",
+          "source": "§92.53(e)"
+        },
+        {
+          "name": "holder_name",
+          "type": "str",
+          "required": false,
+          "description": "持有人姓名",
+          "source": "§92.57(b)(1)"
+        },
+        {
+          "name": "holder_id",
+          "type": "str",
+          "required": false,
+          "description": "持有人身份证明",
+          "source": "§92.57(b)(1)"
+        },
+        {
+          "name": "issue_date",
+          "type": "str",
+          "required": false,
+          "description": "颁发日期",
+          "source": "§92.59"
+        },
+        {
+          "name": "expiry_date",
+          "type": "str",
+          "required": false,
+          "description": "有效期至(执照有效期6年)",
+          "source": "§92.61(a)"
+        },
+        {
+          "name": "medical_certificate",
+          "type": "str",
+          "required": false,
+          "description": "体检合格证编号(如适用)",
+          "source": "§92.51(f)"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 有效/过期/暂扣/吊销/注销",
+          "source": "§92.67"
+        }
+      ],
+      "status_transitions": {
+        "有效": [
+          "过期",
+          "暂扣",
+          "吊销",
+          "注销"
+        ],
+        "过期": [
+          "有效"
+        ],
+        "暂扣": [
+          "有效",
+          "吊销"
+        ],
+        "吊销": [],
+        "注销": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "OperationCertificate",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "民用无人驾驶航空器运营合格证",
+      "description": "民用无人驾驶航空器运营合格证及运营规范，用于从事飞行活动的单位",
+      "source": "S4_CCAR-92§92.603",
+      "properties": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "required": true,
+          "description": "运营合格证编号",
+          "source": "§92.653(a)(3)"
+        },
+        {
+          "name": "holder_name",
+          "type": "str",
+          "required": false,
+          "description": "合格证持有人名称",
+          "source": "§92.653(a)(1)"
+        },
+        {
+          "name": "holder_address",
+          "type": "str",
+          "required": false,
+          "description": "主运行基地地址",
+          "source": "§92.653(a)(2)"
+        },
+        {
+          "name": "issue_date",
+          "type": "str",
+          "required": false,
+          "description": "生效日期",
+          "source": "§92.653(a)(4)"
+        },
+        {
+          "name": "expiry_date",
+          "type": "str",
+          "required": false,
+          "description": "有效期至(24个日历月)",
+          "source": "§92.655(a)"
+        },
+        {
+          "name": "operation_types",
+          "type": "str",
+          "required": false,
+          "description": "被批准的运行种类: 留空飞行/航线飞行/其他飞行",
+          "source": "§92.653(a)(6)"
+        },
+        {
+          "name": "business_types",
+          "type": "str",
+          "required": false,
+          "description": "被批准的经营种类: 载客类/载人类/载货类/培训类/其他类",
+          "source": "§92.653(a)(7)"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 有效/暂停/吊销/注销",
+          "source": "§92.665"
+        }
+      ],
+      "status_transitions": {
+        "有效": [
+          "暂停",
+          "吊销",
+          "注销"
+        ],
+        "暂停": [
+          "有效",
+          "吊销"
+        ],
+        "吊销": [],
+        "注销": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "AirworthinessCertificate",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "适航许可(适航证/特许飞行证/出口适航证)",
+      "description": "民用无人驾驶航空器适航证件，包括标准适航证、特殊适航证、特许飞行证、出口适航证",
+      "source": "S4_CCAR-92§92.453",
+      "properties": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "required": true,
+          "description": "适航证件编号",
+          "source": "§92.453"
+        },
+        {
+          "name": "certificate_type",
+          "type": "str",
+          "required": false,
+          "description": "证件类型: 标准适航证/特殊适航证/特许飞行证/出口适航证",
+          "source": "§92.453"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "适用的无人驾驶航空器编号",
+          "source": "§92.455(a)"
+        },
+        {
+          "name": "holder_name",
+          "type": "str",
+          "required": false,
+          "description": "所有人或占有人名称",
+          "source": "§92.455(a)"
+        },
+        {
+          "name": "issue_date",
+          "type": "str",
+          "required": false,
+          "description": "颁发日期",
+          "source": "§92.459"
+        },
+        {
+          "name": "expiry_date",
+          "type": "str",
+          "required": false,
+          "description": "有效期(适航证长期有效，特许飞行证由局方规定)",
+          "source": "§92.463, §92.475"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 有效/暂停/吊销/注销",
+          "source": "§92.463"
+        }
+      ],
+      "status_transitions": {
+        "有效": [
+          "暂停",
+          "吊销",
+          "注销"
+        ],
+        "暂停": [
+          "有效",
+          "吊销"
+        ],
+        "吊销": [],
+        "注销": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "DroneRegistration",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "民用无人驾驶航空器实名登记",
+      "description": "民用无人驾驶航空器实名登记信息，包括实名登记和国籍登记",
+      "source": "S4_CCAR-92§92.201",
+      "properties": [
+        {
+          "name": "registration_id",
+          "type": "str",
+          "required": true,
+          "description": "实名登记号(8位数字/字母组合)",
+          "source": "§92.211(a)"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "无人驾驶航空器编号",
+          "source": "§92.205(b)(3)"
+        },
+        {
+          "name": "owner_name",
+          "type": "str",
+          "required": false,
+          "description": "所有人姓名或名称",
+          "source": "§92.205(b)(1)"
+        },
+        {
+          "name": "owner_contact",
+          "type": "str",
+          "required": false,
+          "description": "所有人联系信息",
+          "source": "§92.205(b)(2)"
+        },
+        {
+          "name": "usage",
+          "type": "str",
+          "required": false,
+          "description": "使用用途",
+          "source": "§92.205(b)(4)"
+        },
+        {
+          "name": "issue_date",
+          "type": "str",
+          "required": false,
+          "description": "登记日期",
+          "source": "§92.205(c)"
+        },
+        {
+          "name": "expiry_date",
+          "type": "str",
+          "required": false,
+          "description": "有效期至(注销登记之日止)",
+          "source": "§92.205(c)"
+        },
+        {
+          "name": "nationality_registration",
+          "type": "str",
+          "required": false,
+          "description": "国籍登记号(如适用)",
+          "source": "§92.215"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 有效/注销",
+          "source": "§92.207"
+        }
+      ],
+      "status_transitions": {
+        "有效": [
+          "注销"
+        ],
+        "注销": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "FlightIncidentReport",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "飞行安全问题报告",
+      "description": "飞行过程中出现的故障、失效、缺陷或事故等安全问题的报告",
+      "source": "S4_CCAR-92§92.311, §92.621",
+      "properties": [
+        {
+          "name": "report_id",
+          "type": "str",
+          "required": true,
+          "description": "报告编号",
+          "source": "§92.311"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "涉及的无人驾驶航空器编号",
+          "source": "§92.311"
+        },
+        {
+          "name": "mission_id",
+          "type": "str",
+          "required": false,
+          "description": "关联的飞行任务编号",
+          "source": "§92.311"
+        },
+        {
+          "name": "incident_type",
+          "type": "str",
+          "required": false,
+          "description": "问题类型: 故障/失效/缺陷/事故/其他",
+          "source": "§92.311"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "问题描述",
+          "source": "§92.311"
+        },
+        {
+          "name": "report_time",
+          "type": "str",
+          "required": false,
+          "description": "报告时间",
+          "source": "§92.311(d)"
+        },
+        {
+          "name": "reporter",
+          "type": "str",
+          "required": false,
+          "description": "报告人",
+          "source": "§92.311"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 已报告/处理中/已关闭",
+          "source": "§92.311"
+        }
+      ],
+      "status_transitions": {
+        "已报告": [
+          "处理中"
+        ],
+        "处理中": [
+          "已关闭"
+        ],
+        "已关闭": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "ControlledAirspace",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "无人驾驶航空器管制空域",
+      "description": "民用无人驾驶航空器管制空域信息，包括范围、有效时间、准入条件等",
+      "source": "S4_CCAR-92§92.511",
+      "properties": [
+        {
+          "name": "airspace_id",
+          "type": "str",
+          "required": true,
+          "description": "空域编号",
+          "source": "§92.511"
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "description": "空域名称",
+          "source": "§92.511"
+        },
+        {
+          "name": "type",
+          "type": "str",
+          "required": false,
+          "description": "空域类型: 管制空域/适飞空域",
+          "source": "§92.511(a)"
+        },
+        {
+          "name": "spatial_range",
+          "type": "str",
+          "required": false,
+          "description": "空间范围描述",
+          "source": "§92.509(b)"
+        },
+        {
+          "name": "effective_time",
+          "type": "str",
+          "required": false,
+          "description": "有效时间",
+          "source": "§92.509(b)"
+        },
+        {
+          "name": "access_conditions",
+          "type": "str",
+          "required": false,
+          "description": "准入条件",
+          "source": "§92.509(c)"
+        },
+        {
+          "name": "capacity",
+          "type": "int",
+          "required": false,
+          "description": "容量(最多可接受的无人驾驶航空器数量)",
+          "source": "§92.517(a)"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "AgriculturalDroneOperatorCertificate",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "农用无人驾驶航空器操作证书",
+      "description": "常规农用无人驾驶航空器作业飞行活动人员的操作证书",
+      "source": "S4_CCAR-92§92.51(b)(2)",
+      "properties": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "required": true,
+          "description": "操作证书编号",
+          "source": "§92.51(b)(2)"
+        },
+        {
+          "name": "holder_name",
+          "type": "str",
+          "required": false,
+          "description": "持有人姓名",
+          "source": "§92.51(b)(2)"
+        },
+        {
+          "name": "issue_date",
+          "type": "str",
+          "required": false,
+          "description": "颁发日期",
+          "source": "§92.51(b)(2)"
+        },
+        {
+          "name": "expiry_date",
+          "type": "str",
+          "required": false,
+          "description": "有效期",
+          "source": "§92.51(b)(2)"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 有效/过期/注销",
+          "source": "§92.51(b)(2)"
+        }
+      ],
+      "status_transitions": {
+        "有效": [
+          "过期",
+          "注销"
+        ],
+        "过期": [],
+        "注销": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "DroneModificationRecord",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "无人驾驶航空器改装记录",
+      "description": "无人驾驶航空器设计更改记录，包括重大设计更改和非重大设计更改",
+      "source": "S4_CCAR-92§92.349",
+      "properties": [
+        {
+          "name": "modification_id",
+          "type": "str",
+          "required": true,
+          "description": "改装记录编号",
+          "source": "§92.349"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "无人驾驶航空器编号",
+          "source": "§92.349"
+        },
+        {
+          "name": "modification_type",
+          "type": "str",
+          "required": false,
+          "description": "更改类型: 重大设计更改/非重大设计更改",
+          "source": "§92.349(a)"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "改装描述",
+          "source": "§92.349"
+        },
+        {
+          "name": "approval_status",
+          "type": "str",
+          "required": false,
+          "description": "批准状态: 已批准/待批准/无需批准",
+          "source": "§92.349(c)"
+        },
+        {
+          "name": "modification_date",
+          "type": "str",
+          "required": false,
+          "description": "改装日期",
+          "source": "§92.349"
+        }
+      ],
+      "status_transitions": {
+        "待批准": [
+          "已批准",
+          "无需批准"
+        ],
+        "已批准": [],
+        "无需批准": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "DroneViolationReport",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "无人驾驶航空器违规飞行举报/报告",
+      "description": "对违规飞行行为的举报或报告",
+      "source": "S4_CCAR-92§92.1005",
+      "properties": [
+        {
+          "name": "report_id",
+          "type": "str",
+          "required": true,
+          "description": "报告编号",
+          "source": "§92.1005"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "违规无人驾驶航空器编号",
+          "source": "§92.1005"
+        },
+        {
+          "name": "violation_type",
+          "type": "str",
+          "required": false,
+          "description": "违规类型: 无执照飞行/超范围飞行/未登记飞行/其他",
+          "source": "§92.1005"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "违规描述",
+          "source": "§92.1005"
+        },
+        {
+          "name": "report_time",
+          "type": "str",
+          "required": false,
+          "description": "报告时间",
+          "source": "§92.1005"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 已报告/处理中/已结案",
+          "source": "§92.1005"
+        }
+      ],
+      "status_transitions": {
+        "已报告": [
+          "处理中"
+        ],
+        "处理中": [
+          "已结案"
+        ],
+        "已结案": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "DroneEmergencyPlan",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "无人驾驶航空器飞行紧急情况处置预案",
+      "description": "飞行前制定的紧急情况处置预案，包括人为坠机应急处理要求和紧急备降地点等",
+      "source": "S4_CCAR-92§92.623(e)",
+      "properties": [
+        {
+          "name": "plan_id",
+          "type": "str",
+          "required": true,
+          "description": "预案编号",
+          "source": "§92.623(e)"
+        },
+        {
+          "name": "mission_id",
+          "type": "str",
+          "required": false,
+          "description": "关联的飞行任务编号",
+          "source": "§92.623(e)"
+        },
+        {
+          "name": "content",
+          "type": "str",
+          "required": false,
+          "description": "预案内容",
+          "source": "§92.623(e)"
+        },
+        {
+          "name": "emergency_landing_sites",
+          "type": "str",
+          "required": false,
+          "description": "紧急备降地点",
+          "source": "§92.623(e)"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 已制定/已更新/已执行",
+          "source": "§92.623(e)"
+        }
+      ],
+      "status_transitions": {
+        "已制定": [
+          "已更新",
+          "已执行"
+        ],
+        "已更新": [
+          "已执行"
+        ],
+        "已执行": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "DroneDefectRecall",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "无人驾驶航空器缺陷召回记录",
+      "description": "因制造或设计缺陷导致的无人驾驶航空器召回记录",
+      "source": "S4_CCAR-92§92.311(e)",
+      "properties": [
+        {
+          "name": "recall_id",
+          "type": "str",
+          "required": true,
+          "description": "召回编号",
+          "source": "§92.311(e)"
+        },
+        {
+          "name": "drone_model",
+          "type": "str",
+          "required": false,
+          "description": "涉及的型号",
+          "source": "§92.311(e)"
+        },
+        {
+          "name": "defect_description",
+          "type": "str",
+          "required": false,
+          "description": "缺陷描述",
+          "source": "§92.311(e)"
+        },
+        {
+          "name": "recall_date",
+          "type": "str",
+          "required": false,
+          "description": "召回日期",
+          "source": "§92.311(e)"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 已发起/进行中/已完成",
+          "source": "§92.311(e)"
+        }
+      ],
+      "status_transitions": {
+        "已发起": [
+          "进行中"
+        ],
+        "进行中": [
+          "已完成"
+        ],
+        "已完成": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "DroneCountermeasureDevice",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "无人驾驶航空器反制设备",
+      "description": "用于反制无人驾驶航空器的设备信息",
+      "source": "S4_CCAR-92§92.625",
+      "properties": [
+        {
+          "name": "device_id",
+          "type": "str",
+          "required": true,
+          "description": "设备编号",
+          "source": "§92.625"
+        },
+        {
+          "name": "device_type",
+          "type": "str",
+          "required": false,
+          "description": "设备类型",
+          "source": "§92.625"
+        },
+        {
+          "name": "location",
+          "type": "str",
+          "required": false,
+          "description": "部署位置",
+          "source": "§92.625"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 启用/停用",
+          "source": "§92.625"
+        }
+      ],
+      "status_transitions": {
+        "启用": [
+          "停用"
+        ],
+        "停用": [
+          "启用"
+        ]
+      },
+      "constraints": []
+    },
+    {
+      "name": "FlightApproval",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "飞行活动审批记录",
+      "description": "飞行活动申请的审批结果记录",
+      "source": "S4_CCAR-92§92.503(c)",
+      "properties": [
+        {
+          "name": "approval_id",
+          "type": "str",
+          "required": true,
+          "description": "审批编号",
+          "source": "§92.503(c)"
+        },
+        {
+          "name": "mission_id",
+          "type": "str",
+          "required": false,
+          "description": "关联的飞行任务编号",
+          "source": "§92.503(c)"
+        },
+        {
+          "name": "approval_status",
+          "type": "str",
+          "required": false,
+          "description": "审批状态: 已批准/已拒绝/待审批",
+          "source": "§92.503(c)"
+        },
+        {
+          "name": "approval_time",
+          "type": "str",
+          "required": false,
+          "description": "审批时间",
+          "source": "§92.503(c)"
+        },
+        {
+          "name": "approver",
+          "type": "str",
+          "required": false,
+          "description": "审批人",
+          "source": "§92.503(c)"
+        },
+        {
+          "name": "remarks",
+          "type": "str",
+          "required": false,
+          "description": "审批意见",
+          "source": "§92.503(c)"
+        }
+      ],
+      "status_transitions": {
+        "待审批": [
+          "已批准",
+          "已拒绝"
+        ],
+        "已批准": [],
+        "已拒绝": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "ComplianceCheck",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "mutable",
+      "summary": "合规检查记录",
+      "description": "飞行活动前的合规检查记录，包括操控员执照、运营合格证、适航证、实名登记等检查",
+      "source": "S4_CCAR-92§92.617",
+      "properties": [
+        {
+          "name": "check_id",
+          "type": "str",
+          "required": true,
+          "description": "检查编号",
+          "source": "§92.617"
+        },
+        {
+          "name": "mission_id",
+          "type": "str",
+          "required": false,
+          "description": "关联的飞行任务编号",
+          "source": "§92.617"
+        },
+        {
+          "name": "pilot_license_valid",
+          "type": "bool",
+          "required": false,
+          "description": "操控员执照是否有效",
+          "source": "§92.51(b)"
+        },
+        {
+          "name": "operation_certificate_valid",
+          "type": "bool",
+          "required": false,
+          "description": "运营合格证是否有效",
+          "source": "§92.603(a)"
+        },
+        {
+          "name": "airworthiness_certificate_valid",
+          "type": "bool",
+          "required": false,
+          "description": "适航证是否有效",
+          "source": "§92.617(a)"
+        },
+        {
+          "name": "registration_valid",
+          "type": "bool",
+          "required": false,
+          "description": "实名登记是否有效",
+          "source": "§92.617(a)"
+        },
+        {
+          "name": "overall_result",
+          "type": "str",
+          "required": false,
+          "description": "总体结果: 通过/不通过",
+          "source": "§92.617"
+        },
+        {
+          "name": "check_time",
+          "type": "str",
+          "required": false,
+          "description": "检查时间",
+          "source": "§92.617"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "SafetyTrainingCertificate",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "安全操控理论培训合格证明",
+      "description": "操控轻型民用无人驾驶航空器在管制空域内飞行所需的安全操控理论培训合格证明",
+      "source": "S4_CCAR-92§92.51(a)(4)",
+      "properties": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "required": true,
+          "description": "合格证明编号",
+          "source": "§92.51(a)(4)"
+        },
+        {
+          "name": "holder_name",
+          "type": "str",
+          "required": false,
+          "description": "持有人姓名",
+          "source": "§92.51(a)(4)"
+        },
+        {
+          "name": "issue_date",
+          "type": "str",
+          "required": false,
+          "description": "颁发日期",
+          "source": "§92.51(a)(4)"
+        },
+        {
+          "name": "expiry_date",
+          "type": "str",
+          "required": false,
+          "description": "有效期",
+          "source": "§92.51(a)(4)"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 有效/过期",
+          "source": "§92.51(a)(4)"
+        }
+      ],
+      "status_transitions": {
+        "有效": [
+          "过期"
+        ],
+        "过期": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "FlightLog",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "飞行经历记录",
+      "description": "操控员飞行经历记录信息，包括训练时间和航空经历",
+      "source": "S4_CCAR-92§92.69",
+      "properties": [
+        {
+          "name": "log_id",
+          "type": "str",
+          "required": true,
+          "description": "记录编号",
+          "source": "§92.69"
+        },
+        {
+          "name": "pilot_license_id",
+          "type": "str",
+          "required": false,
+          "description": "操控员执照编号",
+          "source": "§92.69"
+        },
+        {
+          "name": "flight_date",
+          "type": "str",
+          "required": false,
+          "description": "飞行日期",
+          "source": "§92.69"
+        },
+        {
+          "name": "flight_duration",
+          "type": "float",
+          "required": false,
+          "description": "飞行时长(小时)",
+          "source": "§92.69"
+        },
+        {
+          "name": "flight_type",
+          "type": "str",
+          "required": false,
+          "description": "飞行类型: 训练/检查/作业/其他",
+          "source": "§92.69"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "使用的无人驾驶航空器编号",
+          "source": "§92.69"
+        },
+        {
+          "name": "remarks",
+          "type": "str",
+          "required": false,
+          "description": "备注",
+          "source": "§92.69"
+        }
+      ],
+      "status_transitions": {},
+      "constraints": []
+    },
+    {
+      "name": "MaintenanceRecord",
+      "kind": "entity",
+      "data_source": "agent_generated",
+      "mutability": "append_only",
+      "summary": "维修记录",
+      "description": "无人驾驶航空器系统的维修工作记录",
+      "source": "S4_CCAR-92§92.619",
+      "properties": [
+        {
+          "name": "record_id",
+          "type": "str",
+          "required": true,
+          "description": "记录编号",
+          "source": "§92.619"
+        },
+        {
+          "name": "drone_id",
+          "type": "str",
+          "required": false,
+          "description": "无人驾驶航空器编号",
+          "source": "§92.619"
+        },
+        {
+          "name": "maintenance_type",
+          "type": "str",
+          "required": false,
+          "description": "维修类型: 检查/测试/修理/排故/换件/翻修",
+          "source": "§92.619(d)"
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "description": "维修内容描述",
+          "source": "§92.619"
+        },
+        {
+          "name": "maintenance_date",
+          "type": "str",
+          "required": false,
+          "description": "维修日期",
+          "source": "§92.619"
+        },
+        {
+          "name": "maintenance_person",
+          "type": "str",
+          "required": false,
+          "description": "维修人员",
+          "source": "§92.619(c)"
+        },
+        {
+          "name": "release_certificate",
+          "type": "str",
+          "required": false,
+          "description": "维修放行证明",
+          "source": "§92.619(e)(6)"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 已完成/待完成",
+          "source": "§92.619"
+        }
+      ],
+      "status_transitions": {
+        "待完成": [
+          "已完成"
+        ],
+        "已完成": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "AirTrafficServiceProvider",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "民用无人驾驶航空器航行服务提供方",
+      "description": "提供民用无人驾驶航空器空中交通服务的机构",
+      "source": "S4_CCAR-92§92.527",
+      "properties": [
+        {
+          "name": "provider_id",
+          "type": "str",
+          "required": true,
+          "description": "服务提供方编号",
+          "source": "§92.527"
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": false,
+          "description": "名称",
+          "source": "§92.527"
+        },
+        {
+          "name": "service_types",
+          "type": "str",
+          "required": false,
+          "description": "提供的服务类型: 管制类/协同类/信息类",
+          "source": "§92.525(b)"
+        },
+        {
+          "name": "service_area",
+          "type": "str",
+          "required": false,
+          "description": "服务区域",
+          "source": "§92.527"
+        },
+        {
+          "name": "status",
+          "type": "str",
+          "required": false,
+          "description": "状态: 运营中/暂停/注销",
+          "source": "§92.527"
+        }
+      ],
+      "status_transitions": {
+        "运营中": [
+          "暂停",
+          "注销"
+        ],
+        "暂停": [
+          "运营中"
+        ],
+        "注销": []
+      },
+      "constraints": []
+    },
+    {
+      "name": "TypeCertificate",
+      "kind": "entity",
+      "data_source": "external_api",
+      "mutability": "read_only",
+      "summary": "型号合格证/补充型号合格证",
+      "description": "中型、大型民用无人驾驶航空器系统的设计批准证件",
+      "source": "S4_CCAR-92§92.301",
+      "properties": [
+        {
+          "name": "certificate_id",
+          "type": "str",
+          "required": true,
+          "description": "证件编号",
+          "source": "§92.301"
+        },
+        {
+          "name": ""
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "doc_name": "S4_民用无人驾驶航空器运行安全管理规则_CCAR-92.md",
+    "doc_type": "法规",
+    "doc_summary": "民用无人驾驶航空器运行安全管理规则，依据相关法律制定，规范运行安全管理"
+  }
+}
