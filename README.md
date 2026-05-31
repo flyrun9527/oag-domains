@@ -152,7 +152,7 @@ DOMAIN=domains/fee uv run oag serve --port 18000
 uv run oag serve --port 18000
 ```
 
-根项目测试会加载领域并验证关键函数：
+根项目测试会加载领域并验证关键函数。如果当前在 `domains/` 目录，先回到根项目：
 
 ```bash
 cd ..
