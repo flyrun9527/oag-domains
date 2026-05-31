@@ -1,9 +1,9 @@
 name: hv_access
-description: "高压(10kV)接入方案设计。覆盖新装/增容/临时用电申请的电源点搜索、硬约束筛选、方案组合、评分及负荷划接。容量单位kVA，距离单位米。"
+description: "高压(10kV)接入方案设计。覆盖新装/增容/临时用电的电源点搜索、硬约束筛选、方案组合与评分。容量单位kVA，距离单位米。供电电压10kV，用户受电变压器总容量不超过20000kVA。"
 
 objects:
   # ============================================================
-  # 电网对象（外部接口数据，不入库，查询走 get_xxx 函数）
+  # 电网对象（外部接口数据，不入库，查询走 get_xxx）
   # ============================================================
 
   Substation:
@@ -11,7 +11,7 @@ objects:
     data_source: external_api
     mutability: read_only
     summary: "变电站"
-    description: "变电站。外部接口数据，请用 get_substation 查询。包含主变、母线信息。"
+    description: "变电站。请用 get_substation 查询。"
     properties:
       substation_id: {type: str, required: true, description: "变电站编号"}
       name: {type: str, description: "变电站名称"}
@@ -25,7 +25,7 @@ objects:
     data_source: external_api
     mutability: read_only
     summary: "主变压器"
-    description: "主变压器。外部接口数据，请用 get_main_transformer 查询。"
+    description: "主变压器。请用 get_main_transformer 查询。"
     properties:
       transformer_id: {type: str, required: true, description: "主变编号"}
       substation_id: {type: str, description: "所属变电站编号"}
@@ -40,7 +40,7 @@ objects:
     data_source: external_api
     mutability: read_only
     summary: "母线"
-    description: "母线。外部接口数据，请用 get_busbar 查询。双电源要求来自不同变电站或同一变电站不同母线。"
+    description: "母线。请用 get_busbar 查询。双电源要求来自不同变电站或同一变电站不同母线。"
     properties:
       busbar_id: {type: str, required: true, description: "母线编号"}
       substation_id: {type: str, description: "所属变电站编号"}
@@ -52,24 +52,24 @@ objects:
     data_source: external_api
     mutability: read_only
     summary: "馈线(10kV出线)"
-    description: "馈线。外部接口数据，请用 get_feeder 查询。筛选约束F1-F5作用于馈线。"
+    description: "馈线。请用 get_feeder 查询。筛选约束F1-F5作用于馈线。"
     properties:
       feeder_id: {type: str, required: true, description: "馈线编号"}
       name: {type: str, description: "馈线名称"}
       busbar_id: {type: str, description: "所属母线编号"}
       substation_id: {type: str, description: "所属变电站编号"}
       transformer_id: {type: str, description: "所属主变编号"}
-      max_load_rate: {type: float, description: "历史最大负载率(0-1)，F1约束<0.8"}
-      openable_capacity_kva: {type: float, description: "可开放容量(kVA)，F2约束>单路接入容量"}
-      connected_users: {type: int, description: "已接入用户数，F4约束≤50"}
-      loss_rate: {type: float, description: "线损率(0-1)，F5约束≤0.07"}
+      max_load_rate: {type: float, description: "历史最大负载率(0-1)"}
+      openable_capacity_kva: {type: float, description: "可开放容量(kVA)"}
+      connected_users: {type: int, description: "已接入用户数"}
+      loss_rate: {type: float, description: "线损率(0-1)"}
 
   AccessPoint:
     kind: entity
     data_source: external_api
     mutability: read_only
     summary: "电源接入点(杆塔/开关站/环网柜)"
-    description: "电源接入点。外部接口数据，请用 get_access_points 查询。search_sources 的搜索结果。"
+    description: "电源接入点。请用 get_access_points 按坐标搜索。"
     properties:
       point_id: {type: str, required: true, description: "接入点编号"}
       name: {type: str, description: "接入点名称"}
@@ -77,7 +77,7 @@ objects:
       feeder_id: {type: str, description: "所属馈线编号"}
       lng: {type: float, description: "经度"}
       lat: {type: float, description: "纬度"}
-      spare_intervals: {type: int, description: "备用间隔数，F3约束≥2(环网柜/开关站)"}
+      spare_intervals: {type: int, description: "备用间隔数"}
       distance_m: {type: float, description: "距用户受电点距离(米)"}
 
   FeederTieSwitch:
@@ -85,7 +85,7 @@ objects:
     data_source: external_api
     mutability: read_only
     summary: "馈线联络开关"
-    description: "馈线间联络开关。外部接口数据，请用 get_feeder_tie_switches 查询。用于馈线间负荷划接。"
+    description: "馈线间联络开关。请用 get_feeder_tie_switches 查询。用于馈线间负荷划接。"
     properties:
       switch_id: {type: str, required: true, description: "开关编号"}
       source_feeder_id: {type: str, description: "源馈线编号"}
@@ -98,7 +98,7 @@ objects:
     data_source: external_api
     mutability: read_only
     summary: "主变联络开关"
-    description: "同一变电站内主变间联络开关。外部接口数据，请用 get_transformer_tie_switches 查询。用于主变间负荷划接。"
+    description: "同一变电站内主变间联络开关。请用 get_transformer_tie_switches 查询。用于主变间负荷划接。"
     properties:
       switch_id: {type: str, required: true, description: "开关编号"}
       source_transformer_id: {type: str, description: "源主变编号"}
@@ -115,9 +115,9 @@ objects:
     data_source: human_confirmed
     mutability: read_only
     summary: "行业编码→用户重要性等级映射"
-    description: "行业编码到用户重要性等级的映射规则。用于确定电源结构要求。"
+    description: "行业编码到用户重要性等级的映射。参数是行业编码(如A01)，不是申请编号。"
     properties:
-      industry_code: {type: str, required: true, description: "行业编码"}
+      industry_code: {type: str, required: true, description: "行业编码(如A01、B01)"}
       industry_name: {type: str, description: "行业名称"}
       importance_level: {type: str, description: "重要性等级: 特级/一级/二级/临时/非重要"}
 
@@ -126,12 +126,16 @@ objects:
     data_source: human_confirmed
     mutability: read_only
     summary: "负荷等级+重要性→电源结构要求"
-    description: "负荷等级和用户重要性等级到电源结构要求的映射。决定需要单电源/双电源/双回路/多电源。"
+    description: |
+      电源结构要求(spec第三章第1条):
+      一级负荷→双电源供电(来自两个不同变电站或同一变电站不同母线);
+      二级负荷→双回路供电(来自同一变电站的不同母线);
+      三级负荷→单电源供电。
     properties:
       requirement_id: {type: str, required: true, description: "规则编号"}
       load_level: {type: str, description: "负荷等级: 一级/二级/三级"}
-      importance_level: {type: str, description: "重要性等级: 特级/一级/二级/临时/非重要"}
-      source_structure: {type: str, description: "电源结构: 单电源/双电源/双回路/多电源(3路含应急)"}
+      importance_level: {type: str, description: "重要性等级"}
+      source_structure: {type: str, description: "电源结构: 单电源/双电源/双回路"}
       description: {type: str, description: "要求说明"}
 
   # ============================================================
@@ -144,11 +148,13 @@ objects:
     mutability: append_only
     summary: "接入申请(新装/临时)"
     description: |
-      高压新装或临时用电申请。
-      流程: 确认申请→确定电源结构→搜索电源点→筛选→组合方案→评分→输出。
-      单路容量=capacity_kva/电源路数(单电源1路、双电源/双回路2路、多电源3路)。
-      如果 force_new_feeder=1 或单路容量≥5000kVA，应直接走 new_feeder，不走 search_sources。
+      高压新装或临时用电申请(spec第一章/第二章)。
+      两种接入方式: 现有电源点接入(搜索→筛选→组合→评分)或变电站新出线。
+      当 force_new_feeder=1 或 capacity_kva≥5000kVA 时，需采用变电站新出线方式(spec第三章第3条)。
       增容申请请用 ExpandRequest。
+    status_transitions:
+      待处理: [处理中]
+      处理中: [已完成]
     properties:
       request_id: {type: str, required: true, description: "申请编号"}
       customer_name: {type: str, description: "客户名称"}
@@ -161,18 +167,13 @@ objects:
       lng: {type: float, description: "受电点经度(配电房坐标)"}
       lat: {type: float, description: "受电点纬度(配电房坐标)"}
       address: {type: str, description: "用电地址"}
-      industry_code: {type: str, description: "行业编码"}
-      load_capacity_kva_l1: {type: float, description: "一级负荷容量(kVA，选填)"}
-      load_capacity_kva_l2: {type: float, description: "二级负荷容量(kVA，选填)"}
+      industry_code: {type: str, description: "行业编码(用于查询重要性等级)"}
       source_count: {type: int, description: "电源数目需求"}
-      source_structure: {type: str, description: "电源结构要求(由规则推导)"}
-      preferred_point_types: {type: str, description: "指定电源点设备类型: 杆塔/开关站/环网柜(逗号分隔，选填，spec第二章第1条)"}
+      source_structure: {type: str, description: "电源结构要求: 单电源/双电源/双回路"}
+      preferred_point_types: {type: str, description: "指定电源点设备类型(逗号分隔，选填，spec第二章第1条)"}
       need_boundary_device: {type: int, description: "红线处新增设备: 1=是 0=否(默认1，spec第二章第2条)"}
       force_new_feeder: {type: int, description: "强制变电站新出线: 1=是 0=否(默认0，spec第二章第3条)"}
       status: {type: str, description: "状态: 待处理/处理中/已完成"}
-    status_transitions:
-      待处理: [处理中]
-      处理中: [已完成]
 
   ExpandRequest:
     kind: entity
@@ -180,11 +181,13 @@ objects:
     mutability: append_only
     summary: "接入申请(增容)"
     description: |
-      高压增容申请(spec第三章第二节)。两种子场景:
-      1. 单电源增容: 仅评估原电源可行性，跳过 search_sources。原电源不满足则负荷划接。
-      2. 单电源升级双电源: 一路保持原电源(不满足则划接)，另一路按新装逻辑搜索。
-      增容场景默认跳过 search_sources。升级双电源时第二路需手动调 search_sources。
+      高压增容申请(spec第三章第二节)。增容场景跳过 search_sources:
+      单电源增容: 仅评估原电源可行性，对原电源点做 filter_sources 校验，不满足则负荷划接。
+      单电源升级双电源: 一路保持原电源(不满足则划接)，另一路按新装逻辑搜索。
     excluded_functions: [search_sources]
+    status_transitions:
+      待处理: [处理中]
+      处理中: [已完成]
     properties:
       request_id: {type: str, required: true, description: "申请编号"}
       customer_name: {type: str, description: "客户名称"}
@@ -192,22 +195,19 @@ objects:
       original_capacity_kva: {type: float, description: "原有容量(kVA)"}
       original_point_id: {type: str, description: "原电源接入点编号"}
       original_source_structure: {type: str, description: "原电源结构: 单电源/双电源/双回路"}
-      target_source_structure: {type: str, description: "目标电源结构(增容后，如单电源升级双电源)"}
+      target_source_structure: {type: str, description: "目标电源结构"}
       importance_level: {type: str, description: "用户重要等级"}
       load_level: {type: str, description: "负荷性质"}
       lng: {type: float, description: "受电点经度"}
       lat: {type: float, description: "受电点纬度"}
       status: {type: str, description: "状态: 待处理/处理中/已完成"}
-    status_transitions:
-      待处理: [处理中]
-      处理中: [已完成]
 
   AccessPlan:
     kind: entity
     data_source: agent_generated
     mutability: append_only
     summary: "接入方案(候选/最终/淘汰)"
-    description: "接入方案。compose_plans 生成候选方案，score_plans 评分，finalize_plans 按运行方式去重后输出最终方案。"
+    description: "接入方案。compose_plans 生成候选，score_plans 评分，finalize_plans 去重输出。"
     status_transitions:
       candidate: [scored, dropped]
       scored: [final, dropped]
@@ -215,12 +215,12 @@ objects:
       plan_id: {type: str, required: true, description: "方案编号"}
       request_id: {type: str, description: "关联申请编号"}
       source_structure: {type: str, description: "电源结构: 单电源/双电源/双回路"}
-      operation_mode: {type: str, description: "运行方式: 单电源供电/同时供电互为备用/同时供电/一主一备/一路主供"}
+      operation_mode: {type: str, description: "运行方式(spec第四章)"}
       point_ids: {type: str, description: "电源接入点编号(逗号分隔)"}
       total_distance_m: {type: float, description: "总供电距离(米)"}
-      distance_score: {type: float, description: "距离评分(40%)"}
-      capacity_score: {type: float, description: "容量评分(30%)"}
-      reliability_score: {type: float, description: "可靠性评分(30%)"}
+      distance_score: {type: float, description: "距离评分(权重40%)"}
+      capacity_score: {type: float, description: "容量评分(权重30%)"}
+      reliability_score: {type: float, description: "可靠性评分(权重30%)"}
       total_score: {type: float, description: "综合评分"}
       status: {type: str, description: "状态: candidate/scored/final/dropped"}
 
@@ -229,7 +229,7 @@ objects:
     data_source: agent_generated
     mutability: append_only
     summary: "馈线间负荷划接建议"
-    description: "馈线负载超80%时的负荷转移建议。transfer_feeder_load 产出。选取空间距离最近且负载裕度充足的相邻馈线。"
+    description: "馈线负载超80%时的负荷转移建议(spec第三章第2条)。选取空间距离最近且负载裕度充足的相邻馈线。"
     properties:
       transfer_id: {type: str, required: true, description: "划接编号"}
       request_id: {type: str, description: "关联申请编号"}
@@ -245,7 +245,7 @@ objects:
     data_source: agent_generated
     mutability: append_only
     summary: "主变间负荷划接建议"
-    description: "主变负载超80%时的负荷转移建议。transfer_transformer_load 产出。在同一变电站内选择负载较轻的主变。"
+    description: "主变负载超80%时的负荷转移建议(spec第三章第2条)。在同一变电站内选择负载较轻的主变。"
     properties:
       transfer_id: {type: str, required: true, description: "划接编号"}
       request_id: {type: str, description: "关联申请编号"}
@@ -262,9 +262,8 @@ objects:
     mutability: append_only
     summary: "变电站新出线建议"
     description: |
-      变电站新出线建议。new_feeder 产出。
-      触发条件(spec第三章): 配置勾选/单路≥5000kVA/无可用电源点/负荷划接无解。
-      搜索15km内有空余间隔且主变负载率<80%的变电站。
+      变电站新出线建议(spec第三章第3条)。
+      搜索15km内有空余间隔且主变负载率<80%且可开放容量满足的变电站。
     properties:
       suggestion_id: {type: str, required: true, description: "建议编号"}
       request_id: {type: str, description: "关联申请编号"}
@@ -280,7 +279,7 @@ objects:
     data_source: agent_generated
     mutability: append_only
     summary: "无可用方案判定"
-    description: "当所有电源点筛选失败、负荷划接无解、15km内无可新出线变电站时，输出无解判定。"
+    description: "所有途径都无法满足接入需求时的判定记录。"
     properties:
       verdict_id: {type: str, required: true, description: "判定编号"}
       request_id: {type: str, description: "关联申请编号"}
@@ -294,7 +293,7 @@ links:
     join: {source_key: request_id, target_key: request_id}
     link_type: contains
     cardinality: "0..n"
-    description: 申请对应的候选/最终方案
+    description: 申请对应的方案
 
   expand_has_plans:
     source: ExpandRequest
@@ -310,7 +309,7 @@ links:
     join: {source_key: request_id, target_key: request_id}
     link_type: contains
     cardinality: "0..n"
-    description: 申请关联的馈线负荷划接建议
+    description: 馈线负荷划接建议
 
   request_has_transformer_transfers:
     source: AccessRequest
@@ -318,7 +317,7 @@ links:
     join: {source_key: request_id, target_key: request_id}
     link_type: contains
     cardinality: "0..n"
-    description: 申请关联的主变负荷划接建议
+    description: 主变负荷划接建议
 
   request_has_new_feeder:
     source: AccessRequest
@@ -326,7 +325,7 @@ links:
     join: {source_key: request_id, target_key: request_id}
     link_type: contains
     cardinality: "0..n"
-    description: 申请关联的新出线建议
+    description: 新出线建议
 
   request_has_no_solution:
     source: AccessRequest
@@ -334,10 +333,10 @@ links:
     join: {source_key: request_id, target_key: request_id}
     link_type: contains
     cardinality: "0..1"
-    description: 申请的无解判定
+    description: 无解判定
 
 functions:
-  # ----- 电网数据查询 -----
+  # ----- 电网查询 -----
   get_substation:
     summary: "查询变电站信息"
     group: "电网查询"
@@ -392,10 +391,11 @@ functions:
   # ----- 规则查询 -----
   lookup_importance_level:
     summary: "查行业编码→重要性等级"
+    description: "参数是行业编码(如A01、B01)，不是申请编号。行业编码在申请的 industry_code 字段中。"
     group: "规则查询"
     function_type: lookup
     params:
-      industry_code: {type: str, description: "行业编码"}
+      industry_code: {type: str, description: "行业编码(如A01)，不是申请编号"}
 
   lookup_source_requirement:
     summary: "查负荷等级+重要性→电源结构要求"
@@ -405,65 +405,70 @@ functions:
       load_level: {type: str, description: "负荷等级: 一级/二级/三级"}
       importance_level: {type: str, description: "重要性等级"}
 
-  # ----- 核心业务函数 -----
-  search_sources:
-    summary: "电源点空间搜索(从200m扩散至找到5条不同线路)"
+  # ----- 申请管理 -----
+  get_request:
+    summary: "查询接入申请详情"
     description: |
-      以用户受电点为中心扩散搜索电源点(200→500→800→1000m)，直到找到5条不同线路(spec第三章第1条)。
-      仅适用于 AccessRequest(新装/临时)。增容请用 ExpandRequest 流程，跳过此步骤。
-      注意: 如果 force_new_feeder=1 或单路容量≥5000kVA，应直接调用 new_feeder 而非此函数。
-      单路容量 = capacity_kva / 电源路数(单电源1路、双电源/双回路2路、多电源3路)。
+      查询申请详情，返回含 request_type 字段(AccessRequest 或 ExpandRequest)。
+      注意返回数据中的 industry_code 字段可用于 lookup_importance_level。
+    group: "申请管理"
+    function_type: get
+    params:
+      request_id: {type: str, description: "申请编号"}
+
+  # ----- 方案设计 -----
+  search_sources:
+    summary: "在现有电源点中搜索(从200m扩散至找到5条不同线路)"
+    description: |
+      以用户受电点为中心扩散搜索现有电源点(spec第三章第1条)。
+      适用于现有电源点接入方式。增容(ExpandRequest)跳过此步骤。
+      当 force_new_feeder=1 或 capacity_kva≥5000kVA 时，应采用变电站新出线方式，不需要搜索现有电源点。
     group: "方案设计"
     function_type: get
     hint: |
-      扩散策略(spec第三章第1条):
-      从200米开始，按200→500→800→1000递增搜索。
-      目标: 找到5条不同线路的电源点。
-      双电源要求: 至少2条线路来自不同变电站或同一变电站两段母线;
-      双回路要求: 至少2条线路来自不同母线;
-      多电源(3路含应急): 按双电源逻辑找2路主供+1路应急(来自第三个独立变电站或母线);
-      单电源: 满足5条不同线路即可。
-      若指定了 preferred_point_types，仅返回指定类型的电源点。
-      搜索完成后用返回的 point_ids 调用 filter_sources 进行硬约束筛选。
+      搜索策略(spec第三章第1条):
+      从200米开始，按200→500→800→1000递增搜索，直到找到5条不同线路。
+      双电源: 至少2条线路来自不同变电站或同一变电站两段母线;
+      双回路: 至少2条线路来自不同母线;
+      单电源: 5条不同线路即可。
+      搜索完成后对返回的接入点进行硬约束筛选。
     params:
       request_id: {type: str, description: "申请编号(AccessRequest)"}
-      point_types: {type: str, default: "", description: "指定设备类型过滤: 杆塔/开关站/环网柜(逗号分隔，可选)"}
+      point_types: {type: str, default: "", description: "指定设备类型过滤(逗号分隔，可选)"}
 
   filter_sources:
-    summary: "套用7条硬约束筛选电源点"
+    summary: "套用7条硬约束筛选电源点(F1-F7)"
     description: |
-      对候选电源点套用配网3号文等7条硬约束(F1-F7)筛选。
-      新装场景: point_ids 传 search_sources 返回的 point_ids，per_path_capacity_kva 传单路接入容量。
-      增容场景: point_ids 传 ExpandRequest.original_point_id，per_path_capacity_kva 传增容后总容量。
-      单路接入容量 = capacity_kva / 电源路数(单电源1路、双电源/双回路2路、多电源3路)。
-      筛选完成后: 有通过的→调 compose_plans; 全部失败→看失败原因调 transfer_feeder_load/transfer_transformer_load/new_feeder。
+      对候选电源点套用配网3号文等7条硬约束筛选(spec第三章第2条)。
+      新装: point_ids 传 search_sources 返回的 point_ids，per_path_capacity_kva 传 capacity_kva。
+      增容: point_ids 传 original_point_id，per_path_capacity_kva 传增容后 capacity_kva。
     group: "方案设计"
     function_type: get
     hint: |
       7条硬约束(spec第三章):
-      F1: 馈线历史最大负载率<80%
+      F1: 馈线历史最大负载率<80%(配网3号文)
       F2: 馈线可开放容量>单路接入容量
       F3: 环网柜/开关站备用间隔数≥2
-      F4: 馈线已接入用户数≤50
+      F4: 馈线已接入用户数≤50(配网3号文)
       F5: 接入后馈线线损率≤7%
       F6: 主变可开放容量>单路接入容量
       F7: 主变负载率<80%
-      F1/F2/F4/F5失败→考虑馈线负荷划接(transfer_feeder_load)
-      F6/F7失败→考虑主变负荷划接(transfer_transformer_load)
-      全部失败→考虑变电站新出线(new_feeder)
+      F1/F2/F4/F5失败→馈线问题，可通过馈线间负荷划接解决
+      F6/F7失败→主变问题，可通过主变间负荷划接解决
+      全部失败且划接无解→需采用变电站新出线方式
     params:
       request_id: {type: str, description: "申请编号"}
       point_ids: {type: str, description: "待筛选的接入点编号(逗号分隔)"}
-      per_path_capacity_kva: {type: float, description: "单路接入容量(kVA)"}
+      per_path_capacity_kva: {type: float, description: "单路接入容量(kVA)，即用户的 capacity_kva"}
 
   compose_plans:
     summary: "按电源结构要求组合候选方案"
     description: |
-      将筛选通过的电源点按距离排序，按电源结构要求组合为候选方案(spec第三章第4条):
+      将筛选通过的电源点按距离排序组合为候选方案(spec第三章第4条):
       单电源: 选取不同线路中距离最近的接入点;
-      双电源: 来自不同线路且距离最近，需来自两个不同变电站或同一变电站不同母线;
-      双回路: 来自不同线路且距离最近，可来自同一变电站的不同母线;
-      若已指定电源类型(preferred_point_types)，仅推荐该类型。
+      双电源: 来自不同线路，需来自两个不同变电站或同一变电站不同母线;
+      双回路: 来自不同线路，可来自同一变电站的不同母线。
+      若已指定 preferred_point_types，仅推荐该类型。
     group: "方案设计"
     function_type: business
     writes_to: [AccessPlan]
@@ -473,12 +478,12 @@ functions:
       - {object: AccessPlan, field: status, set_to: "candidate"}
     params:
       request_id: {type: str, description: "申请编号"}
-      source_structure: {type: str, description: "电源结构: 单电源/双电源/双回路/多电源(3路含应急)。多电源按双电源逻辑组合2路主供+1路应急"}
+      source_structure: {type: str, description: "电源结构: 单电源/双电源/双回路"}
 
   score_plans:
     summary: "三维加权评分(距离40%+容量30%+可靠性30%)"
     description: |
-      对候选方案评分。可靠性评分由电源维度(50%)和运行方式维度(50%)组合:
+      对候选方案评分(spec第四章第一节)。可靠性由电源维度(50%)和运行方式维度(50%)组合:
       电源维度: 双电源100/双回路90/单电源80;
       运行方式: 同时供电互为备用100/同时供电90/一主一备80/一路主供70。
     group: "方案设计"
@@ -494,6 +499,13 @@ functions:
   finalize_plans:
     summary: "按运行方式去重，输出最终方案(≤10套)"
     description: "每种运行方式至少保留评分最高的1套，总计不超过10套(spec第四章第二节)。"
+    group: "方案设计"
+    function_type: business
+    writes_to: [AccessPlan]
+    preconditions:
+      - {object: AccessPlan, field: status, operator: eq, value: "scored"}
+    effects:
+      - {object: AccessPlan, field: status, set_to: "final"}
     hint: |
       7种运行方式(spec第四章):
       1. 单电源供电
@@ -503,21 +515,13 @@ functions:
       5. 两路电源同时供电(双回路)
       6. 两路电源互为备用(双回路)
       7. 两路电源一主一备(双回路)
-      每种至少保留1套评分最高的，总计≤10套。
-    group: "方案设计"
-    function_type: business
-    writes_to: [AccessPlan]
-    preconditions:
-      - {object: AccessPlan, field: status, operator: eq, value: "scored"}
-    effects:
-      - {object: AccessPlan, field: status, set_to: "final"}
     params:
       request_id: {type: str, description: "申请编号"}
 
-  # ----- 负荷划接（救济措施） -----
+  # ----- 负荷划接 -----
   transfer_feeder_load:
     summary: "馈线间负荷划接方案"
-    description: "馈线超载(F1/F2)时，选取最近且负载裕度充足的相邻馈线转移负荷，确保转移后≤80%。"
+    description: "馈线超载时(F1/F2失败)，选取最近且负载裕度充足的相邻馈线转移负荷，确保转移后≤80%(spec第三章第2条)。"
     group: "负荷划接"
     function_type: business
     writes_to: [FeederLoadTransfer]
@@ -528,7 +532,7 @@ functions:
 
   transfer_transformer_load:
     summary: "主变间负荷划接方案"
-    description: "主变超载(F6/F7)时，在同一变电站内选择负载较轻的主变转移负荷，确保转移后≤80%。"
+    description: "主变超载时(F6/F7失败)，在同一变电站内选择负载较轻的主变转移负荷，确保转移后≤80%(spec第三章第2条)。"
     group: "负荷划接"
     function_type: business
     writes_to: [TransformerLoadTransfer]
@@ -537,51 +541,38 @@ functions:
       source_transformer_id: {type: str, description: "超载主变编号"}
       required_capacity_kva: {type: float, description: "需转移容量(kVA)"}
 
-  # ----- 变电站新出线 -----
+  # ----- 变电站新出线(与现有电源点接入并列的另一种接入方式) -----
   new_feeder:
-    summary: "变电站新出线评估"
+    summary: "变电站新出线方案设计"
     description: |
-      搜索15km内有空余间隔且主变负载率<80%的变电站，评估新出线可行性。
-      15km内无满足条件的变电站则判定无可用方案(NoSolutionVerdict)。
-    hint: |
-      触发条件(spec第三章第3条，满足任一即触发):
-      1. 推理配置已勾选变电站新出线(force_new_feeder=1);
-      2. 单路电源供电容量≥5000kVA;
-      3. 电源点查询无符合要求的可用电源点;
-      4. 馈线超载需划接，但1000m内无满足条件的线路(划接后≤80%);
-      5. 主变超载需划接，但变电站内无满足条件的主变(划接后≤80%)。
-    group: "新出线"
+      变电站新出线是一种供电方案(spec第三章第3条)，与从现有电源点接入并列。
+      搜索15km内有空余间隔且主变负载率<80%且可开放容量满足的变电站。
+      15km内无满足条件的变电站则判定无可用接入方案。
+    group: "方案设计"
     function_type: business
     writes_to: [NewFeederSuggestion, NoSolutionVerdict]
+    hint: |
+      适用条件(spec第三章第3条，满足任一):
+      1. 推理配置已勾选变电站新出线(force_new_feeder=1);
+      2. 用户 capacity_kva≥5000kVA;
+      3. 现有电源点搜索无符合要求的可用电源点;
+      4. 推荐电源点馈线超载需划接，但1000m内无满足划接条件的线路;
+      5. 推荐电源点主变超载需划接，但变电站内无满足划接条件的主变。
     params:
       request_id: {type: str, description: "申请编号"}
       search_radius_m: {type: float, default: 15000, description: "搜索半径(米)，默认15km"}
 
-  # ----- 申请管理 -----
-  get_request:
-    summary: "查询接入申请详情"
-    description: |
-      查询申请详情。同时搜索 AccessRequest 和 ExpandRequest，返回含 request_type 字段。
-      AccessRequest(新装/临时): 后续走 search_sources→filter_sources→compose_plans 流程。
-      ExpandRequest(增容): 跳过 search_sources，直接用 original_point_id 调 filter_sources。
-    group: "申请管理"
-    function_type: get
-    params:
-      request_id: {type: str, description: "申请编号"}
-
 rules:
-  importance_to_source_structure:
-    description: "重要性等级→电源结构要求(spec第三章)"
+  load_level_to_source_structure:
+    description: "负荷等级→电源结构要求(spec第三章第1条)"
     rule_type: classification
     applies_to: [AccessRequest, ExpandRequest]
     result_field: source_structure
     source: "spec第三章·电源点查询"
     conditions:
-      - {field: importance_level, operator: eq, value: "特级", result: "多电源(3路含应急)"}
-      - {field: importance_level, operator: eq, value: "一级", result: "双电源"}
-      - {field: importance_level, operator: eq, value: "二级", result: "双回路"}
-      - {field: importance_level, operator: eq, value: "临时", result: "双回路"}
-      - {field: importance_level, operator: eq, value: "非重要", result: "单电源"}
+      - {field: load_level, operator: eq, value: "一级", result: "双电源"}
+      - {field: load_level, operator: eq, value: "二级", result: "双回路"}
+      - {field: load_level, operator: eq, value: "三级", result: "单电源"}
 
   boundary_device_type:
     description: "接入容量→用户分界设备类型(spec第二章第2条)"
@@ -595,34 +586,41 @@ rules:
 
 workflows:
   new_access:
-    description: "新装/临时用电接入方案设计流程"
+    description: "新装/临时用电接入方案设计流程(spec第三章)"
     trigger: "新装或临时用电申请"
-    involves_objects: [AccessRequest, AccessPoint, AccessPlan]
+    involves_objects: [AccessRequest, AccessPoint, AccessPlan, NewFeederSuggestion]
     steps:
       - name: 确认申请
         function: get_request
-        description: "查看申请详情，确认容量、等级、业务类型。计算单路容量=capacity_kva/电源路数"
+        description: "查看申请详情，确认容量、等级、业务类型"
         next: 确定电源结构
       - name: 确定电源结构
         function: lookup_source_requirement
-        description: "根据负荷等级和重要性确定电源结构要求"
-        next: {force_new_feeder=1或单路≥5000kVA: 新出线, 常规: 搜索电源点}
+        description: "根据负荷等级确定电源结构(一级→双电源,二级→双回路,三级→单电源)"
+        next: 选择接入方式
+      - name: 选择接入方式
+        description: |
+          两种接入方式二选一:
+          变电站新出线: force_new_feeder=1 或 capacity_kva≥5000kVA 时采用;
+          现有电源点接入: 其他情况，搜索周边电源点。
+        next: {capacity_kva≥5000或force_new_feeder=1: 变电站新出线, 其他: 搜索电源点}
       - name: 搜索电源点
         function: search_sources
-        description: "从用户位置扩散搜索，找到5条不同线路的电源点"
+        description: "从用户位置扩散搜索现有电源点，找到5条不同线路"
         next: 筛选电源点
       - name: 筛选电源点
         function: filter_sources
         description: "套用F1-F7硬约束筛选"
-        next: {通过: 组合方案, 馈线超载: 馈线划接, 主变超载: 主变划接, 全部失败: 新出线}
+        next: {有通过: 组合方案, 馈线超载: 馈线划接, 主变超载: 主变划接, 全部失败且划接无解: 变电站新出线}
       - name: 馈线划接
         function: transfer_feeder_load
         next: 组合方案
       - name: 主变划接
         function: transfer_transformer_load
         next: 组合方案
-      - name: 新出线
+      - name: 变电站新出线
         function: new_feeder
+        description: "搜索15km内满足条件的变电站，设计新出线方案"
       - name: 组合方案
         function: compose_plans
         next: 评分
@@ -633,7 +631,7 @@ workflows:
         function: finalize_plans
 
   expand_access:
-    description: "增容接入方案设计流程"
+    description: "增容接入方案设计流程(spec第三章第二节)"
     trigger: "增容申请"
     involves_objects: [ExpandRequest, AccessPlan]
     steps:
@@ -643,7 +641,7 @@ workflows:
         next: 校验原电源
       - name: 校验原电源
         function: filter_sources
-        description: "对原电源接入点做F1-F7约束校验"
+        description: "对原电源接入点做F1-F7约束校验(point_ids=original_point_id, per_path_capacity_kva=capacity_kva)"
         next: {通过: 出方案, 馈线超载: 馈线划接, 主变超载: 主变划接}
       - name: 馈线划接
         function: transfer_feeder_load
