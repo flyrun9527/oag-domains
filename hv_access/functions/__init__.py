@@ -505,6 +505,7 @@ def _new_feeder(store: Store, request_id: str = "", search_radius_m: float = 150
     req = _get_request(store, request_id)
     if "error" in req:
         return req
+    search_radius_m = float(search_radius_m)
     lng, lat = req.get("lng", 0), req.get("lat", 0)
     capacity = req.get("capacity_kva", 0)
 
