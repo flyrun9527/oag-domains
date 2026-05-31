@@ -27,7 +27,8 @@ workflows:   # 流程层 — 多步业务流程
 
 ## 一、概念层：objects
 
-定义领域中的实体类型和属性。运行时会为每个 object 创建 SQLite 表。
+定义领域中的实体类型和属性。缺省情况下，运行时会为每个 object 创建 SQLite 表。
+若对象声明为 resolver 数据源，SQLite 表仍会按本体创建以保持兼容，但在线查询会走 resolver。
 
 ### ObjectTypeDef
 
@@ -37,11 +38,93 @@ workflows:   # 流程层 — 多步业务流程
 | `description` | str | 详细描述，会出现在 inspect 结果中 |
 | `summary` | str | 一行摘要，出现在 system prompt 的对象列表中 |
 | `properties` | dict[str, PropertyDef] | 属性定义 |
+| `source` | ObjectSourceDef | 对象实例的数据访问方式。缺省为 `type: table`，即运行时内置 SQLite 表 |
 | `data_source` | str | 数据来源：`external_api`（外部接口）/ `agent_generated`（智能体产出）/ `human_confirmed`（人工确认） |
 | `mutability` | str | 可变性：`read_only`（只读）/ `append_only`（仅追加）/ `mutable`（可读写） |
 | `status_transitions` | dict[str, list[str]] | 状态机：每个状态可以转换到哪些目标状态 |
 | `excluded_functions` | list[str] | 对此类型全局不可调用的函数列表 |
 | `constraints` | list[ObjectConstraint] | 条件性约束，在特定状态下禁止调用某些函数 |
+
+### ObjectSourceDef
+
+`source` 描述 object 的实例数据从哪里读写。它只影响运行时访问对象数据的方式，
+不改变对象的字段语义、关系语义和工具表面。LLM 仍然通过 `query` / `count` /
+`query_links` / `mutate` / `search` 访问对象，由 runtime 内部选择合适 adapter。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `type` | str | 数据访问类型。当前实现支持 `table` / `json_file` / `resolver`，预留 `http` / `sql` |
+| `table` | str | `type: table` 时使用的物理表名；为空时按对象名自动转 snake_case |
+| `resolver` | str | `type: resolver` 时使用的 resolver 注册名 |
+| `id_field` | str | 业务主键字段覆盖；为空时沿用第一个 `required: true` 字段 |
+| `capabilities` | list[str] | 声明数据源能力，如 `query` / `count` / `search` / `write`，用于文档和后续策略 |
+| `config` | dict[str, Any] | adapter 私有配置，供后续 json/http/sql adapter 使用 |
+
+当前默认对象等价于：
+
+```yaml
+SomeObject:
+  source:
+    type: table
+```
+
+JSON 文件对象可以使用内置 `json_file` adapter。`config.path` 支持相对领域目录的路径：
+
+```yaml
+Substation:
+  source:
+    type: json_file
+    id_field: substation_id
+    config:
+      path: data/substation.json
+  data_source: external_api
+  mutability: read_only
+  properties:
+    substation_id: {type: str, required: true}
+    name: {type: str}
+```
+
+复杂对象可以使用 resolver。resolver 是开发者注册的 Python 对象或函数，可在内部手写
+SQL、跨多张表聚合、调用 HTTP API、走图算法或组合多个系统：
+
+```yaml
+AssetView:
+  kind: entity
+  source:
+    type: resolver
+    resolver: asset_view
+    id_field: asset_id
+    capabilities: [query, count, search]
+  data_source: external_api
+  mutability: read_only
+  properties:
+    asset_id: {type: str, required: true}
+    event_id: {type: str}
+    status: {type: str}
+```
+
+resolver 在 `functions/__init__.py` 中注册：
+
+```python
+class AssetViewResolver:
+    def query(self, object_type, filters=None, limit=None, order_by=None, offset=None):
+        return store.execute_sql("SELECT ...", [...])
+
+    def count(self, object_type, filters=None):
+        return len(self.query(object_type, filters))
+
+    def query_by_id(self, object_type, id_value):
+        rows = self.query(object_type, {"asset_id": id_value}, limit=1)
+        return rows[0] if rows else None
+
+
+def register(registry, store, ontology):
+    registry.register_resolver("asset_view", AssetViewResolver())
+```
+
+如果 resolver 未实现 `count`，runtime 会回退为 `len(query(...))`；未实现
+`query_by_id` 时会按 `id_field` 或业务主键回退查询。写入方法需要显式实现
+`insert_record` / `update_record` / `delete_record`，否则 mutate 会返回不支持该操作。
 
 ### PropertyDef
 
@@ -374,12 +457,12 @@ workflows:
 
 | 元模型构造 | 消费者 | 作用 |
 |-----------|--------|------|
-| objects.properties | Store | 建表、类型校验 |
+| objects.properties | SqliteStore / ObjectAdapter | 建表、字段过滤、对象访问 |
 | objects.mutability | OntologyValidator.validate_mutate() | 拦截非法写入 |
 | objects.status_transitions | OntologyValidator.validate_mutate() | 拦截非法状态转换 |
 | objects.excluded_functions | OntologyValidator.check_constraints() | 拦截不适用的函数调用 |
 | objects.constraints | OntologyValidator.check_constraints() | 条件性排斥校验 |
-| links | Store.query_links() | 关系查询 |
+| links | ObjectRepository.query_links() | 跨 adapter / resolver 的关系查询 |
 | functions.params | OntologyToolRegistrar / ToolRegistry | 生成工具参数 schema |
 | functions.usage_prompt | OntologyToolRegistrar / ToolRegistry | 生成工具自描述使用约束 |
 | functions.preconditions | OntologyValidator.check_constraints() | 调用前校验 |

@@ -1,0 +1,20 @@
+[
+  {
+    "customer_id": "C001",
+    "name": "Acme Logistics",
+    "tier": "gold",
+    "city": "Shanghai"
+  },
+  {
+    "customer_id": "C002",
+    "name": "Northwind Retail",
+    "tier": "silver",
+    "city": "Beijing"
+  },
+  {
+    "customer_id": "C003",
+    "name": "Blue River Energy",
+    "tier": "platinum",
+    "city": "Shenzhen"
+  }
+]

@@ -1,0 +1,85 @@
+name: ResolverSourcesExample
+description: 展示 OAG object source adapter 和 resolver 的最小可运行领域。
+
+objects:
+  CustomerProfile:
+    kind: entity
+    summary: JSON 文件中的客户资料
+    source:
+      type: json_file
+      id_field: customer_id
+      capabilities: [query, count, search]
+      config:
+        path: data/customer_profiles.json
+    data_source: external_api
+    mutability: read_only
+    properties:
+      customer_id: {type: str, required: true, description: 客户编号}
+      name: {type: str, description: 客户姓名}
+      tier: {type: str, description: 客户等级}
+      city: {type: str, description: 所在城市}
+
+  AccountBalance:
+    kind: entity
+    summary: 由 SQL 多表聚合得到的账户余额视图
+    source:
+      type: sql_view
+      id_field: account_id
+      capabilities: [query, count]
+      config:
+        view: account_balance
+    data_source: external_api
+    mutability: read_only
+    properties:
+      account_id: {type: str, required: true, description: 账户编号}
+      customer_id: {type: str, description: 客户编号}
+      status: {type: str, description: 账户状态}
+      balance: {type: float, description: 由流水表聚合的余额}
+
+  CustomerRiskView:
+    kind: entity
+    summary: 组合 JSON 客户资料和 SQL 账户余额得到的风险视图
+    source:
+      type: resolver
+      resolver: customer_risk_view
+      id_field: customer_id
+      capabilities: [query, count, search]
+    data_source: external_api
+    mutability: read_only
+    properties:
+      customer_id: {type: str, required: true, description: 客户编号}
+      name: {type: str, description: 客户姓名}
+      tier: {type: str, description: 客户等级}
+      total_balance: {type: float, description: 总余额}
+      risk_level: {type: str, description: 风险等级}
+
+  InvestigationNote:
+    kind: entity
+    summary: 默认 SQLite 表对象，用来对比 resolver 对象
+    data_source: agent_generated
+    mutability: mutable
+    properties:
+      note_id: {type: str, required: true, description: 备注编号}
+      customer_id: {type: str, description: 客户编号}
+      content: {type: str, description: 备注内容}
+
+links:
+  customer_has_accounts:
+    source: CustomerProfile
+    target: AccountBalance
+    join: {source_key: customer_id, target_key: customer_id}
+    description: 客户拥有的账户余额
+    link_type: contains
+    cardinality: "1..n"
+
+  customer_has_risk_view:
+    source: CustomerProfile
+    target: CustomerRiskView
+    join: {source_key: customer_id, target_key: customer_id}
+    description: 客户对应的聚合风险视图
+    link_type: contains
+    cardinality: "1..1"
+
+functions: {}
+rules: {}
+workflows: {}

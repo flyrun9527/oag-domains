@@ -10,6 +10,10 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: substation_id
+      config: {path: data/substation.json}
     summary: "变电站"
     description: "变电站。请用 get_substation 查询。"
     properties:
@@ -24,6 +28,10 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: transformer_id
+      config: {path: data/main_transformer.json}
     summary: "主变压器"
     description: "主变压器。请用 get_main_transformer 查询。"
     properties:
@@ -39,6 +47,10 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: busbar_id
+      config: {path: data/busbar.json}
     summary: "母线"
     description: "母线。请用 get_busbar 查询。双电源要求来自不同变电站或同一变电站不同母线。"
     properties:
@@ -51,6 +63,10 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: feeder_id
+      config: {path: data/feeder.json}
     summary: "馈线(10kV出线)"
     description: "馈线。请用 get_feeder 查询。筛选约束F1-F5作用于馈线。"
     properties:
@@ -68,6 +84,10 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: point_id
+      config: {path: data/access_point.json}
     summary: "电源接入点(杆塔/开关站/环网柜)"
     description: "电源接入点。请用 get_access_points 按坐标搜索。"
     properties:
@@ -84,6 +104,10 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: switch_id
+      config: {path: data/feeder_tie_switch.json}
     summary: "馈线联络开关"
     description: "馈线间联络开关。请用 get_feeder_tie_switches 查询。用于馈线间负荷划接。"
     properties:
@@ -97,6 +121,10 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: switch_id
+      config: {path: data/transformer_tie_switch.json}
     summary: "主变联络开关"
     description: "同一变电站内主变间联络开关。请用 get_transformer_tie_switches 查询。用于主变间负荷划接。"
     properties:
@@ -114,6 +142,10 @@ objects:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
+    source:
+      type: json_file
+      id_field: industry_code
+      config: {path: data/importance_level_map.json}
     summary: "行业编码→用户重要性等级映射"
     description: "行业编码到用户重要性等级的映射。参数是行业编码(如A01)，不是申请编号。"
     properties:
@@ -125,6 +157,10 @@ objects:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
+    source:
+      type: json_file
+      id_field: requirement_id
+      config: {path: data/source_requirement.json}
     summary: "负荷等级+重要性→电源结构要求"
     description: |
       电源结构要求(spec第三章第1条):
@@ -146,6 +182,10 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: request_id
+      config: {seed_path: data/access_request.json}
     summary: "接入申请(新装/临时)"
     description: |
       高压新装或临时用电申请(spec第一章/第二章)。
@@ -179,6 +219,10 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: request_id
+      config: {seed_path: data/expand_request.json}
     summary: "接入申请(增容)"
     description: |
       高压增容申请(spec第三章第二节)。增容场景跳过 search_sources:
@@ -206,6 +250,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: plan_id
     summary: "接入方案(候选/最终/淘汰)"
     description: "接入方案。compose_plans 生成候选，score_plans 评分，finalize_plans 去重输出。"
     status_transitions:
@@ -228,6 +275,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: transfer_id
     summary: "馈线间负荷划接建议"
     description: "馈线负载超80%时的负荷转移建议(spec第三章第2条)。选取空间距离最近且负载裕度充足的相邻馈线。"
     properties:
@@ -244,6 +294,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: transfer_id
     summary: "主变间负荷划接建议"
     description: "主变负载超80%时的负荷转移建议(spec第三章第2条)。在同一变电站内选择负载较轻的主变。"
     properties:
@@ -260,6 +313,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: suggestion_id
     summary: "变电站新出线建议"
     description: |
       变电站新出线建议(spec第三章第3条)。
@@ -278,6 +334,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: verdict_id
     summary: "无可用方案判定"
     description: "所有途径都无法满足接入需求时的判定记录。"
     properties:
