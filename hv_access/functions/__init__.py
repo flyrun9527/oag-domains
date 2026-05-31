@@ -5,9 +5,9 @@ import math
 import uuid
 from typing import Any
 
-from oag.registry import FunctionRegistry
-from oag.schema import Ontology
-from oag.store import Store
+from oag.ontology.registry import FunctionRegistry
+from oag.ontology.schema import Ontology
+from oag.ontology.store import Store
 
 DATA_FILES = {
     "Substation": "substation.json",

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from oag.registry import FunctionRegistry
-from oag.schema import Ontology
-from oag.store import Store
+from oag.ontology.registry import FunctionRegistry
+from oag.ontology.schema import Ontology
+from oag.ontology.store import Store
 
 from .build_graph import build_graph
 from .compute_fees import compute_fees
