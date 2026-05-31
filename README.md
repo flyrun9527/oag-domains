@@ -29,6 +29,14 @@ domains/{domain}/
   *.md                   # 领域资料或说明，按需
 ```
 
+领域维护工具放在：
+
+```text
+domains/tools/ontology_builder/
+```
+
+它不是业务领域，不包含 `ontology.yaml`，不会被根项目挂载为 `/d/{domain}`。
+
 OAG 通过 `oag.ontology.loader.load_domain(domain_dir)` 加载领域：
 
 1. 读取 `ontology.yaml`。
@@ -135,6 +143,18 @@ def register(registry, store, ontology):
 ```
 
 也可以用更结构化的对象数组，前端会按实际字段展示。
+
+## Ontology Builder
+
+`tools/ontology_builder` 是从业务文档生成领域 ontology 的辅助工具。根项目 CLI 保留
+`oag distill` 入口：
+
+```bash
+uv run oag distill run ./raw_docs --output domains/new_domain --phase 3
+uv run oag distill status domains/new_domain/state
+```
+
+这个工具依赖 OAG 的元模型 schema 做校验，但不属于在线 Agent runtime。
 
 ## 本地检查
 
