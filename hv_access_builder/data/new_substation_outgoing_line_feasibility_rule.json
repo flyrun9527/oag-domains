@@ -1,0 +1,15 @@
+[
+  {
+    "rule_id": "NSOL_FEASIBILITY",
+    "search_radius_km": 15,
+    "min_spare_outgoing_bay_count": 1,
+    "max_transformer_load_rate": 0.8,
+    "transformer_capacity_operator": "gte",
+    "transformer_capacity_multiplier": 1.0,
+    "search_order": [
+      "distance",
+      "available_capacity"
+    ],
+    "require_available_outgoing_bay": true
+  }
+]

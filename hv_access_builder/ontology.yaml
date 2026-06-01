@@ -1,0 +1,3274 @@
+name: hv_access_builder
+description: 面向10kV高压新装、增容、装表临时用电及变电站新出线场景的接入方案智能生成、校核、评分与输出领域。（由 builder 版本体派生的独立可执行实验
+  domain。）
+objects:
+  HighVoltageConnectionRequest:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: request_id
+      config:
+        path: data/high_voltage_connection_request.json
+    summary: 10kV高压接入方案推理的统一入口请求，覆盖新装、增容和装表临时用电。
+    description: 来自营销2.0或PMS3.0的高压接入方案推理入口请求，包含业务类型、电压等级、容量、用户重要性、负荷等级、供电诉求、用电地址和受电点坐标等信息。
+    properties:
+      request_id:
+        type: str
+        required: true
+        description: 接入方案推理请求编号。
+      business_type:
+        type: str
+        description: 业务类型：新装/增容/临时。
+      demand_type:
+        type: str
+        description: 需求类型或报装场景。
+      supply_voltage_kv:
+        type: float
+        description: 供电电压等级，10kV范围校验要求为10。
+      load_nature:
+        type: str
+        description: 负荷性质。
+      electricity_category:
+        type: str
+        description: 用电类别。
+      approved_contract_capacity_kva:
+        type: float
+        description: 已核定合同容量，单位kVA。
+      total_receiving_transformer_capacity_kva:
+        type: float
+        description: 受电变压器总容量或新装总容量，单位kVA。
+      user_importance_level:
+        type: str
+        description: 用户重要等级，如一级重要用户、二级重要用户、临时性重要用户、普通用户。
+      load_level:
+        type: str
+        description: 负荷等级，如一级负荷、二级负荷、三级负荷。
+      primary_secondary_load_capacity_kva:
+        type: float
+        description: 一二级负荷容量，单位kVA。
+      requested_power_source_count:
+        type: int
+        description: 用户申请或要求的电源点数量。
+      requested_operation_mode:
+        type: str
+        description: 用户请求的运行方式或供电方式，如单电源、双回路、双电源。
+      electricity_address:
+        type: str
+        description: 用电地址。
+      receiving_point_coordinate:
+        type: str
+        format: geojson_point
+        description: 受电点坐标，统一采用WGS84坐标系GeoJSON Point字符串，坐标顺序为[longitude, latitude]。
+      customer_confirmed_location_flag:
+        type: bool
+        description: 客户是否已确认受电点位置。
+  ExpansionOriginalSupplyInfo:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: original_supply_info_id
+      config:
+        path: data/expansion_original_supply_info.json
+    summary: 增容场景中原有电源接入线路、主变和既有接入点信息。
+    description: 高压增容场景下用于原电源优先校核的既有供电信息。使用original_supply_info_id作为主键，支持同一增容请求下存在多个原电源、双回路或双电源既有接入信息。
+    properties:
+      original_supply_info_id:
+        type: str
+        required: true
+        description: 原供电信息记录唯一编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      original_access_point_id:
+        type: str
+        description: 原电源接入点编号。
+      original_feeder_id:
+        type: str
+        description: 原接入馈线编号。
+      original_transformer_id:
+        type: str
+        description: 原接入主变编号。
+      original_substation_id:
+        type: str
+        description: 原接入变电站编号。
+      original_busbar_id:
+        type: str
+        description: 原接入母线编号。
+      existing_contract_capacity_kva:
+        type: float
+        description: 既有合同容量，单位kVA。
+      incremental_capacity_kva:
+        type: float
+        description: 本次新增或增容容量，单位kVA。
+      post_expansion_capacity_kva:
+        type: float
+        description: 增容后总容量，单位kVA。
+      original_supply_mode:
+        type: str
+        description: 原供电方式，如单电源、双回路、双电源。
+  ConnectionReasoningConfig:
+    kind: config
+    data_source: human_confirmed
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: config_id
+      config:
+        path: data/connection_reasoning_config.json
+    summary: 正式推理前的配置对象，用于约束设备类型、红线设备和新出线分支。
+    description: 业务人员或PMS3.0在正式推理前确认的强约束配置，包括指定电源点设备类型、是否红线处新增设备、是否启用变电站新出线等。
+    properties:
+      config_id:
+        type: str
+        required: true
+        description: 推理配置编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      allowed_source_device_types:
+        type: list[str]
+        description: 允许使用的电源点设备类型集合。
+      add_redline_boundary_device:
+        type: bool
+        description: 是否在红线处新增用户分界设备。
+      enable_new_substation_outgoing_line:
+        type: bool
+        description: 是否启用变电站新出线分支。
+      pms_preselected_source_type:
+        type: str
+        description: PMS前置推理指定的电源点设备类型。
+      created_by:
+        type: str
+        description: 配置创建人。
+      created_at:
+        type: str
+        description: 配置创建时间。
+  PowerAccessPoint:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: access_point_id
+      config:
+        path: data/power_access_point.json
+    summary: 可供接入的现有电源点及其馈线、母线、变电站和空间关联。
+    description: 存量配网中可作为候选接入点的设备，包含设备类型、空间距离、所属馈线、母线、变电站、进线来源、间隔余量和运行状态。
+    properties:
+      access_point_id:
+        type: str
+        required: true
+        description: 电源点编号。
+      device_type:
+        type: str
+        description: 电源点设备类型，如杆塔、环网柜、开闭所、开关站、间隔开关等。
+      coordinate:
+        type: str
+        format: geojson_point
+        description: 电源点坐标，统一采用WGS84坐标系GeoJSON Point字符串，坐标顺序为[longitude, latitude]。
+      distance_to_receiving_point_m:
+        type: float
+        description: 到受电点的距离，单位米。
+      feeder_id:
+        type: str
+        description: 所属馈线编号。
+      busbar_id:
+        type: str
+        description: 所属母线编号。
+      substation_id:
+        type: str
+        description: 所属变电站编号。
+      incoming_source_id:
+        type: str
+        description: 所属进线电源或上级电源编号。
+      available_bay_count:
+        type: int
+        description: 可用备用间隔数量。
+      is_available:
+        type: bool
+        description: 电源点当前是否可用于接入。
+      current_operation_status:
+        type: str
+        description: 当前运行状态。
+  Feeder:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: feeder_id
+      config:
+        path: data/feeder.json
+    summary: 候选电源点所属馈线，用于容量、负载率、用户数、线损率和负荷划接判断。
+    description: 配网馈线事实数据，支撑电源点容量校核、负载率校核、线损校核、接入用户数校核和馈线负荷划接方案生成。
+    properties:
+      feeder_id:
+        type: str
+        required: true
+        description: 馈线编号。
+      substation_id:
+        type: str
+        description: 所属变电站编号。
+      busbar_id:
+        type: str
+        description: 所属母线编号。
+      historical_max_load_rate:
+        type: float
+        description: 历史最大负载率，统一采用0到1小数，如0.8表示80%。
+      current_load_rate:
+        type: float
+        description: 当前负载率，统一采用0到1小数，如0.8表示80%。
+      available_capacity_kva:
+        type: float
+        description: 馈线可开放容量，单位kVA。
+      connected_user_count:
+        type: int
+        description: 已接入用户数量。
+      line_loss_rate_after_connection:
+        type: float
+        description: 预计接入后线损率，统一采用0到1小数，如0.05表示5%。
+      neighbor_feeder_ids:
+        type: list[str]
+        description: 邻近馈线编号集合。
+      section_switch_ids:
+        type: list[str]
+        description: 分段开关编号集合。
+      tie_switch_ids:
+        type: list[str]
+        description: 联络开关编号集合。
+  SubstationTransformer:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: transformer_id
+      config:
+        path: data/substation_transformer.json
+    summary: 变电站主变事实，用于主变可开放容量、负载率和主变负荷转移判断。
+    description: 变电站主变运行与容量事实数据，支撑接入容量校核、新出线可行性校核和主变负荷划接判断。
+    properties:
+      transformer_id:
+        type: str
+        required: true
+        description: 主变编号。
+      substation_id:
+        type: str
+        description: 所属变电站编号。
+      busbar_id:
+        type: str
+        description: 所属母线编号。
+      available_capacity_kva:
+        type: float
+        description: 主变可开放容量，单位kVA。
+      current_load_rate:
+        type: float
+        description: 主变实时负载率，统一采用0到1小数，如0.8表示80%。
+      historical_max_load_rate:
+        type: float
+        description: 主变历史最大负载率，统一采用0到1小数，如0.8表示80%。
+      connected_feeder_ids:
+        type: list[str]
+        description: 主变所带馈线编号集合。
+  Substation:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: substation_id
+      config:
+        path: data/substation.json
+    summary: 变电站事实，用于双电源来源判定和15公里新出线搜索。
+    description: 变电站基础与空间事实数据，包含坐标、至受电点距离、空余出线间隔、进线来源、母线、主变和出线间隔列表。
+    properties:
+      substation_id:
+        type: str
+        required: true
+        description: 变电站编号。
+      name:
+        type: str
+        description: 变电站名称。
+      coordinate:
+        type: str
+        format: geojson_point
+        description: 变电站坐标，统一采用WGS84坐标系GeoJSON Point字符串，坐标顺序为[longitude, latitude]。
+      distance_to_receiving_point_m:
+        type: float
+        description: 到受电点的距离，单位米。
+      spare_outgoing_bay_count:
+        type: int
+        description: 空余出线间隔数量。
+      incoming_source_ids:
+        type: list[str]
+        description: 变电站进线电源编号集合。
+      busbar_ids:
+        type: list[str]
+        description: 变电站母线编号集合。
+      transformer_ids:
+        type: list[str]
+        description: 变电站主变编号集合。
+      outgoing_bay_ids:
+        type: list[str]
+        description: 变电站出线间隔编号集合。
+  SubstationOutgoingBay:
+    kind: entity
+    data_source: external_api
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: outgoing_bay_id
+      config:
+        path: data/substation_outgoing_bay.json
+    summary: 变电站10kV出线间隔事实，用于新出线方案选择具体间隔。
+    description: 记录变电站出线间隔所属变电站、母线、主变关联、可用状态和运行状态，支撑新出线方案从空余间隔数量进一步落到具体间隔。
+    properties:
+      outgoing_bay_id:
+        type: str
+        required: true
+        description: 出线间隔编号。
+      substation_id:
+        type: str
+        required: true
+        description: 所属变电站编号。
+      busbar_id:
+        type: str
+        description: 所属母线编号。
+      transformer_id:
+        type: str
+        description: 关联主变编号。
+      voltage_kv:
+        type: float
+        description: 出线间隔电压等级，单位kV。
+      is_available:
+        type: bool
+        description: 是否可用于新出线接入。
+      current_status:
+        type: str
+        description: 当前状态，如空闲、占用、检修、预留。
+      reserved_for_project_id:
+        type: str
+        description: 若已预留，记录预留项目编号。
+      operation_status:
+        type: str
+        description: 运行状态说明。
+  ConnectionScopeRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: rule_id
+      config:
+        path: data/connection_scope_rule.json
+    summary: 判断请求是否属于10kV高压接入方案推理范围。
+    description: 入口范围校验规则表，约束允许的业务类型、供电电压和受电变压器总容量上限。
+    properties:
+      rule_id:
+        type: str
+        required: true
+        description: 规则记录编号。
+      allowed_business_types:
+        type: list[str]
+        description: 允许的业务类型集合。
+      required_supply_voltage_kv:
+        type: float
+        description: 要求的供电电压等级，通常为10kV。
+      max_total_receiving_transformer_capacity_kva:
+        type: float
+        description: 受电变压器总容量或增容后总容量上限，单位kVA。
+  PowerSupplyModeRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: rule_id
+      config:
+        path: data/power_supply_mode_rule.json
+    summary: 根据用户重要等级、负荷等级和用户需求确定最低供电方式要求。
+    description: 供电方式判定规则表，用于确定最低供电模式、最少回路数、最少电源数和电源独立性要求。
+    properties:
+      rule_id:
+        type: str
+        required: true
+        description: 规则记录编号。
+      user_importance_level:
+        type: str
+        description: 用户重要等级匹配条件。
+      load_level:
+        type: str
+        description: 负荷等级匹配条件。
+      user_requested_mode:
+        type: str
+        description: 用户请求供电方式。
+      required_supply_mode:
+        type: str
+        description: 判定后的最低供电方式。
+      minimum_route_count:
+        type: int
+        description: 最少供电回路数。
+      minimum_source_count:
+        type: int
+        description: 最少独立电源数。
+      source_independence_requirement:
+        type: str
+        description: 电源独立性要求描述。
+  ExistingAccessPointConstraintRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: rule_id
+      config:
+        path: data/existing_access_point_constraint_rule.json
+    summary: 现有电源点直接接入所需满足的馈线、主变、间隔、用户数和线损约束。
+    description: 用于现有电源点直接准入的约束规则表，负载率和线损率阈值统一采用0到1小数。
+    properties:
+      rule_id:
+        type: str
+        required: true
+        description: 规则记录编号。
+      max_feeder_historical_load_rate:
+        type: float
+        description: 馈线历史最大负载率上限，0到1小数。
+      max_feeder_current_load_rate:
+        type: float
+        description: 馈线实时负载率上限，0到1小数。
+      feeder_capacity_operator:
+        type: str
+        description: 馈线可开放容量与单路接入容量比较运算符，如>=。
+      feeder_capacity_multiplier:
+        type: float
+        description: 馈线可开放容量相对单路接入容量的倍数要求，如1.0表示可开放容量>=单路容量。
+      min_spare_bay_count:
+        type: int
+        description: 最少备用间隔数量。
+      max_connected_user_count:
+        type: int
+        description: 最大接入用户数。
+      max_line_loss_rate_after_connection:
+        type: float
+        description: 接入后线损率上限，0到1小数。
+      transformer_capacity_operator:
+        type: str
+        description: 主变可开放容量与单路接入容量比较运算符，如>=。
+      transformer_capacity_multiplier:
+        type: float
+        description: 主变可开放容量相对单路接入容量的倍数要求，如1.0表示可开放容量>=单路容量。
+      max_transformer_load_rate:
+        type: float
+        description: 主变负载率上限，0到1小数。
+  LoadTransferRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: rule_id
+      config:
+        path: data/load_transfer_rule.json
+    summary: 馈线或主变负载率超限时生成并校核负荷划接方案的规则。
+    description: 负荷划接规则表，用于确定重载阈值、是否保持既有联络关系、接收对象选择优先级、划接后负载率上限和馈线划接搜索半径，负载率统一采用0到1小数。
+    properties:
+      rule_id:
+        type: str
+        required: true
+        description: 规则记录编号。
+      overload_threshold:
+        type: float
+        description: 重载或超限阈值，0到1小数，如0.8表示80%。
+      preserve_existing_tie_relationship:
+        type: bool
+        description: 是否要求保持现有联络关系。
+      receiver_selection_priority:
+        type: str
+        description: 接收馈线或接收主变选择优先级。
+      target_feeder_max_load_rate_after_transfer:
+        type: float
+        description: 划接后目标馈线最大允许负载率，0到1小数。
+      target_transformer_max_load_rate_after_transfer:
+        type: float
+        description: 划接后目标主变最大允许负载率，0到1小数。
+      feeder_transfer_search_radius_m:
+        type: float
+        description: 馈线负荷划接候选搜索半径，单位米。
+  NewSubstationOutgoingLineTriggerRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: rule_id
+      config:
+        path: data/new_substation_outgoing_line_trigger_rule.json
+    summary: 判断是否从常规现有电源点推荐切换至变电站新出线逻辑。
+    description: 新出线触发规则表，仅保存静态阈值和触发条件配置；实际运行时判断结果记录在NewSubstationOutgoingLineDecision.trigger_reasons中。
+    properties:
+      rule_id:
+        type: str
+        required: true
+        description: 规则记录编号。
+      config_enabled:
+        type: bool
+        description: 配置是否启用新出线。
+      single_route_capacity_threshold_kva:
+        type: float
+        description: 触发新出线的单路容量阈值，单位kVA。
+      trigger_when_capacity_exceeds_threshold:
+        type: bool
+        description: 单路容量超过阈值时是否允许触发新出线。
+      require_no_available_existing_access_point:
+        type: bool
+        description: 是否要求无可用现有电源点作为触发条件之一。
+      require_no_feeder_transfer_candidate_within_radius:
+        type: bool
+        description: 是否要求指定半径内无馈线划接候选作为触发条件之一。
+      feeder_transfer_candidate_radius_m:
+        type: float
+        description: 馈线划接候选判定半径，单位米，通常为1000。
+      require_no_transformer_transfer_candidate_in_substation:
+        type: bool
+        description: 是否要求站内无主变划接候选作为触发条件之一。
+      trigger_logic:
+        type: str
+        description: 多个触发条件之间的逻辑关系，如ANY或ALL。
+  NewSubstationOutgoingLineFeasibilityRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: rule_id
+      config:
+        path: data/new_substation_outgoing_line_feasibility_rule.json
+    summary: 判断15公里范围内候选变电站是否可用于新出线接入。
+    description: 新出线可行性规则表，约束搜索半径、最少空余出线间隔、主变负载率上限、主变可开放容量比较条件和搜索顺序。
+    properties:
+      rule_id:
+        type: str
+        required: true
+        description: 规则记录编号。
+      search_radius_km:
+        type: float
+        description: 新出线变电站搜索半径，单位公里。
+      min_spare_outgoing_bay_count:
+        type: int
+        description: 最少空余出线间隔数量。
+      max_transformer_load_rate:
+        type: float
+        description: 主变实时负载率上限，0到1小数。
+      transformer_capacity_operator:
+        type: str
+        description: 主变可开放容量与单路接入容量比较运算符，如>=。
+      transformer_capacity_multiplier:
+        type: float
+        description: 主变可开放容量相对单路接入容量的倍数要求，如1.0表示可开放容量>=单路容量。
+      search_order:
+        type: str
+        description: 搜索顺序，如由近至远。
+      require_available_outgoing_bay:
+        type: bool
+        description: 是否要求选择到具体可用出线间隔。
+  SchemeScoringRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: rule_id
+      config:
+        path: data/scheme_scoring_rule.json
+    summary: 按距离、可开放容量和可靠性对候选方案加权评分并控制输出数量。
+    description: 候选接入方案评分与保留规则表，定义距离、可开放容量、可靠性权重、可靠性分值、最大输出数量和每种运行方式保留策略。
+    properties:
+      rule_id:
+        type: str
+        required: true
+        description: 规则记录编号。
+      distance_weight:
+        type: float
+        description: 供电距离评分权重。
+      available_capacity_weight:
+        type: float
+        description: 可开放容量评分权重。
+      reliability_weight:
+        type: float
+        description: 供电可靠性评分权重。
+      source_count_reliability_scores:
+        type: dict[str, float]
+        description: 按电源数量配置的可靠性分值。
+      operation_mode_reliability_scores:
+        type: dict[str, float]
+        description: 按运行方式配置的可靠性分值。
+      max_output_count:
+        type: int
+        max: 10
+        description: 最多输出方案数量，不得超过10。
+      retain_best_per_operation_mode:
+        type: bool
+        description: 是否每种运行方式至少保留最高分方案。
+  RedlineBoundaryDeviceRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    source:
+      type: json_file
+      id_field: rule_id
+      config:
+        path: data/redline_boundary_device_rule.json
+    summary: 红线处新增用户分界设备类型和备用间隔要求。
+    description: 红线分界设备规则表，用于根据是否启用红线设备、接入形式和单路容量区间确定分界设备类型、备用间隔和建设位置要求。
+    properties:
+      rule_id:
+        type: str
+        required: true
+        description: 规则记录编号。
+      add_redline_boundary_device:
+        type: bool
+        description: 是否启用红线处新增分界设备。
+      connection_form:
+        type: str
+        description: 接入形式，如架空接入、电缆接入。
+      min_single_route_capacity_kva:
+        type: float
+        description: 适用的单路供电容量下限，单位kVA，闭区间。
+      max_single_route_capacity_kva:
+        type: float
+        description: 适用的单路供电容量上限，单位kVA，闭区间。
+      boundary_device_type:
+        type: str
+        description: 推荐或要求的红线分界设备类型。
+      min_spare_bay_count:
+        type: int
+        description: 最少备用间隔数量。
+      construction_location_requirement:
+        type: str
+        description: 建设位置要求。
+  ScopeValidationResult:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: validation_id
+    summary: 业务类型、供电电压和容量上限等入口范围校验结果。
+    description: validate_connection_scope生成的入口硬关口校验结果，不通过时停止后续方案生成。
+    properties:
+      validation_id:
+        type: str
+        required: true
+        description: 范围校验结果编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      is_in_scope:
+        type: bool
+        description: 是否属于10kV高压接入方案推理范围。
+      failed_reasons:
+        type: list[str]
+        description: 未通过原因集合。
+      checked_business_type:
+        type: str
+        description: 已校验的业务类型。
+      checked_supply_voltage_kv:
+        type: float
+        description: 已校验的供电电压等级。
+      checked_total_capacity_kva:
+        type: float
+        description: 已校验的总容量或增容后总容量，单位kVA。
+  SupplyModeDecision:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: decision_id
+    summary: 供电方式、路数、电源数和独立性要求判定结果。
+    description: decide_supply_mode生成的供电方式决策结果，用作后续搜索、组合和合法性校核的关键约束。
+    properties:
+      decision_id:
+        type: str
+        required: true
+        description: 供电方式判定编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      required_supply_mode:
+        type: str
+        description: 判定后的供电方式，如单电源、双回路、双电源。
+      minimum_route_count:
+        type: int
+        description: 最少供电回路数。
+      minimum_source_count:
+        type: int
+        description: 最少电源数。
+      required_different_substations:
+        type: bool
+        description: 是否要求来自不同变电站。
+      required_different_busbars:
+        type: bool
+        description: 是否要求来自不同母线。
+      decision_reason:
+        type: str
+        description: 判定依据与原因说明。
+  PowerSourceSearchBatch:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: search_batch_id
+    summary: 按固定半径序列扩散搜索现有电源点形成的搜索批次记录。
+    description: search_power_access_points生成的空间扩散搜索记录，记录半径序列、停止半径、找到的电源点和是否满足线路数量要求。
+    properties:
+      search_batch_id:
+        type: str
+        required: true
+        description: 电源点搜索批次编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      center_coordinate:
+        type: str
+        format: geojson_point
+        description: 搜索中心坐标，统一采用WGS84坐标系GeoJSON Point字符串，坐标顺序为[longitude, latitude]。
+      radius_sequence_m:
+        type: list[float]
+        description: 搜索半径序列，如[200,500,800,1000]，单位米。
+      stopped_radius_m:
+        type: float
+        description: 实际停止搜索的半径，单位米。
+      found_access_point_ids:
+        type: list[str]
+        description: 找到的电源点编号集合。
+      distinct_feeder_count:
+        type: int
+        description: 搜索结果中不同馈线数量。
+      satisfies_required_line_count:
+        type: bool
+        description: 是否满足所需线路或馈线数量。
+  AccessPointCapacityCheck:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: check_id
+    summary: 候选电源点的馈线、主变、间隔、用户数和线损等约束校核记录。
+    description: check_access_point_capacity生成的现有电源点准入校核结果，决定候选点是否可直接用于方案组合或需进入负荷划接。
+    properties:
+      check_id:
+        type: str
+        required: true
+        description: 电源点容量与约束校核编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      access_point_id:
+        type: str
+        description: 被校核的电源点编号。
+      single_route_capacity_kva:
+        type: float
+        description: 单路接入容量，单位kVA。
+      feeder_available_capacity_ok:
+        type: bool
+        description: 馈线可开放容量是否满足要求。
+      feeder_load_rate_ok:
+        type: bool
+        description: 馈线负载率是否满足要求。
+      spare_bay_ok:
+        type: bool
+        description: 备用间隔是否满足要求。
+      connected_user_count_ok:
+        type: bool
+        description: 接入用户数是否满足要求。
+      line_loss_rate_ok:
+        type: bool
+        description: 接入后线损率是否满足要求。
+      transformer_available_capacity_ok:
+        type: bool
+        description: 主变可开放容量是否满足要求。
+      transformer_load_rate_ok:
+        type: bool
+        description: 主变负载率是否满足要求。
+      is_directly_usable:
+        type: bool
+        description: 是否可作为直接可用电源点。
+      requires_load_transfer:
+        type: bool
+        description: 是否需要生成负荷划接方案。
+      failed_constraints:
+        type: list[str]
+        description: 未通过约束集合。
+  OriginalSupplyCapacityCheck:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: check_id
+    summary: 增容场景下原线路、原主变是否满足新增或增容容量的校核结果。
+    description: check_original_supply_capacity生成的原电源优先校核结果，用于判断原线路和原主变是否可承载增容需求及是否需负荷划接。
+    properties:
+      check_id:
+        type: str
+        required: true
+        description: 原电源容量校核编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      original_supply_info_id:
+        type: str
+        description: 关联的原供电信息记录编号。
+      original_feeder_id:
+        type: str
+        description: 原馈线编号。
+      original_transformer_id:
+        type: str
+        description: 原主变编号。
+      incremental_capacity_kva:
+        type: float
+        description: 新增或增容容量，单位kVA。
+      feeder_available_capacity_ok:
+        type: bool
+        description: 原馈线可开放容量是否满足要求。
+      feeder_load_rate_ok:
+        type: bool
+        description: 原馈线负载率是否满足要求。
+      transformer_available_capacity_ok:
+        type: bool
+        description: 原主变可开放容量是否满足要求。
+      transformer_load_rate_ok:
+        type: bool
+        description: 原主变负载率是否满足要求。
+      is_original_supply_usable:
+        type: bool
+        description: 原电源是否可继续作为接入方案。
+      requires_load_transfer:
+        type: bool
+        description: 是否需要针对原线路或原主变进行负荷划接。
+      failed_constraints:
+        type: list[str]
+        description: 未通过约束集合。
+  LoadTransferPlan:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: transfer_plan_id
+    summary: 针对重载馈线或主变生成的负荷划接方案。
+    description: generate_load_transfer_plan生成的负荷转移或负荷切割方案，记录重载对象、接收对象、操作开关、划接容量和划接后负载率。
+    properties:
+      transfer_plan_id:
+        type: str
+        required: true
+        description: 负荷划接方案编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      overloaded_object_type:
+        type: str
+        description: 重载对象类型，如Feeder或SubstationTransformer。
+      overloaded_feeder_id:
+        type: str
+        description: 重载馈线编号。
+      overloaded_transformer_id:
+        type: str
+        description: 重载主变编号。
+      receiver_feeder_id:
+        type: str
+        description: 接收负荷的馈线编号。
+      receiver_transformer_id:
+        type: str
+        description: 接收负荷的主变编号。
+      switches_used:
+        type: list[str]
+        description: 划接使用的开关集合。
+      transfer_capacity_kva:
+        type: float
+        description: 划接容量，单位kVA。
+      post_transfer_feeder_load_rate:
+        type: float
+        description: 划接后目标馈线负载率，0到1小数。
+      post_transfer_transformer_load_rate:
+        type: float
+        description: 划接后目标主变负载率，0到1小数。
+      is_feasible:
+        type: bool
+        description: 负荷划接方案是否可行。
+      infeasible_reason:
+        type: str
+        description: 不可行原因。
+  NewSubstationOutgoingLineDecision:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: decision_id
+    summary: 变电站新出线触发判断、15公里搜索和可行性结果。
+    description: evaluate_new_substation_outgoing_line生成的新出线分支决策结果，包含触发原因、候选变电站、选中变电站、具体出线间隔和可行性结论。
+    properties:
+      decision_id:
+        type: str
+        required: true
+        description: 新出线决策编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      is_triggered:
+        type: bool
+        description: 是否触发变电站新出线逻辑。
+      trigger_reasons:
+        type: list[str]
+        description: 触发原因集合，包含运行时条件判断结果。
+      search_radius_km:
+        type: float
+        description: 变电站搜索半径，单位公里。
+      candidate_substation_ids:
+        type: list[str]
+        description: 候选变电站编号集合。
+      selected_substation_id:
+        type: str
+        description: 选中变电站编号。
+      selected_transformer_id:
+        type: str
+        description: 选中主变编号。
+      selected_outgoing_bay_id:
+        type: str
+        description: 选中出线间隔编号，关联SubstationOutgoingBay.outgoing_bay_id。
+      is_feasible:
+        type: bool
+        description: 新出线方案是否可行。
+      no_solution_reason:
+        type: str
+        description: 无可行新出线方案的原因。
+  CandidateConnectionScheme:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: scheme_id
+    summary: 由现有电源点、原电源点或变电站新出线组合生成的候选接入方案。
+    description: generate_candidate_connection_schemes生成的候选方案，记录方案来源、供电方式、运行方式、选中设备、回路数、电源数、容量、距离、红线设备、路径和校核摘要。
+    properties:
+      scheme_id:
+        type: str
+        required: true
+        description: 候选接入方案编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      scheme_source_type:
+        type: str
+        description: 方案来源类型，如现有电源点、原电源点、新出线、混合方案。
+      source_decision_id:
+        type: str
+        description: 若方案来源于新出线分支，关联NewSubstationOutgoingLineDecision.decision_id。
+      supply_mode:
+        type: str
+        description: 供电方式，如单电源、双回路、双电源。
+      operation_mode:
+        type: str
+        description: 运行方式。
+      selected_access_point_ids:
+        type: list[str]
+        description: 选中电源点编号集合。
+      selected_substation_ids:
+        type: list[str]
+        description: 选中变电站编号集合。
+      selected_feeder_ids:
+        type: list[str]
+        description: 选中馈线编号集合。
+      selected_busbar_ids:
+        type: list[str]
+        description: 选中母线编号集合。
+      selected_transformer_ids:
+        type: list[str]
+        description: 选中主变编号集合，用于追溯新出线或原电源方案的关键设备。
+      selected_outgoing_bay_ids:
+        type: list[str]
+        description: 选中出线间隔编号集合，关联SubstationOutgoingBay.outgoing_bay_id。
+      route_count:
+        type: int
+        description: 供电回路数。
+      power_source_count:
+        type: int
+        description: 电源点或电源数量。
+      single_route_capacity_kva:
+        type: float
+        description: 单路供电容量，单位kVA。
+      total_supply_distance_m:
+        type: float
+        description: 总供电距离，单位米。
+      new_public_access_point:
+        type: str
+        description: 新建公共接入点描述。
+      redline_boundary_device_type:
+        type: str
+        description: 红线处分界设备类型。
+      path_description:
+        type: str
+        description: 路径走向描述。
+      load_transfer_plan_ids:
+        type: list[str]
+        description: 关联负荷划接方案编号集合。
+      constraint_check_summary:
+        type: dict[str, str]
+        description: 方案合法性与约束校核摘要。
+  SchemeScore:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: score_id
+    summary: 候选方案综合评分和分项评分。
+    description: score_and_rank_schemes生成的方案评分结果，包含距离、可开放容量、可靠性分项分、总分、排名和保留原因。
+    properties:
+      score_id:
+        type: str
+        required: true
+        description: 方案评分编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号，便于按请求检索评分记录。
+      scheme_id:
+        type: str
+        required: true
+        description: 候选接入方案编号。
+      distance_score:
+        type: float
+        description: 供电距离评分。
+      available_capacity_score:
+        type: float
+        description: 可开放容量评分。
+      reliability_score:
+        type: float
+        description: 供电可靠性综合评分。
+      source_count_reliability_score:
+        type: float
+        description: 电源数量可靠性分值。
+      operation_mode_reliability_score:
+        type: float
+        description: 运行方式可靠性分值。
+      total_score:
+        type: float
+        description: 综合总分。
+      rank:
+        type: int
+        description: 排名。
+      retained_reason:
+        type: str
+        description: 方案被保留的原因，如总分靠前、运行方式最高分。
+  RankedConnectionSchemeSet:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: result_id
+    summary: 最终推荐接入方案集合，按评分排序且不超过10套。
+    description: score_and_rank_schemes生成的最终方案集合，按评分排序，控制最多10套，并保留各运行方式最高分方案。
+    properties:
+      result_id:
+        type: str
+        required: true
+        description: 最终方案集合编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      scheme_ids:
+        type: list[str]
+        description: 最终保留方案编号集合。
+      max_scheme_count:
+        type: int
+        max: 10
+        description: 最大输出方案数量，不得超过10。
+      sorted_by_score:
+        type: bool
+        description: 是否已按评分排序。
+      best_scheme_per_operation_mode:
+        type: dict[str, str]
+        description: 各运行方式最高分方案映射，key为运行方式，value为方案编号。
+      generation_status:
+        type: str
+        description: 生成状态，如成功、部分成功、无可用方案。
+      no_solution_reason:
+        type: str
+        description: 无可用方案原因。
+  ConnectionSchemePdfPreview:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: pdf_id
+    summary: 展示推理过程和推荐方案信息的PDF预览交付物。
+    description: generate_connection_scheme_pdf_preview生成的PDF预览交付物，汇总用户需求、推理过程、电源点选取、负荷切割、路径走向、新建公共接入点和推荐方案。
+    properties:
+      pdf_id:
+        type: str
+        required: true
+        description: PDF预览编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      result_id:
+        type: str
+        description: 关联最终方案集合编号。
+      user_demand_summary:
+        type: str
+        description: 用户用电需求摘要。
+      reasoning_process_summary:
+        type: str
+        description: 接入方案推理过程摘要。
+      power_access_point_selection:
+        type: str
+        description: 电源点选择说明。
+      load_transfer_description:
+        type: str
+        description: 负荷切割或负荷划接说明。
+      path_direction_description:
+        type: str
+        description: 路径走向说明。
+      new_public_access_point_description:
+        type: str
+        description: 新建公共接入点说明。
+      recommended_scheme_summary:
+        type: str
+        description: 推荐方案摘要。
+      pdf_uri:
+        type: str
+        description: PDF文件访问地址。
+      generated_at:
+        type: str
+        description: PDF生成时间。
+  NoAvailableConnectionSchemeConclusion:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: conclusion_id
+    summary: 当现有电源点和新出线均无法满足约束时生成的无方案结论。
+    description: generate_no_available_scheme_conclusion生成的终态输出，说明失败阶段、失败约束、已搜索范围、无法形成可用方案的原因和人工复核建议。
+    properties:
+      conclusion_id:
+        type: str
+        required: true
+        description: 无可用方案结论编号。
+      request_id:
+        type: str
+        required: true
+        description: 对应高压接入请求编号。
+      failed_stage:
+        type: str
+        description: 方案生成失败的阶段。
+      failed_constraints:
+        type: list[str]
+        description: 未满足约束集合。
+      searched_radius_m:
+        type: float
+        description: 已搜索现有电源点半径，单位米。
+      searched_substation_radius_km:
+        type: float
+        description: 已搜索变电站半径，单位公里。
+      explanation:
+        type: str
+        description: 无可用接入方案的业务解释。
+      recommended_manual_review_actions:
+        type: list[str]
+        description: 推荐人工复核动作集合。
+links:
+  request_has_expansion_original_supply:
+    source: HighVoltageConnectionRequest
+    target: ExpansionOriginalSupplyInfo
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..1
+    description: 高压增容请求对应的原电源接入线路、主变和既有接入点信息
+  request_has_reasoning_config:
+    source: HighVoltageConnectionRequest
+    target: ConnectionReasoningConfig
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: enables
+    cardinality: 0..1
+    description: 推理请求关联的人工确认配置，用于限制设备类型、红线设备和新出线分支
+  access_point_belongs_to_feeder:
+    source: PowerAccessPoint
+    target: Feeder
+    join:
+      source_key: feeder_id
+      target_key: feeder_id
+    link_type: references
+    cardinality: 1..1
+    description: 现有电源点所属馈线
+  access_point_belongs_to_substation:
+    source: PowerAccessPoint
+    target: Substation
+    join:
+      source_key: substation_id
+      target_key: substation_id
+    link_type: references
+    cardinality: 1..1
+    description: 现有电源点所属变电站
+  feeder_belongs_to_substation:
+    source: Feeder
+    target: Substation
+    join:
+      source_key: substation_id
+      target_key: substation_id
+    link_type: references
+    cardinality: 1..1
+    description: 馈线所属变电站
+  feeder_connected_to_transformer_by_busbar:
+    source: Feeder
+    target: SubstationTransformer
+    join:
+      source_keys: substation_id,busbar_id
+      target_keys: substation_id,busbar_id
+    link_type: references
+    cardinality: 0..n
+    description: 馈线按同一变电站和同一母线关联可供容量校核的主变
+  transformer_belongs_to_substation:
+    source: SubstationTransformer
+    target: Substation
+    join:
+      source_key: substation_id
+      target_key: substation_id
+    link_type: references
+    cardinality: 1..1
+    description: 主变所属变电站
+  expansion_original_access_point:
+    source: ExpansionOriginalSupplyInfo
+    target: PowerAccessPoint
+    join:
+      source_key: original_access_point_id
+      target_key: access_point_id
+    link_type: references
+    cardinality: 0..1
+    description: 增容场景原有接入点对应的现有电源点
+  expansion_original_feeder:
+    source: ExpansionOriginalSupplyInfo
+    target: Feeder
+    join:
+      source_key: original_feeder_id
+      target_key: feeder_id
+    link_type: references
+    cardinality: 1..1
+    description: 增容场景原电源接入线路
+  expansion_original_transformer:
+    source: ExpansionOriginalSupplyInfo
+    target: SubstationTransformer
+    join:
+      source_key: original_transformer_id
+      target_key: transformer_id
+    link_type: references
+    cardinality: 1..1
+    description: 增容场景原线路对应主变
+  expansion_original_substation:
+    source: ExpansionOriginalSupplyInfo
+    target: Substation
+    join:
+      source_key: original_substation_id
+      target_key: substation_id
+    link_type: references
+    cardinality: 1..1
+    description: 增容场景原电源所属变电站
+  request_has_scope_validation:
+    source: HighVoltageConnectionRequest
+    target: ScopeValidationResult
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求对应的10kV高压接入范围校验结果
+  request_has_supply_mode_decision:
+    source: HighVoltageConnectionRequest
+    target: SupplyModeDecision
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求对应的供电方式、路数、电源数和独立性要求判定结果
+  request_has_power_source_search_batch:
+    source: HighVoltageConnectionRequest
+    target: PowerSourceSearchBatch
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求对应的现有电源点扩散搜索批次
+  search_batch_found_access_points:
+    source: PowerSourceSearchBatch
+    target: PowerAccessPoint
+    join:
+      source_key: found_access_point_ids
+      target_key: access_point_id
+    link_type: references
+    cardinality: 0..n
+    description: 扩散搜索批次发现的现有电源点事实集合
+  request_has_access_point_capacity_checks:
+    source: HighVoltageConnectionRequest
+    target: AccessPointCapacityCheck
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求下各候选电源点的容量、负载率、间隔、用户数和线损校核记录
+  access_point_has_capacity_checks:
+    source: PowerAccessPoint
+    target: AccessPointCapacityCheck
+    join:
+      source_key: access_point_id
+      target_key: access_point_id
+    link_type: contains
+    cardinality: 0..n
+    description: 现有电源点对应的准入约束校核记录
+  request_has_original_supply_capacity_checks:
+    source: HighVoltageConnectionRequest
+    target: OriginalSupplyCapacityCheck
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 增容请求下原线路和原主变容量校核记录
+  original_supply_check_uses_feeder:
+    source: OriginalSupplyCapacityCheck
+    target: Feeder
+    join:
+      source_key: original_feeder_id
+      target_key: feeder_id
+    link_type: references
+    cardinality: 1..1
+    description: 原电源容量校核所使用的原馈线事实
+  original_supply_check_uses_transformer:
+    source: OriginalSupplyCapacityCheck
+    target: SubstationTransformer
+    join:
+      source_key: original_transformer_id
+      target_key: transformer_id
+    link_type: references
+    cardinality: 1..1
+    description: 原电源容量校核所使用的原主变事实
+  request_has_load_transfer_plans:
+    source: HighVoltageConnectionRequest
+    target: LoadTransferPlan
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求下针对重载馈线或主变生成的负荷划接方案
+  load_transfer_plan_overloaded_feeder:
+    source: LoadTransferPlan
+    target: Feeder
+    join:
+      source_key: overloaded_feeder_id
+      target_key: feeder_id
+    link_type: references
+    cardinality: 0..1
+    description: 负荷划接方案对应的重载或被转供馈线
+  load_transfer_plan_overloaded_transformer:
+    source: LoadTransferPlan
+    target: SubstationTransformer
+    join:
+      source_key: overloaded_transformer_id
+      target_key: transformer_id
+    link_type: references
+    cardinality: 0..1
+    description: 负荷划接方案对应的重载或被转供主变
+  load_transfer_plan_receiver_feeder:
+    source: LoadTransferPlan
+    target: Feeder
+    join:
+      source_key: receiver_feeder_id
+      target_key: feeder_id
+    link_type: references
+    cardinality: 0..1
+    description: 负荷划接方案选定的接收馈线
+  load_transfer_plan_receiver_transformer:
+    source: LoadTransferPlan
+    target: SubstationTransformer
+    join:
+      source_key: receiver_transformer_id
+      target_key: transformer_id
+    link_type: references
+    cardinality: 0..1
+    description: 负荷划接方案选定的接收主变
+  request_has_new_outgoing_line_decisions:
+    source: HighVoltageConnectionRequest
+    target: NewSubstationOutgoingLineDecision
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求对应的变电站新出线触发、搜索和可行性判定结果
+  new_outgoing_line_candidate_substations:
+    source: NewSubstationOutgoingLineDecision
+    target: Substation
+    join:
+      source_key: candidate_substation_ids
+      target_key: substation_id
+    link_type: references
+    cardinality: 0..n
+    description: 新出线15公里搜索范围内的候选变电站集合
+  new_outgoing_line_selected_substation:
+    source: NewSubstationOutgoingLineDecision
+    target: Substation
+    join:
+      source_key: selected_substation_id
+      target_key: substation_id
+    link_type: references
+    cardinality: 0..1
+    description: 新出线决策最终选定的变电站
+  new_outgoing_line_selected_transformer:
+    source: NewSubstationOutgoingLineDecision
+    target: SubstationTransformer
+    join:
+      source_key: selected_transformer_id
+      target_key: transformer_id
+    link_type: references
+    cardinality: 0..1
+    description: 新出线决策最终选定的主变
+  request_has_candidate_connection_schemes:
+    source: HighVoltageConnectionRequest
+    target: CandidateConnectionScheme
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求生成的候选接入方案集合
+  candidate_scheme_uses_access_points:
+    source: CandidateConnectionScheme
+    target: PowerAccessPoint
+    join:
+      source_key: selected_access_point_ids
+      target_key: access_point_id
+    link_type: references
+    cardinality: 0..n
+    description: 候选接入方案实际选用的现有电源点集合
+  candidate_scheme_uses_substations:
+    source: CandidateConnectionScheme
+    target: Substation
+    join:
+      source_key: selected_substation_ids
+      target_key: substation_id
+    link_type: references
+    cardinality: 0..n
+    description: 候选接入方案实际选用或涉及的变电站集合
+  candidate_scheme_uses_feeders:
+    source: CandidateConnectionScheme
+    target: Feeder
+    join:
+      source_key: selected_feeder_ids
+      target_key: feeder_id
+    link_type: references
+    cardinality: 0..n
+    description: 候选接入方案实际选用或涉及的馈线集合
+  supply_mode_decision_enables_candidate_schemes:
+    source: SupplyModeDecision
+    target: CandidateConnectionScheme
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: enables
+    cardinality: 0..n
+    description: 供电方式判定结果约束并支撑候选接入方案生成
+  access_point_capacity_checks_enable_schemes:
+    source: AccessPointCapacityCheck
+    target: CandidateConnectionScheme
+    join:
+      source_key: access_point_id
+      target_key: selected_access_point_ids
+    link_type: enables
+    cardinality: 0..n
+    description: 候选方案选用的电源点校核结果作为现有电源点方案组合的准入依据
+  original_supply_checks_enable_schemes:
+    source: OriginalSupplyCapacityCheck
+    target: CandidateConnectionScheme
+    join:
+      source_key: original_feeder_id
+      target_key: selected_feeder_ids
+    link_type: enables
+    cardinality: 0..n
+    description: 增容原电源馈线容量校核结果作为实际使用该原馈线的候选方案生成依据
+  load_transfer_plans_enable_schemes:
+    source: LoadTransferPlan
+    target: CandidateConnectionScheme
+    join:
+      source_key: transfer_plan_id
+      target_key: load_transfer_plan_ids
+    link_type: enables
+    cardinality: 0..n
+    description: 候选方案引用的可行负荷划接方案支撑包含负荷转移措施的接入方案
+  new_outgoing_line_decision_enables_schemes:
+    source: NewSubstationOutgoingLineDecision
+    target: CandidateConnectionScheme
+    join:
+      source_key: selected_substation_id
+      target_key: selected_substation_ids
+    link_type: enables
+    cardinality: 0..n
+    description: 新出线决策选定变电站支撑实际采用该变电站的新出线候选方案
+  candidate_scheme_has_score:
+    source: CandidateConnectionScheme
+    target: SchemeScore
+    join:
+      source_key: scheme_id
+      target_key: scheme_id
+    link_type: contains
+    cardinality: 0..1
+    description: 候选接入方案对应的综合评分和排序结果
+  request_has_ranked_scheme_sets:
+    source: HighVoltageConnectionRequest
+    target: RankedConnectionSchemeSet
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求对应的最终推荐方案集合
+  ranked_scheme_set_has_candidate_schemes:
+    source: RankedConnectionSchemeSet
+    target: CandidateConnectionScheme
+    join:
+      source_key: scheme_ids
+      target_key: scheme_id
+    link_type: contains
+    cardinality: 0..n
+    description: 最终推荐方案集合包含的候选接入方案
+  ranked_scheme_set_has_pdf_preview:
+    source: RankedConnectionSchemeSet
+    target: ConnectionSchemePdfPreview
+    join:
+      source_key: result_id
+      target_key: result_id
+    link_type: contains
+    cardinality: 0..n
+    description: 最终推荐方案集合生成的PDF预览交付物
+  request_has_pdf_previews:
+    source: HighVoltageConnectionRequest
+    target: ConnectionSchemePdfPreview
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求对应的接入方案PDF预览交付物
+  request_has_no_available_scheme_conclusions:
+    source: HighVoltageConnectionRequest
+    target: NoAvailableConnectionSchemeConclusion
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: contains
+    cardinality: 0..n
+    description: 请求在无可用现有电源点、负荷划接和新出线均不可行时形成的无方案结论
+  new_outgoing_line_decision_enables_no_solution_conclusion:
+    source: NewSubstationOutgoingLineDecision
+    target: NoAvailableConnectionSchemeConclusion
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: enables
+    cardinality: 0..n
+    description: 新出线不可行结果支撑无可用接入方案结论
+  scope_validation_prevents_power_source_search:
+    source: ScopeValidationResult
+    target: PowerSourceSearchBatch
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: prevents
+    cardinality: 0..n
+    description: 范围校验不通过时阻止现有电源点扩散搜索
+  scope_validation_prevents_access_point_capacity_checks:
+    source: ScopeValidationResult
+    target: AccessPointCapacityCheck
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: prevents
+    cardinality: 0..n
+    description: 范围校验不通过时阻止候选电源点容量和运行约束校核
+  scope_validation_prevents_candidate_schemes:
+    source: ScopeValidationResult
+    target: CandidateConnectionScheme
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: prevents
+    cardinality: 0..n
+    description: 范围校验不通过时阻止候选接入方案继续生成
+  scope_validation_prevents_ranked_scheme_sets:
+    source: ScopeValidationResult
+    target: RankedConnectionSchemeSet
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: prevents
+    cardinality: 0..n
+    description: 范围校验不通过时阻止最终推荐方案集合生成
+  scope_validation_prevents_pdf_previews:
+    source: ScopeValidationResult
+    target: ConnectionSchemePdfPreview
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: prevents
+    cardinality: 0..n
+    description: 范围校验不通过时阻止接入方案PDF预览生成
+  no_available_conclusion_prevents_pdf_recommendation:
+    source: NoAvailableConnectionSchemeConclusion
+    target: ConnectionSchemePdfPreview
+    join:
+      source_key: request_id
+      target_key: request_id
+    link_type: prevents
+    cardinality: 0..n
+    description: 无可用方案结论存在时阻止生成包含推荐方案的常规PDF预览
+functions:
+  validate_connection_scope:
+    summary: 校验请求是否属于10kV高压接入方案推理范围
+    description: 基于业务类型、供电电压、受电变压器总容量或增容后容量，确定高压新装、增容、装表临时用电请求是否可进入10kV接入方案推理。
+    group: 入口校验
+    function_type: business
+    writes_to:
+    - ScopeValidationResult
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ConnectionScopeRule
+    - ScopeValidationResult
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      rule_id:
+        type: str
+        description: 范围校验规则编号；为空时使用当前生效规则
+        default: ''
+    hint: 必须先执行入口范围校验。业务类型仅允许新装、增容、临时；供电电压必须为10kV；新装和临时用电按total_receiving_transformer_capacity_kva校验，增容可结合post_expansion_capacity_kva校验；容量上限为20000kVA。不通过时停止后续方案生成。
+    effects:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      set_to: 按规则校验结果
+    - object: ScopeValidationResult
+      field: failed_reasons
+      set_to: 不通过原因列表
+    temporal_constraints: []
+  apply_reasoning_config_constraints:
+    summary: 应用推理配置强约束
+    description: 读取正式推理配置，将指定电源点设备类型、PMS前置指定类型、红线处新增设备、新出线启用状态解析为后续搜索、校核和方案生成必须遵守的无状态约束；本函数不产生持久化结果对象。
+    group: 入口校验
+    function_type: lookup
+    writes_to: []
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ScopeValidationResult
+    - ConnectionReasoningConfig
+    - PowerAccessPoint
+    - CandidateConnectionScheme
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      config_id:
+        type: str
+        description: 推理配置编号；为空时使用请求对应的当前配置
+        default: ''
+    preconditions:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      operator: eq
+      value: true
+    hint: 配置约束不是建议项而是硬约束，但本函数仅做无状态校验和参数解析，不写入持久化对象。若allowed_source_device_types或pms_preselected_source_type指定设备类型，后续搜索和候选方案不得使用其他类型电源点；add_redline_boundary_device为启用时，候选方案必须结合红线分界设备规则生成边界设备；enable_new_substation_outgoing_line为启用时，仅表示允许纳入新出线评估分支，不等同于无条件强制触发新出线。
+    temporal_constraints: []
+  decide_supply_mode:
+    summary: 判定最低供电方式、路数、电源数和独立性要求
+    description: 根据用户重要等级、负荷等级、临时用电属性和用户需求，确定单电源、双回路或双电源等最低供电方式约束。
+    group: 供电方式
+    function_type: business
+    writes_to:
+    - SupplyModeDecision
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ScopeValidationResult
+    - PowerSupplyModeRule
+    - SupplyModeDecision
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      rule_id:
+        type: str
+        description: 供电方式判定规则编号；为空时使用当前生效规则
+        default: ''
+    preconditions:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      operator: eq
+      value: true
+    hint: 一级重要用户或一级负荷要求双电源；二级重要用户、临时性重要用户或二级负荷至少双回路；三级负荷可单电源。若用户请求的电源数或运行方式高于最低要求，应按较高要求执行。双电源通常要求不同变电站，或同站不同电源进线的两段母线；双回路至少要求不同母线。
+    effects:
+    - object: SupplyModeDecision
+      field: required_supply_mode
+      set_to: 单电源/双回路/双电源
+    - object: SupplyModeDecision
+      field: minimum_route_count
+      set_to: 按供电方式规则确定
+    - object: SupplyModeDecision
+      field: minimum_source_count
+      set_to: 按供电方式规则确定
+    temporal_constraints: []
+  search_power_access_points:
+    summary: 按固定半径扩散搜索周边现有电源点
+    description: 以受电点坐标为中心，按200米、500米、800米、1000米逐步扩散搜索现有电源点，执行设备类型过滤、可用状态过滤、线路去重和停止条件判断。
+    group: 电源点搜索
+    function_type: lookup
+    writes_to:
+    - PowerSourceSearchBatch
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ScopeValidationResult
+    - ConnectionReasoningConfig
+    - PowerAccessPoint
+    - Feeder
+    - PowerSourceSearchBatch
+    - SupplyModeDecision
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      center_coordinate:
+        type: str
+        description: 受电点坐标；为空时使用请求receiving_point_coordinate
+        default: ''
+      allowed_source_device_types:
+        type: str
+        description: 允许的电源点设备类型，多个值用逗号分隔；为空时使用推理配置
+        default: ''
+      radius_sequence_m:
+        type: str
+        description: 扩散搜索半径序列，默认200,500,800,1000
+        default: 200,500,800,1000
+      required_distinct_feeder_count:
+        type: int
+        description: 满足供电方式所需的不同馈线数量；为空时按SupplyModeDecision确定
+        default: 0
+    preconditions:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      operator: eq
+      value: true
+    - object: SupplyModeDecision
+      field: decision_id
+      operator: exists
+      value: true
+    hint: 必须按200、500、800、1000米顺序搜索，不得跳过近距离半径。每一轮仅纳入可用且满足配置设备类型的电源点，并统计不同馈线数量；达到供电方式要求的不同线路数量后停止。达到1000米仍不足时，应记录不满足原因，并进入容量校核、负荷划接或新出线触发判断。
+    effects:
+    - object: PowerSourceSearchBatch
+      field: stopped_radius_m
+      set_to: 满足线路数量要求时的半径或1000
+    - object: PowerSourceSearchBatch
+      field: satisfies_required_line_count
+      set_to: 是否满足不同线路数量要求
+    temporal_constraints: []
+  check_access_point_capacity:
+    summary: 校核现有电源点接入容量和运行约束
+    description: 跨电源点、馈线、主变和规则配置，校核可开放容量、历史及当前负载率、备用间隔、接入用户数、线损率等现有电源点准入条件。
+    group: 容量校核
+    function_type: business
+    writes_to:
+    - AccessPointCapacityCheck
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ScopeValidationResult
+    - PowerAccessPoint
+    - Feeder
+    - SubstationTransformer
+    - ExistingAccessPointConstraintRule
+    - AccessPointCapacityCheck
+    - PowerSourceSearchBatch
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      access_point_ids:
+        type: str
+        description: 待校核电源点编号列表，多个值用逗号分隔；为空时使用最新搜索批次结果
+        default: ''
+      single_route_capacity_kva:
+        type: float
+        description: 单路接入容量；为空或0时由请求容量和供电路数计算
+        default: 0
+      rule_id:
+        type: str
+        description: 现有电源点约束规则编号；为空时使用当前生效规则
+        default: ''
+    preconditions:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      operator: eq
+      value: true
+    - object: PowerSourceSearchBatch
+      field: search_batch_id
+      operator: exists
+      value: true
+    hint: 直接可用电源点必须同时满足：馈线历史和当前负载率未超限、馈线可开放容量大于单路接入容量、备用间隔满足要求、接入用户数不超过规则阈值、接入后线损率不超过阈值、主变可开放容量大于单路接入容量且主变负载率未超限。任一失败不得标记为直接可用；若负载率类约束失败但具备划接可能，应标记requires_load_transfer。
+    effects:
+    - object: AccessPointCapacityCheck
+      field: is_directly_usable
+      set_to: 是否可直接作为现有电源点接入
+    - object: AccessPointCapacityCheck
+      field: requires_load_transfer
+      set_to: 是否需要负荷划接
+    - object: AccessPointCapacityCheck
+      field: failed_constraints
+      set_to: 失败约束清单
+    temporal_constraints: []
+  check_original_supply_capacity:
+    summary: 校核增容场景原线路和原主变承载能力
+    description: 增容场景下优先按request_id查询原有电源信息，校核原接入线路、原主变是否可承载新增或增容后容量，并确定是否可继续保留原接入点。
+    group: 容量校核
+    function_type: business
+    writes_to:
+    - OriginalSupplyCapacityCheck
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ScopeValidationResult
+    - ExpansionOriginalSupplyInfo
+    - Feeder
+    - SubstationTransformer
+    - ExistingAccessPointConstraintRule
+    - OriginalSupplyCapacityCheck
+    params:
+      request_id:
+        type: str
+        description: 高压增容请求编号；用于查询对应ExpansionOriginalSupplyInfo
+      rule_id:
+        type: str
+        description: 现有电源点约束规则编号；为空时使用当前生效规则
+        default: ''
+    preconditions:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      operator: eq
+      value: true
+    - object: ExpansionOriginalSupplyInfo
+      field: request_id
+      operator: eq
+      value_from_param: request_id
+    hint: 仅增容场景调用，原电源信息必须基于request_id从ExpansionOriginalSupplyInfo查询，不使用不存在的原电源信息记录编号。应以incremental_capacity_kva或post_expansion_capacity_kva折算单路接入容量，校核原馈线和原主变可开放容量、负载率。若原电源需划接，应继续生成负荷划接方案；若供电方式要求双回路/双电源，还必须搜索并校核补充电源点。
+    effects:
+    - object: OriginalSupplyCapacityCheck
+      field: is_original_supply_usable
+      set_to: 原电源是否可继续使用
+    - object: OriginalSupplyCapacityCheck
+      field: requires_load_transfer
+      set_to: 是否需要原线路或原主变负荷划接
+    temporal_constraints: []
+  generate_load_transfer_plan:
+    summary: 生成并校核馈线或主变负荷划接方案
+    description: 针对馈线或主变负载率超限、容量不足但具备调整可能的情况，搜索邻近馈线或站内轻载主变，生成负荷划接方案并校核划接后负载率。
+    group: 负荷划接
+    function_type: business
+    writes_to:
+    - LoadTransferPlan
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ScopeValidationResult
+    - Feeder
+    - SubstationTransformer
+    - LoadTransferRule
+    - AccessPointCapacityCheck
+    - OriginalSupplyCapacityCheck
+    - LoadTransferPlan
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      overloaded_object_type:
+        type: str
+        description: 超限对象类型：Feeder或SubstationTransformer
+      overloaded_object_id:
+        type: str
+        description: 超限馈线编号或主变编号
+      single_route_capacity_kva:
+        type: float
+        description: 需通过划接释放或承载的单路容量
+      rule_id:
+        type: str
+        description: 负荷划接规则编号；为空时使用当前生效规则
+        default: ''
+    preconditions:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      operator: eq
+      value: true
+    hint: 馈线或主变负载率超过80%时必须判断划接可行性。馈线划接优先在保持现有联络关系前提下，搜索1000米内可接收负荷的邻近馈线；主变划接优先在同站内选择轻载主变。划接后目标馈线和目标主变最大负载率均不得超过80%。不可行时必须记录infeasible_reason，并作为新出线触发条件输入。
+    effects:
+    - object: LoadTransferPlan
+      field: is_feasible
+      set_to: 划接是否可行
+    - object: LoadTransferPlan
+      field: post_transfer_feeder_load_rate
+      set_to: 划接后馈线负载率
+    - object: LoadTransferPlan
+      field: post_transfer_transformer_load_rate
+      set_to: 划接后主变负载率
+    temporal_constraints: []
+  evaluate_new_substation_outgoing_line:
+    summary: 评估变电站新出线触发与可行性
+    description: 在配置允许评估新出线的前提下，封装新出线触发条件判断、15公里范围变电站由近至远搜索、空余间隔校验、主变可开放容量和实时负载率校核，并输出新出线分支结果。
+    group: 新出线
+    function_type: business
+    writes_to:
+    - NewSubstationOutgoingLineDecision
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ScopeValidationResult
+    - ConnectionReasoningConfig
+    - AccessPointCapacityCheck
+    - OriginalSupplyCapacityCheck
+    - LoadTransferPlan
+    - Substation
+    - SubstationTransformer
+    - NewSubstationOutgoingLineTriggerRule
+    - NewSubstationOutgoingLineFeasibilityRule
+    - NewSubstationOutgoingLineDecision
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      single_route_capacity_kva:
+        type: float
+        description: 单路供电容量；为空或0时由请求容量和供电路数计算
+        default: 0
+      trigger_rule_id:
+        type: str
+        description: 新出线触发规则编号；为空时使用当前生效规则
+        default: ''
+      feasibility_rule_id:
+        type: str
+        description: 新出线可行性规则编号；为空时使用当前生效规则
+        default: ''
+    preconditions:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      operator: eq
+      value: true
+    - object: ConnectionReasoningConfig
+      field: enable_new_substation_outgoing_line
+      operator: eq
+      value: true
+    - object: AccessPointCapacityCheck
+      field: check_id
+      operator: exists
+      value: true
+    hint: 配置启用新出线仅表示允许评估新出线分支，是触发判断的必要条件而非充分条件；不得仅因enable_new_substation_outgoing_line或config_enabled为真就停止常规现有电源点方案生成。配置允许后，满足以下业务条件之一才触发新出线：单路容量大于等于5000kVA、无符合要求现有电源点、1000米内无可行馈线划接对象、站内无可行主变划接对象。新出线触发依赖现有电源点容量校核结果；增容场景还应结合OriginalSupplyCapacityCheck，存在负荷划接需求时还应结合LoadTransferPlan可行性结果。触发后应停止常规从现有电源点中选取接入点的方案生成逻辑。可行性仅允许在15公里范围内按由近至远选择存在空余间隔、主变可开放容量满足单路容量且主变实时负载率不超过80%的变电站；否则输出无可用方案原因。
+    effects:
+    - object: NewSubstationOutgoingLineDecision
+      field: is_triggered
+      set_to: 是否触发新出线分支
+    - object: NewSubstationOutgoingLineDecision
+      field: is_feasible
+      set_to: 新出线是否可行
+    - object: NewSubstationOutgoingLineDecision
+      field: selected_substation_id
+      set_to: 选定变电站编号
+    temporal_constraints: []
+  generate_candidate_connection_schemes:
+    summary: 生成候选10kV接入方案组合
+    description: 根据供电方式要求、现有电源点校核结果、原电源保留要求、负荷划接方案、新出线结果和红线设备规则，生成合法候选接入方案。
+    group: 方案生成
+    function_type: business
+    writes_to:
+    - CandidateConnectionScheme
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ScopeValidationResult
+    - SupplyModeDecision
+    - PowerSourceSearchBatch
+    - AccessPointCapacityCheck
+    - OriginalSupplyCapacityCheck
+    - LoadTransferPlan
+    - NewSubstationOutgoingLineDecision
+    - ConnectionReasoningConfig
+    - RedlineBoundaryDeviceRule
+    - CandidateConnectionScheme
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      source_check_ids:
+        type: str
+        description: 可参与组合的电源点校核记录编号列表，多个值用逗号分隔；通常留空以使用请求下全部最新校核结果，避免漏掉原电源或补充电源点
+        default: ''
+      load_transfer_plan_ids:
+        type: str
+        description: 可引用的负荷划接方案编号列表，多个值用逗号分隔
+        default: ''
+      new_outgoing_line_decision_id:
+        type: str
+        description: 新出线评估结果编号；为空时使用请求下最新结果
+        default: ''
+      redline_rule_id:
+        type: str
+        description: 红线分界设备规则编号；为空时使用当前生效规则
+        default: ''
+    preconditions:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      operator: eq
+      value: true
+    - object: SupplyModeDecision
+      field: decision_id
+      operator: exists
+      value: true
+    hint: 候选方案必须满足供电方式、设备类型配置、容量校核和独立性规则。调用时优先只传request_id，让函数自动使用本请求下全部AccessPointCapacityCheck和可行LoadTransferPlan；只有明确需要排除某些校核结果时才传source_check_ids。双电源必须来自两个不同变电站，或来自同一变电站不同电源进线的两段母线；双回路至少来自不同母线。增容场景中，若原电源通过校核或存在可行划接方案，应把原电源点与补充电源点一起参与组合。若新出线已触发且可行，应按变电站间隔开关生成新出线方案；若新出线触发后不可行，不得继续生成常规现有电源点方案。红线处新增设备启用时必须写入分界设备类型。
+    effects:
+    - object: CandidateConnectionScheme
+      field: constraint_check_summary
+      set_to: 供电方式、独立性、设备类型和容量约束校核摘要
+    - object: CandidateConnectionScheme
+      field: redline_boundary_device_type
+      set_to: 按红线规则确定的分界设备类型
+    temporal_constraints: []
+  score_and_rank_schemes:
+    summary: 对候选方案评分、排序并形成最终推荐集合
+    description: 按固定权重计算距离、可开放容量、供电可靠性综合得分，按运行方式保留最优方案并控制最终输出不超过10套。
+    group: 评分排序
+    function_type: business
+    writes_to:
+    - SchemeScore
+    - RankedConnectionSchemeSet
+    involves_objects:
+    - CandidateConnectionScheme
+    - SchemeScoringRule
+    - SchemeScore
+    - RankedConnectionSchemeSet
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      scheme_ids:
+        type: str
+        description: 待评分候选方案编号列表，多个值用逗号分隔；为空时使用请求下全部候选方案
+        default: ''
+      rule_id:
+        type: str
+        description: 方案评分规则编号；为空时使用当前生效规则
+        default: ''
+    preconditions:
+    - object: CandidateConnectionScheme
+      field: scheme_id
+      operator: exists
+      value: true
+    hint: 评分权重默认为供电距离40%、可开放容量30%、供电可靠性30%。可靠性应综合电源数和运行方式得分。必须每种运行方式至少保留最高分1套方案，再按总分排序；最终推荐方案集合不得超过10套。无候选方案时不得生成成功状态的RankedConnectionSchemeSet，应转入无方案结论。
+    effects:
+    - object: SchemeScore
+      field: total_score
+      set_to: 综合评分
+    - object: SchemeScore
+      field: rank
+      set_to: 排序名次
+    - object: RankedConnectionSchemeSet
+      field: scheme_ids
+      set_to: 不超过10套的推荐方案编号
+    temporal_constraints: []
+  generate_connection_scheme_pdf_preview:
+    summary: 生成接入方案PDF预览交付物
+    description: 将用户需求、推理过程、电源点选择、负荷划接说明、路径走向、新建公共接入点和推荐方案汇总为PDF预览。
+    group: 交付输出
+    function_type: business
+    writes_to:
+    - ConnectionSchemePdfPreview
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - RankedConnectionSchemeSet
+    - CandidateConnectionScheme
+    - SchemeScore
+    - PowerSourceSearchBatch
+    - LoadTransferPlan
+    - NewSubstationOutgoingLineDecision
+    - ConnectionSchemePdfPreview
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      result_id:
+        type: str
+        description: 最终推荐方案集合编号；为空时使用请求下最新成功结果
+        default: ''
+      output_format:
+        type: str
+        description: 预览输出格式
+        default: pdf
+    preconditions:
+    - object: RankedConnectionSchemeSet
+      field: result_id
+      operator: exists
+      value: true
+    - object: RankedConnectionSchemeSet
+      field: generation_status
+      operator: eq
+      value: 成功
+    hint: PDF预览必须包含：用户用电需求摘要、范围校验和供电方式判定、周边电源点搜索过程、电源点选取原因、容量与负载校核结果、负荷划接说明、路径走向、新建公共接入点或红线分界设备说明、推荐方案评分排序。若包含新出线方案，应说明触发原因、15公里搜索和选定变电站间隔。
+    effects:
+    - object: ConnectionSchemePdfPreview
+      field: pdf_uri
+      set_to: 生成的PDF预览文件地址
+    - object: ConnectionSchemePdfPreview
+      field: generated_at
+      set_to: 生成时间
+    temporal_constraints: []
+  generate_no_available_scheme_conclusion:
+    summary: 生成无可用接入方案终态结论
+    description: 当范围校验通过但现有电源点、负荷划接、变电站新出线、方案组合或评分排序均无法形成可行方案时，生成可追溯的无方案结论和人工复核建议。
+    group: 交付输出
+    function_type: business
+    writes_to:
+    - NoAvailableConnectionSchemeConclusion
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ScopeValidationResult
+    - AccessPointCapacityCheck
+    - LoadTransferPlan
+    - NewSubstationOutgoingLineDecision
+    - CandidateConnectionScheme
+    - RankedConnectionSchemeSet
+    - NoAvailableConnectionSchemeConclusion
+    params:
+      request_id:
+        type: str
+        description: 高压接入请求编号
+      failed_stage:
+        type: str
+        description: 失败阶段，如现有电源点校核、负荷划接、新出线可行性、方案组合、评分排序
+      searched_radius_m:
+        type: int
+        description: 现有电源点最大搜索半径
+        default: 1000
+      searched_substation_radius_km:
+        type: float
+        description: 新出线变电站最大搜索半径
+        default: 15
+    preconditions:
+    - object: ScopeValidationResult
+      field: is_in_scope
+      operator: eq
+      value: true
+    hint: 无方案结论应仅在范围校验通过且确无可行候选方案时生成，不用于表达范围校验失败。必须汇总失败阶段、失败约束、已搜索现有电源点半径、已搜索变电站范围、新出线不可行原因、候选方案为空或排序未生成成功结果的原因，并给出人工复核建议，如调整受电点位置、核实负荷资料、人工规划新建线路、扩容主变或新增间隔。
+    effects:
+    - object: NoAvailableConnectionSchemeConclusion
+      field: explanation
+      set_to: 无可用方案原因说明
+    - object: NoAvailableConnectionSchemeConclusion
+      field: recommended_manual_review_actions
+      set_to: 建议人工复核动作
+    temporal_constraints: []
+rules:
+  connection_scope_validation_rule:
+    description: 10kV高压接入方案推理入口范围校验：业务类型属于允许范围、供电电压为10kV，且新装/临时用电受电变压器总容量或增容后容量不超过配置上限时才允许继续生成方案；失败原因写入
+      ScopeValidationResult.failed_reasons。
+    rule_type: judgment
+    match_strategy: all
+    applies_to:
+    - HighVoltageConnectionRequest
+    - ExpansionOriginalSupplyInfo
+    - ConnectionScopeRule
+    - ScopeValidationResult
+    result_field: is_in_scope
+    source: ConnectionScopeRule
+    conditions:
+    - source_object: HighVoltageConnectionRequest
+      field: business_type
+      operator: in_field
+      value: ConnectionScopeRule.allowed_business_types
+      on_fail_result: false
+      fail_reason: 业务类型不属于10kV高压新装、增容或装表临时用电范围
+    - source_object: HighVoltageConnectionRequest
+      field: supply_voltage_kv
+      operator: eq_field
+      value: ConnectionScopeRule.required_supply_voltage_kv
+      on_fail_result: false
+      fail_reason: 供电电压不是10kV
+    - field: __compound__
+      operator: any
+      value:
+      - all:
+        - source_object: HighVoltageConnectionRequest
+          field: business_type
+          operator: ne
+          value: 增容
+        - source_object: HighVoltageConnectionRequest
+          field: total_receiving_transformer_capacity_kva
+          operator: lte_field
+          value: ConnectionScopeRule.max_total_receiving_transformer_capacity_kva
+      - all:
+        - source_object: HighVoltageConnectionRequest
+          field: business_type
+          operator: eq
+          value: 增容
+        - source_object: ExpansionOriginalSupplyInfo
+          field: post_expansion_capacity_kva
+          operator: lte_field
+          value: ConnectionScopeRule.max_total_receiving_transformer_capacity_kva
+      result: null
+    default_result: true
+  supply_mode_decision_rule:
+    description: 根据用户重要等级、负荷等级和用户需求判定最低供电方式，按供电方式等级取最高要求，等级顺序为双电源 > 双回路 > 单电源；不得低于用户明确需求。
+    rule_type: classification
+    match_strategy: max_requirement
+    requirement_order:
+    - 单电源
+    - 双回路
+    - 双电源
+    applies_to:
+    - HighVoltageConnectionRequest
+    - PowerSupplyModeRule
+    - SupplyModeDecision
+    result_field: required_supply_mode
+    source: PowerSupplyModeRule
+    conditions:
+    - field: requested_operation_mode
+      operator: eq
+      value: 双电源
+      result: 双电源
+    - field: requested_power_source_count
+      operator: gte
+      value: 2
+      result: 双电源
+    - field: user_importance_level
+      operator: eq
+      value: 一级重要用户
+      result: 双电源
+    - field: load_level
+      operator: eq
+      value: 一级负荷
+      result: 双电源
+    - field: requested_operation_mode
+      operator: eq
+      value: 双回路
+      result: 双回路
+    - field: user_importance_level
+      operator: eq
+      value: 二级重要用户
+      result: 双回路
+    - field: user_importance_level
+      operator: eq
+      value: 临时性重要用户
+      result: 双回路
+    - field: load_level
+      operator: eq
+      value: 二级负荷
+      result: 双回路
+    - field: load_level
+      operator: eq
+      value: 三级负荷
+      result: 单电源
+    - field: business_type
+      operator: in
+      value:
+      - 新装
+      - 增容
+      - 临时
+      result: 单电源
+    default_result: 单电源
+  dual_source_independence_rule:
+    description: 双电源方案合法性判定：非双电源方案直接通过；双电源方案的两个电源应来自不同变电站，或来自同一变电站但属于不同电源进线的不同母线；校核结果写入
+      CandidateConnectionScheme.constraint_check_summary。
+    rule_type: judgment
+    match_strategy: first_match
+    applies_to:
+    - CandidateConnectionScheme
+    - PowerAccessPoint
+    - Substation
+    result_field: constraint_check_summary
+    source: 双电源独立性组合口径
+    conditions:
+    - field: supply_mode
+      operator: ne
+      value: 双电源
+      result:
+        dual_source_valid: true
+        reason: 非双电源方案不适用双电源独立性校核
+    - field: selected_substation_ids
+      operator: distinct_count_gte
+      value: 2
+      result:
+        dual_source_valid: true
+        reason: 双电源来自不同变电站
+    - field: __compound__
+      operator: all
+      value:
+      - field: selected_substation_ids
+        operator: distinct_count_eq
+        value: 1
+      - field: selected_busbar_ids
+        operator: distinct_count_gte
+        value: 2
+      - field: selected_access_point_ids
+        operator: incoming_source_distinct_count_gte
+        value: 2
+      result:
+        dual_source_valid: true
+        reason: 双电源来自同一变电站但分属不同电源进线和不同母线
+    default_result:
+      dual_source_valid: false
+      reason: 双电源未满足不同变电站或不同进线不同母线要求
+  dual_circuit_independence_rule:
+    description: 双回路方案前置过滤规则：非双回路方案直接通过；双回路方案两路电源至少应来自不同母线；不满足时不得写入正式 CandidateConnectionScheme，校核摘要写入
+      constraint_check_summary。
+    rule_type: judgment
+    lifecycle: pre_filter_for_generate_candidate_connection_schemes
+    match_strategy: first_match
+    applies_to:
+    - CandidateConnectionScheme
+    - PowerAccessPoint
+    result_field: constraint_check_summary
+    source: 双回路独立性组合口径
+    conditions:
+    - field: supply_mode
+      operator: ne
+      value: 双回路
+      result:
+        dual_circuit_valid: true
+        reason: 非双回路方案不适用双回路独立性校核
+    - field: selected_busbar_ids
+      operator: distinct_count_gte
+      value: 2
+      result:
+        dual_circuit_valid: true
+        reason: 双回路来自不同母线
+    default_result:
+      dual_circuit_valid: false
+      reason: 双回路未满足不同母线要求
+  existing_access_point_constraint_rule:
+    description: 现有电源点直接接入准入校核：电源点可用，馈线可开放容量、负载率、用户数、线损率满足配置要求，主变可开放容量和负载率满足配置要求，且具备备用间隔时才可直接使用。
+    rule_type: judgment
+    match_strategy: all
+    applies_to:
+    - PowerAccessPoint
+    - Feeder
+    - SubstationTransformer
+    - ExistingAccessPointConstraintRule
+    - AccessPointCapacityCheck
+    result_field: is_directly_usable
+    source: ExistingAccessPointConstraintRule
+    conditions:
+    - source_object: PowerAccessPoint
+      field: is_available
+      operator: eq
+      value: true
+      on_fail_result: false
+      fail_reason: 电源点不可用
+    - source_object: PowerAccessPoint
+      field: current_operation_status
+      operator: eq
+      value: 可接入
+      on_fail_result: false
+      fail_reason: 电源点运行状态不可接入
+    - source_object: Feeder
+      field: historical_max_load_rate
+      operator: lt_field
+      value: ExistingAccessPointConstraintRule.max_feeder_historical_load_rate
+      on_fail_result: false
+      fail_reason: 馈线历史最大负载率超限
+    - source_object: Feeder
+      field: current_load_rate
+      operator: lt_field
+      value: ExistingAccessPointConstraintRule.max_feeder_current_load_rate
+      on_fail_result: false
+      fail_reason: 馈线当前负载率超限
+    - source_object: Feeder
+      field: available_capacity_kva
+      operator: gte_context
+      value: single_route_capacity_kva
+      on_fail_result: false
+      fail_reason: 馈线可开放容量不足
+    - source_object: PowerAccessPoint
+      field: available_bay_count
+      operator: gte_field
+      value: ExistingAccessPointConstraintRule.min_spare_bay_count
+      on_fail_result: false
+      fail_reason: 备用间隔不足
+    - source_object: Feeder
+      field: connected_user_count
+      operator: lte_field
+      value: ExistingAccessPointConstraintRule.max_connected_user_count
+      on_fail_result: false
+      fail_reason: 馈线接入用户数超限
+    - source_object: Feeder
+      field: line_loss_rate_after_connection
+      operator: lte_field
+      value: ExistingAccessPointConstraintRule.max_line_loss_rate_after_connection
+      on_fail_result: false
+      fail_reason: 接入后线损率超限
+    - source_object: SubstationTransformer
+      field: available_capacity_kva
+      operator: gte_context
+      value: single_route_capacity_kva
+      on_fail_result: false
+      fail_reason: 主变可开放容量不足
+    - source_object: SubstationTransformer
+      field: current_load_rate
+      operator: lt_field
+      value: ExistingAccessPointConstraintRule.max_transformer_load_rate
+      on_fail_result: false
+      fail_reason: 主变负载率超限
+    default_result: true
+  original_supply_capacity_rule:
+    description: 增容场景原电源优先校核：仅适用于增容；原馈线、原主变存在，且按增容容量校核后的可开放容量和负载率均满足要求时，原电源可继续作为接入方案。
+    rule_type: judgment
+    match_strategy: all
+    applies_to:
+    - HighVoltageConnectionRequest
+    - ExpansionOriginalSupplyInfo
+    - Feeder
+    - SubstationTransformer
+    - ExistingAccessPointConstraintRule
+    - OriginalSupplyCapacityCheck
+    result_field: is_original_supply_usable
+    source: 增容原电源接入校核口径
+    capacity_context:
+      required_incremental_capacity_kva: ExpansionOriginalSupplyInfo.incremental_capacity_kva
+      fallback_formula: ExpansionOriginalSupplyInfo.post_expansion_capacity_kva -
+        ExpansionOriginalSupplyInfo.existing_contract_capacity_kva
+    conditions:
+    - source_object: HighVoltageConnectionRequest
+      field: business_type
+      operator: eq
+      value: 增容
+      on_fail_result: false
+      fail_reason: 非增容场景不适用原电源增容校核
+    - source_object: ExpansionOriginalSupplyInfo
+      field: original_feeder_id
+      operator: exists
+      value: true
+      on_fail_result: false
+      fail_reason: 原馈线缺失
+    - source_object: ExpansionOriginalSupplyInfo
+      field: original_transformer_id
+      operator: exists
+      value: true
+      on_fail_result: false
+      fail_reason: 原主变缺失
+    - source_object: ExpansionOriginalSupplyInfo
+      field: incremental_capacity_kva
+      operator: gt
+      value: 0
+      on_fail_result: false
+      fail_reason: 增容容量无效
+    - source_object: Feeder
+      field: available_capacity_kva
+      operator: gte_context
+      value: required_incremental_capacity_kva
+      on_fail_result: false
+      fail_reason: 原馈线可开放容量不足
+    - source_object: Feeder
+      field: current_load_rate
+      operator: lt_field
+      value: ExistingAccessPointConstraintRule.max_feeder_current_load_rate
+      on_fail_result: false
+      fail_reason: 原馈线当前负载率超限
+    - source_object: SubstationTransformer
+      field: available_capacity_kva
+      operator: gte_context
+      value: required_incremental_capacity_kva
+      on_fail_result: false
+      fail_reason: 原主变可开放容量不足
+    - source_object: SubstationTransformer
+      field: current_load_rate
+      operator: lt_field
+      value: ExistingAccessPointConstraintRule.max_transformer_load_rate
+      on_fail_result: false
+      fail_reason: 原主变负载率超限
+    default_result: true
+  single_to_dual_expansion_rule:
+    description: 单电源增容升级双电源时，候选方案必须保留一路原电源接入点，另一路按新装电源点推荐逻辑生成并满足独立性要求；校核结果写入 CandidateConnectionScheme.constraint_check_summary。
+    rule_type: judgment
+    match_strategy: first_match
+    applies_to:
+    - ExpansionOriginalSupplyInfo
+    - CandidateConnectionScheme
+    result_field: constraint_check_summary
+    source: 单电源增容升级双电源保留原电源口径
+    conditions:
+    - source_object: ExpansionOriginalSupplyInfo
+      field: original_supply_mode
+      operator: ne
+      value: 单电源
+      result:
+        original_source_retained: true
+        reason: 原供电方式非单电源，不适用单电源升级双电源校核
+    - source_object: CandidateConnectionScheme
+      field: supply_mode
+      operator: ne
+      value: 双电源
+      result:
+        original_source_retained: true
+        reason: 候选方案非双电源，不适用单电源升级双电源校核
+    - source_object: CandidateConnectionScheme
+      field: selected_access_point_ids
+      operator: contains_field
+      value: ExpansionOriginalSupplyInfo.original_access_point_id
+      result:
+        original_source_retained: true
+        reason: 双电源增容方案已保留原电源接入点
+    default_result:
+      original_source_retained: false
+      reason: 单电源增容升级双电源方案未保留原电源接入点
+  load_transfer_feasibility_rule:
+    description: 负荷划接可行性判定：馈线或主变负载率超限时，若按配置要求保持既有联络关系，并使划接后目标馈线及涉及的目标主变负载率不超过配置阈值，则划接可行。
+    rule_type: judgment
+    match_strategy: all
+    applies_to:
+    - LoadTransferRule
+    - LoadTransferPlan
+    - Feeder
+    - SubstationTransformer
+    result_field: is_feasible
+    source: LoadTransferRule
+    conditions:
+    - source_object: LoadTransferRule
+      field: preserve_existing_tie_relationship
+      operator: eq
+      value: true
+      on_fail_result: false
+      fail_reason: 不满足保持既有联络关系要求
+    - source_object: LoadTransferPlan
+      field: receiver_feeder_id
+      operator: exists
+      value: true
+      on_fail_result: false
+      fail_reason: 无可接收负荷的目标馈线
+    - source_object: LoadTransferPlan
+      field: transfer_capacity_kva
+      operator: gt
+      value: 0
+      on_fail_result: false
+      fail_reason: 划接容量无效
+    - source_object: LoadTransferPlan
+      field: post_transfer_feeder_load_rate
+      operator: lte_field
+      value: LoadTransferRule.target_feeder_max_load_rate_after_transfer
+      on_fail_result: false
+      fail_reason: 划接后目标馈线负载率超限
+    - field: __compound__
+      operator: any
+      value:
+      - source_object: LoadTransferPlan
+        field: overloaded_object_type
+        operator: eq
+        value: feeder
+      - source_object: LoadTransferPlan
+        field: post_transfer_transformer_load_rate
+        operator: lte_field
+        value: LoadTransferRule.target_transformer_max_load_rate_after_transfer
+      result: null
+    default_result: true
+  new_substation_outgoing_line_trigger_rule:
+    description: 变电站新出线触发判定：新出线分支必须先由配置启用；在启用前提下，若单路容量达到配置阈值、无可用现有电源点、1000米内无馈线划接候选或站内无主变划接候选等任一条件成立，则触发新出线评估。
+    rule_type: judgment
+    match_strategy: gated_any
+    applies_to:
+    - ConnectionReasoningConfig
+    - AccessPointCapacityCheck
+    - OriginalSupplyCapacityCheck
+    - LoadTransferPlan
+    - NewSubstationOutgoingLineTriggerRule
+    - NewSubstationOutgoingLineDecision
+    result_field: is_triggered
+    source: NewSubstationOutgoingLineTriggerRule
+    gate:
+      any:
+      - source_object: ConnectionReasoningConfig
+        field: enable_new_substation_outgoing_line
+        operator: eq
+        value: true
+      - source_object: NewSubstationOutgoingLineTriggerRule
+        field: config_enabled
+        operator: eq
+        value: true
+    conditions:
+    - source_object: AccessPointCapacityCheck
+      field: single_route_capacity_kva
+      operator: gte_field
+      value: NewSubstationOutgoingLineTriggerRule.single_route_capacity_threshold_kva
+      result: true
+      trigger_reason: 单路容量达到新出线触发阈值
+    - source_object: NewSubstationOutgoingLineTriggerRule
+      field: no_available_existing_access_point
+      operator: eq
+      value: true
+      result: true
+      trigger_reason: 无可用现有电源点
+    - source_object: NewSubstationOutgoingLineTriggerRule
+      field: no_feeder_transfer_candidate_within_1000m
+      operator: eq
+      value: true
+      result: true
+      trigger_reason: 1000米内无可行馈线划接候选
+    - source_object: NewSubstationOutgoingLineTriggerRule
+      field: no_transformer_transfer_candidate_in_substation
+      operator: eq
+      value: true
+      result: true
+      trigger_reason: 站内无可行主变划接候选
+    default_result: false
+  new_substation_outgoing_line_feasibility_rule:
+    description: 新出线变电站可行性判定：按配置半径由近至远搜索候选变电站，候选变电站存在空余出线间隔，且主变可开放容量不小于单路容量、实时负载率满足配置要求时可生成新出线方案。
+    rule_type: judgment
+    match_strategy: all
+    applies_to:
+    - Substation
+    - SubstationTransformer
+    - AccessPointCapacityCheck
+    - NewSubstationOutgoingLineFeasibilityRule
+    - NewSubstationOutgoingLineDecision
+    result_field: is_feasible
+    source: NewSubstationOutgoingLineFeasibilityRule
+    conditions:
+    - source_object: Substation
+      field: distance_to_receiving_point_m
+      operator: lte_field_km_as_m
+      value: NewSubstationOutgoingLineFeasibilityRule.search_radius_km
+      on_fail_result: false
+      fail_reason: 变电站超出新出线搜索半径
+    - source_object: Substation
+      field: spare_outgoing_bay_count
+      operator: gte_field
+      value: NewSubstationOutgoingLineFeasibilityRule.min_spare_outgoing_bay_count
+      on_fail_result: false
+      fail_reason: 变电站空余出线间隔不足
+    - source_object: SubstationTransformer
+      field: available_capacity_kva
+      operator: gte_context
+      value: single_route_capacity_kva
+      on_fail_result: false
+      fail_reason: 主变可开放容量不足
+    - source_object: SubstationTransformer
+      field: current_load_rate
+      operator: lte_field
+      value: NewSubstationOutgoingLineFeasibilityRule.max_transformer_load_rate
+      on_fail_result: false
+      fail_reason: 主变当前负载率超限
+    default_result: true
+  specified_device_type_filter_rule:
+    description: 指定设备类型过滤规则：配置或PMS前置推理指定电源点设备类型时，搜索和候选方案只能使用指定类型电源点；当人工配置和PMS指定同时存在时取交集。
+    rule_type: judgment
+    lifecycle: pre_filter_for_search_power_access_points
+    match_strategy: all
+    applies_to:
+    - ConnectionReasoningConfig
+    - PowerAccessPoint
+    - CandidateConnectionScheme
+    result_field: constraint_check_summary
+    source: 推理配置设备类型强约束口径
+    conditions:
+    - field: __compound__
+      operator: any
+      value:
+      - source_object: ConnectionReasoningConfig
+        field: allowed_source_device_types
+        operator: not_exists
+        value: true
+      - source_object: PowerAccessPoint
+        field: device_type
+        operator: in_field
+        value: ConnectionReasoningConfig.allowed_source_device_types
+      result: null
+    - field: __compound__
+      operator: any
+      value:
+      - source_object: ConnectionReasoningConfig
+        field: pms_preselected_source_type
+        operator: not_exists
+        value: true
+      - source_object: PowerAccessPoint
+        field: device_type
+        operator: eq_field
+        value: ConnectionReasoningConfig.pms_preselected_source_type
+      result: null
+    default_result:
+      device_type_valid: true
+      reason: 电源点设备类型满足配置和PMS约束
+  redline_boundary_device_rule:
+    description: 红线处新增用户分界设备判定：启用红线设备时按配置表的接入形式、单路容量和备用间隔要求匹配分界设备；优先级为不新增 > 容量阈值 >
+      接入形式 > 备用间隔。
+    rule_type: classification
+    match_strategy: first_match
+    applies_to:
+    - ConnectionReasoningConfig
+    - RedlineBoundaryDeviceRule
+    - CandidateConnectionScheme
+    result_field: redline_boundary_device_type
+    source: RedlineBoundaryDeviceRule
+    conditions:
+    - source_object: ConnectionReasoningConfig
+      field: add_redline_boundary_device
+      operator: eq
+      value: false
+      result: 不新增
+    - field: __compound__
+      operator: all
+      value:
+      - source_object: ConnectionReasoningConfig
+        field: add_redline_boundary_device
+        operator: eq
+        value: true
+      - source_object: CandidateConnectionScheme
+        field: single_route_capacity_kva
+        operator: gte_field
+        value: RedlineBoundaryDeviceRule.single_route_capacity_kva
+      - source_object: RedlineBoundaryDeviceRule
+        field: boundary_device_type
+        operator: exists
+        value: true
+      result: null
+    - field: __compound__
+      operator: all
+      value:
+      - source_object: ConnectionReasoningConfig
+        field: add_redline_boundary_device
+        operator: eq
+        value: true
+      - source_object: RedlineBoundaryDeviceRule
+        field: connection_form
+        operator: eq
+        value: 架空
+      result: 一二次融合柱上断路器
+    - field: __compound__
+      operator: all
+      value:
+      - source_object: ConnectionReasoningConfig
+        field: add_redline_boundary_device
+        operator: eq
+        value: true
+      - source_object: RedlineBoundaryDeviceRule
+        field: min_spare_bay_count
+        operator: gte
+        value: 2
+      result: 环网柜或开闭所
+    default_result: 需人工确认分界设备
+  scheme_scoring_and_retention_rule:
+    description: 候选方案评分与保留规则：按配置权重计算 total_score = distance_score * distance_weight
+      + available_capacity_score * available_capacity_weight + reliability_score *
+      reliability_weight；每种运行方式可保留最高分方案，最终输出数量不超过配置上限。
+    rule_type: classification
+    match_strategy: first_match
+    applies_to:
+    - SchemeScoringRule
+    - CandidateConnectionScheme
+    - SchemeScore
+    - RankedConnectionSchemeSet
+    result_field: retained_reason
+    source: SchemeScoringRule
+    formula:
+      target_field: SchemeScore.total_score
+      expression: SchemeScore.distance_score * SchemeScoringRule.distance_weight +
+        SchemeScore.available_capacity_score * SchemeScoringRule.available_capacity_weight
+        + SchemeScore.reliability_score * SchemeScoringRule.reliability_weight
+      weight_sum_should_equal: 1
+    conditions:
+    - source_object: SchemeScore
+      field: rank
+      operator: gt_field
+      value: SchemeScoringRule.max_output_count
+      result: 不保留：超出最多输出套数限制
+    - field: __compound__
+      operator: all
+      value:
+      - source_object: SchemeScoringRule
+        field: retain_best_per_operation_mode
+        operator: eq
+        value: true
+      - source_object: RankedConnectionSchemeSet
+        field: best_scheme_per_operation_mode
+        operator: contains_field
+        value: SchemeScore.scheme_id
+      result: 按运行方式保留最高分方案
+    - source_object: SchemeScore
+      field: rank
+      operator: lte_field
+      value: SchemeScoringRule.max_output_count
+      result: 按综合得分排序保留
+    default_result: 不保留：未进入推荐集合
+  no_available_scheme_terminal_rule:
+    description: 无可用方案终态判定：不存在可直接使用的现有电源点、不存在可行负荷划接方案，且新出线评估不可行时，最终推荐集合置为无方案状态，并生成无可用接入方案结论及人工复核建议。
+    rule_type: judgment
+    match_strategy: all
+    applies_to:
+    - AccessPointCapacityCheck
+    - LoadTransferPlan
+    - NewSubstationOutgoingLineDecision
+    - RankedConnectionSchemeSet
+    - NoAvailableConnectionSchemeConclusion
+    result_field: generation_status
+    source: 无可用接入方案终态判定口径
+    conditions:
+    - source_object: AccessPointCapacityCheck
+      field: is_directly_usable
+      operator: none_eq
+      value: true
+      on_fail_result: 已生成可用方案
+      fail_reason: 存在可直接使用的现有电源点
+    - source_object: LoadTransferPlan
+      field: is_feasible
+      operator: none_eq
+      value: true
+      on_fail_result: 已生成可用方案
+      fail_reason: 存在可行负荷划接方案
+    - source_object: NewSubstationOutgoingLineDecision
+      field: is_feasible
+      operator: none_eq
+      value: true
+      on_fail_result: 已生成可用方案
+      fail_reason: 存在可行变电站新出线方案
+    default_result: 无可用方案
+workflows:
+  new_connection_scheme_generation_workflow:
+    description: 高压10kV新装接入方案智能生成流程：从范围校验、配置约束、供电方式判定、现有电源点搜索与校核，到负荷划接、新出线强制切换分支、候选方案生成、评分排序和PDF预览输出。
+    trigger: 高压新装请求通过营销2.0传入，并由业务人员在PMS3.0发起正式推理。
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ConnectionReasoningConfig
+    - ConnectionScopeRule
+    - PowerSupplyModeRule
+    - ExistingAccessPointConstraintRule
+    - LoadTransferRule
+    - NewSubstationOutgoingLineTriggerRule
+    - NewSubstationOutgoingLineFeasibilityRule
+    - SchemeScoringRule
+    - RedlineBoundaryDeviceRule
+    - ScopeValidationResult
+    - SupplyModeDecision
+    - PowerSourceSearchBatch
+    - PowerAccessPoint
+    - Feeder
+    - SubstationTransformer
+    - Substation
+    - AccessPointCapacityCheck
+    - LoadTransferPlan
+    - NewSubstationOutgoingLineDecision
+    - CandidateConnectionScheme
+    - SchemeScore
+    - RankedConnectionSchemeSet
+    - ConnectionSchemePdfPreview
+    - NoAvailableConnectionSchemeConclusion
+    steps:
+    - name: 范围校验
+      function: validate_connection_scope
+      description: 校验业务类型、供电电压、受电变压器总容量是否属于10kV高压新装接入方案推理范围；不通过则停止常规方案生成。
+      next:
+        通过: 应用推理配置
+        不通过: 生成无可用方案结论
+      sla: 正式推理启动后即时完成
+    - name: 应用推理配置
+      function: apply_reasoning_config_constraints
+      description: 读取并应用指定电源点设备类型、红线处分界设备、新出线选项和PMS前置选择结果，作为后续搜索与方案生成的强约束。
+      next: 判定供电方式
+      sla: 范围校验通过后即时完成
+    - name: 判定供电方式
+      function: decide_supply_mode
+      description: 根据用户重要等级、负荷等级、临时用电属性和用户需求，确定单电源、双回路或双电源的最低供电方式要求。
+      next: 扩散搜索现有电源点
+      sla: 应用推理配置后即时完成
+    - name: 扩散搜索现有电源点
+      function: search_power_access_points
+      description: 以受电点坐标为中心，按200米、500米、800米、1000米顺序扩散搜索满足设备类型约束的现有电源点，并在线路数量满足要求时停止。
+      next: 校核现有电源点
+      sla: 供电方式判定后即时完成
+    - name: 校核现有电源点
+      function: check_access_point_capacity
+      description: 对候选电源点关联的馈线、主变、备用间隔、接入用户数和接入后线损率进行准入校核，形成直接可用或需负荷划接的判断。
+      next:
+        存在直接可用电源点: 评估新出线分支
+        存在需负荷划接电源点: 生成负荷划接方案
+        无可用且无可划接电源点: 评估新出线分支
+      sla: 电源点搜索完成后即时完成
+    - name: 生成负荷划接方案
+      function: generate_load_transfer_plan
+      description: 针对馈线或主变负载率超限的候选点，生成并校核负荷划接方案，确保划接后目标馈线和目标主变负载率不超过规则阈值。
+      next: 评估新出线分支
+      sla: 现有电源点校核后即时完成
+    - name: 评估新出线分支
+      function: evaluate_new_substation_outgoing_line
+      description: 根据配置勾选、单路容量阈值、现有电源点可用性和负荷划接可行性判断是否触发变电站新出线；新出线一旦触发即强制停止常规现有电源点方案回退，仅允许新出线可行方案继续进入候选方案生成。
+      next:
+        触发且新出线可行: 生成候选接入方案
+        触发但新出线不可行: 生成无可用方案结论
+        未触发且存在直接可用电源点或可行负荷划接方案: 生成候选接入方案
+        未触发且不存在可用现有电源点或可行负荷划接方案: 生成无可用方案结论
+      sla: 负荷划接判断后即时完成
+    - name: 生成候选接入方案
+      function: generate_candidate_connection_schemes
+      description: 综合供电方式要求、可用电源点、负荷划接方案、新出线结果、红线设备规则和双电源/双回路独立性要求，生成合法候选接入方案；若新出线已触发，仅基于新出线结果生成候选方案。
+      next:
+        已生成候选方案: 评分排序方案
+        无候选方案: 生成无可用方案结论
+      sla: 新出线分支评估后即时完成
+    - name: 评分排序方案
+      function: score_and_rank_schemes
+      description: 按距离、可开放容量和可靠性进行综合评分，按运行方式保留最高分方案，并控制最终推荐方案不超过10套。
+      next:
+        已形成推荐集合: 生成PDF预览
+        推荐集合为空: 生成无可用方案结论
+      sla: 候选方案生成后即时完成
+    - name: 生成PDF预览
+      function: generate_connection_scheme_pdf_preview
+      description: 输出包含用户需求、推理过程、电源点选取、负荷切割、路径走向、新建公共接入点和推荐方案摘要的PDF预览交付物。
+      next: 流程结束
+      sla: 评分排序完成后即时完成
+    - name: 生成无可用方案结论
+      function: generate_no_available_scheme_conclusion
+      description: 在范围不通过、现有电源点不可用、负荷划接不可行、新出线触发但不可行或未触发且无可用常规方案等场景下，生成可追溯的无可用接入方案结论。
+      next: 流程结束
+      sla: 判定无可用方案后即时完成
+    - name: 流程结束
+      function: ''
+      description: 新装接入方案推理完成，输出推荐方案PDF预览或无可用方案结论。
+  expansion_scheme_generation_workflow:
+    description: 高压10kV增容接入方案智能生成流程：优先校核原线路和原主变，区分单电源增容、单电源升级双电源和新出线强制切换场景，生成增容推荐方案并输出PDF预览。
+    trigger: 高压增容请求通过营销2.0传入，并由业务人员在PMS3.0发起正式推理。
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ExpansionOriginalSupplyInfo
+    - ConnectionReasoningConfig
+    - ConnectionScopeRule
+    - PowerSupplyModeRule
+    - ExistingAccessPointConstraintRule
+    - LoadTransferRule
+    - NewSubstationOutgoingLineTriggerRule
+    - NewSubstationOutgoingLineFeasibilityRule
+    - SchemeScoringRule
+    - RedlineBoundaryDeviceRule
+    - ScopeValidationResult
+    - SupplyModeDecision
+    - OriginalSupplyCapacityCheck
+    - PowerSourceSearchBatch
+    - PowerAccessPoint
+    - Feeder
+    - SubstationTransformer
+    - Substation
+    - AccessPointCapacityCheck
+    - LoadTransferPlan
+    - NewSubstationOutgoingLineDecision
+    - CandidateConnectionScheme
+    - SchemeScore
+    - RankedConnectionSchemeSet
+    - ConnectionSchemePdfPreview
+    - NoAvailableConnectionSchemeConclusion
+    steps:
+    - name: 范围校验
+      function: validate_connection_scope
+      description: 校验业务类型、供电电压、增容后受电变压器总容量是否属于10kV高压增容接入方案推理范围。
+      next:
+        通过: 应用推理配置
+        不通过: 生成无可用方案结论
+      sla: 正式推理启动后即时完成
+    - name: 应用推理配置
+      function: apply_reasoning_config_constraints
+      description: 应用指定设备类型、红线处分界设备、新出线开关和PMS预选电源点类型等推理配置。
+      next: 判定供电方式
+      sla: 范围校验通过后即时完成
+    - name: 判定供电方式
+      function: decide_supply_mode
+      description: 根据增容后用户重要等级、负荷等级和用户需求，确定增容方案所需供电方式、路数、电源数及独立性约束。
+      next: 校核原电源容量
+      sla: 应用推理配置后即时完成
+    - name: 校核原电源容量
+      function: check_original_supply_capacity
+      description: 读取原电源接入线路、对应主变和增容容量，校核原线路与原主变是否可承载新增或增容容量。
+      next:
+        单电源增容且原电源可用: 生成候选接入方案
+        原电源需划接: 生成负荷划接方案
+        升级双电源: 搜索新增一路电源点
+        原电源不可用且需新出线判断: 评估新出线分支
+      sla: 供电方式判定后即时完成
+    - name: 生成负荷划接方案
+      function: generate_load_transfer_plan
+      description: 当原线路或原主变负载率超限时，生成原线路或原主变负荷划接方案，并校核划接后负载率是否满足规则。
+      next:
+        划接可行且仍需补充电源: 搜索新增一路电源点
+        划接可行且供电方式已满足: 生成候选接入方案
+        划接不可行: 评估新出线分支
+      sla: 原电源容量校核后即时完成
+    - name: 搜索新增一路电源点
+      function: search_power_access_points
+      description: 在单电源增容升级为双电源时，保留一路原电源，并按新装逻辑扩散搜索另一路电源点。
+      next: 校核新增一路电源点
+      sla: 确定升级双电源后即时完成
+    - name: 校核新增一路电源点
+      function: check_access_point_capacity
+      description: 对升级双电源所需新增一路候选电源点进行馈线、主变、备用间隔、用户数和线损率准入校核。
+      next:
+        存在可用新增电源点: 评估新出线分支
+        存在需划接新增电源点: 生成新增一路负荷划接方案
+        无可用新增电源点: 评估新出线分支
+      sla: 新增一路电源点搜索完成后即时完成
+    - name: 生成新增一路负荷划接方案
+      function: generate_load_transfer_plan
+      description: 对升级双电源新增一路候选电源点涉及的重载馈线或主变生成负荷划接方案。
+      next: 评估新出线分支
+      sla: 新增一路电源点校核后即时完成
+    - name: 评估新出线分支
+      function: evaluate_new_substation_outgoing_line
+      description: 在原电源不可用、负荷划接不可行、配置勾选或单路容量达到阈值等条件下，评估变电站新出线是否触发并可行；新出线一旦触发即强制停止回退到原电源、新增电源点或负荷划接方案。
+      next:
+        触发且新出线可行: 生成候选接入方案
+        触发但新出线不可行: 生成无可用方案结论
+        未触发且存在可用原电源或新增电源点或可行划接方案: 生成候选接入方案
+        未触发且不存在可用原电源、新增电源点或可行划接方案: 生成无可用方案结论
+      sla: 原电源或新增一路校核后即时完成
+    - name: 生成候选接入方案
+      function: generate_candidate_connection_schemes
+      description: 生成增容候选接入方案；单电源增容仅围绕原电源形成方案，单电源升级双电源必须保留一路原电源并满足独立性要求；若新出线已触发，仅基于新出线结果生成候选方案。
+      next:
+        已生成候选方案: 评分排序方案
+        无候选方案: 生成无可用方案结论
+      sla: 增容分支校核完成后即时完成
+    - name: 评分排序方案
+      function: score_and_rank_schemes
+      description: 对增容候选方案执行固定权重评分、按运行方式保留和最多10套输出控制。
+      next:
+        已形成推荐集合: 生成PDF预览
+        推荐集合为空: 生成无可用方案结论
+      sla: 候选方案生成后即时完成
+    - name: 生成PDF预览
+      function: generate_connection_scheme_pdf_preview
+      description: 生成包含原电源校核、负荷转移说明、增容推荐方案和路径说明的PDF预览交付物。
+      next: 流程结束
+      sla: 评分排序完成后即时完成
+    - name: 生成无可用方案结论
+      function: generate_no_available_scheme_conclusion
+      description: 在原电源、新增一路电源点、负荷划接和新出线均不可行，或新出线触发但不可行时，生成增容场景无可用方案结论。
+      next: 流程结束
+      sla: 判定无可用方案后即时完成
+    - name: 流程结束
+      function: ''
+      description: 增容接入方案推理完成，输出推荐方案PDF预览或无可用方案结论。
+  new_substation_outgoing_line_workflow:
+    description: 变电站新出线接入方案生成流程：在配置勾选、容量阈值、现有电源点不可用或负荷划接不可行时，强制停止常规现有电源点选取，转为15公里范围内变电站新出线方案综合评估。
+    trigger: 推理配置启用变电站新出线，或常规电源点推荐过程中满足新出线触发条件。
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ConnectionReasoningConfig
+    - NewSubstationOutgoingLineTriggerRule
+    - NewSubstationOutgoingLineFeasibilityRule
+    - SchemeScoringRule
+    - RedlineBoundaryDeviceRule
+    - AccessPointCapacityCheck
+    - OriginalSupplyCapacityCheck
+    - LoadTransferPlan
+    - Substation
+    - SubstationTransformer
+    - NewSubstationOutgoingLineDecision
+    - CandidateConnectionScheme
+    - SchemeScore
+    - RankedConnectionSchemeSet
+    - ConnectionSchemePdfPreview
+    - NoAvailableConnectionSchemeConclusion
+    steps:
+    - name: 综合评估新出线触发与可行性
+      function: evaluate_new_substation_outgoing_line
+      description: 以幂等的单次综合评估方式判断配置勾选、单路容量达到阈值、无可用现有电源点、1000米内无馈线割接对象或站内无主变割接对象等触发条件；触发后停止常规现有电源点方案生成，并按由近至远搜索15公里范围内候选变电站，校验空余出线间隔、主变可开放容量和实时负载率。
+      next:
+        未触发: 流程结束
+        触发且可行: 生成新出线候选方案
+        触发但不可行: 生成无可用方案结论
+      sla: 进入新出线分支时即时完成
+    - name: 生成新出线候选方案
+      function: generate_candidate_connection_schemes
+      description: 基于选定变电站、主变和出线间隔开关生成新出线候选接入方案，并写入路径、新建公共接入点和红线处分界设备说明。
+      next:
+        已生成候选方案: 评分排序方案
+        无候选方案: 生成无可用方案结论
+      sla: 新出线综合评估通过后即时完成
+    - name: 评分排序方案
+      function: score_and_rank_schemes
+      description: 将新出线方案纳入候选方案集合进行评分排序和输出数量控制。
+      next:
+        已形成推荐集合: 生成PDF预览
+        推荐集合为空: 生成无可用方案结论
+      sla: 新出线候选方案生成后即时完成
+    - name: 生成PDF预览
+      function: generate_connection_scheme_pdf_preview
+      description: 生成包含新出线触发原因、15公里变电站搜索、空余间隔与主变校核、新出线路径和推荐方案摘要的PDF预览。
+      next: 流程结束
+      sla: 评分排序完成后即时完成
+    - name: 生成无可用方案结论
+      function: generate_no_available_scheme_conclusion
+      description: 当新出线触发后15公里范围内无符合空余间隔、主变容量和负载率要求的变电站，或无法生成合法新出线候选方案时，生成无可用新出线接入方案结论。
+      next: 流程结束
+      sla: 确认新出线不可行后即时完成
+    - name: 流程结束
+      function: ''
+      description: 变电站新出线分支处理完成，输出新出线推荐方案、纳入最终方案集合或返回未触发状态。
+  temporary_power_scheme_generation_workflow:
+    description: 高压10kV装表临时用电接入方案智能生成流程：面向临时用电场景执行范围校验、供电方式判定、周边电源点搜索、容量校核、负荷划接或新出线强制切换判断，并输出推荐方案。
+    trigger: 高压装表临时用电请求通过营销2.0传入，并由业务人员在PMS3.0发起正式推理。
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ConnectionReasoningConfig
+    - ConnectionScopeRule
+    - PowerSupplyModeRule
+    - ExistingAccessPointConstraintRule
+    - LoadTransferRule
+    - NewSubstationOutgoingLineTriggerRule
+    - NewSubstationOutgoingLineFeasibilityRule
+    - SchemeScoringRule
+    - RedlineBoundaryDeviceRule
+    - ScopeValidationResult
+    - SupplyModeDecision
+    - PowerSourceSearchBatch
+    - PowerAccessPoint
+    - Feeder
+    - SubstationTransformer
+    - Substation
+    - AccessPointCapacityCheck
+    - LoadTransferPlan
+    - NewSubstationOutgoingLineDecision
+    - CandidateConnectionScheme
+    - SchemeScore
+    - RankedConnectionSchemeSet
+    - ConnectionSchemePdfPreview
+    - NoAvailableConnectionSchemeConclusion
+    steps:
+    - name: 范围校验
+      function: validate_connection_scope
+      description: 校验业务类型、供电电压和受电变压器总容量是否属于10kV高压装表临时用电接入方案推理范围。
+      next:
+        通过: 应用推理配置
+        不通过: 生成无可用方案结论
+      sla: 正式推理启动后即时完成
+    - name: 应用推理配置
+      function: apply_reasoning_config_constraints
+      description: 读取临时用电接入方案推理所需的指定设备类型、红线新增设备和新出线配置。
+      next: 判定供电方式
+      sla: 范围校验通过后即时完成
+    - name: 判定供电方式
+      function: decide_supply_mode
+      description: 根据临时性重要用户、普通临时用户、负荷等级和用户需求确定临时用电供电方式要求。
+      next: 扩散搜索现有电源点
+      sla: 应用推理配置后即时完成
+    - name: 扩散搜索现有电源点
+      function: search_power_access_points
+      description: 按200米、500米、800米、1000米顺序搜索周边现有电源点，并应用设备类型过滤和线路数量停止条件。
+      next: 校核现有电源点
+      sla: 供电方式判定后即时完成
+    - name: 校核现有电源点
+      function: check_access_point_capacity
+      description: 同步校核候选电源点关联馈线及主变可开放容量、负载率、备用间隔、用户数和线损情况。
+      next:
+        存在直接可用电源点: 评估新出线分支
+        存在需负荷划接电源点: 生成负荷划接方案
+        无可用且无可划接电源点: 评估新出线分支
+      sla: 电源点搜索完成后即时完成
+    - name: 生成负荷划接方案
+      function: generate_load_transfer_plan
+      description: 对临时用电候选电源点涉及的重载馈线或主变生成负荷划接方案，并校核划接后负载率。
+      next: 评估新出线分支
+      sla: 现有电源点校核后即时完成
+    - name: 评估新出线分支
+      function: evaluate_new_substation_outgoing_line
+      description: 当现有电源点不可用、负荷划接不可行、配置启用或单路容量达到阈值时，评估是否转入变电站新出线方案；新出线一旦触发即强制停止常规现有电源点方案回退。
+      next:
+        触发且新出线可行: 生成候选接入方案
+        触发但新出线不可行: 生成无可用方案结论
+        未触发且存在直接可用电源点或可行负荷划接方案: 生成候选接入方案
+        未触发且不存在可用现有电源点或可行负荷划接方案: 生成无可用方案结论
+      sla: 负荷划接判断后即时完成
+    - name: 生成候选接入方案
+      function: generate_candidate_connection_schemes
+      description: 根据临时用电供电方式、可用电源点、负荷划接结果、新出线决策和红线设备要求生成候选接入方案；若新出线已触发，仅基于新出线结果生成候选方案。
+      next:
+        已生成候选方案: 评分排序方案
+        无候选方案: 生成无可用方案结论
+      sla: 新出线分支评估后即时完成
+    - name: 评分排序方案
+      function: score_and_rank_schemes
+      description: 对临时用电候选方案按距离、可开放容量和可靠性评分，保留各运行方式最高分方案且总数不超过10套。
+      next:
+        已形成推荐集合: 生成PDF预览
+        推荐集合为空: 生成无可用方案结论
+      sla: 候选方案生成后即时完成
+    - name: 生成PDF预览
+      function: generate_connection_scheme_pdf_preview
+      description: 生成临时用电接入推荐方案PDF预览，包含用户需求、推理过程、路径走向、负荷切割或新出线说明。
+      next: 流程结束
+      sla: 评分排序完成后即时完成
+    - name: 生成无可用方案结论
+      function: generate_no_available_scheme_conclusion
+      description: 在临时用电场景下无法形成现有电源点、负荷划接或新出线方案，或新出线触发但不可行时，生成无可用方案结论。
+      next: 流程结束
+      sla: 判定无可用方案后即时完成
+    - name: 流程结束
+      function: ''
+      description: 临时用电接入方案推理完成，输出推荐方案PDF预览或无可用方案结论。
+  no_available_scheme_workflow:
+    description: 无可用接入方案终态处理流程：当范围校验不通过，或现有电源点、原电源、负荷划接、新出线均无法满足约束时，形成可追溯的无方案结论。
+    trigger: 任一接入方案生成流程中出现硬性范围不通过、候选方案为空或所有分支均不可行。
+    involves_objects:
+    - HighVoltageConnectionRequest
+    - ConnectionScopeRule
+    - ExistingAccessPointConstraintRule
+    - LoadTransferRule
+    - NewSubstationOutgoingLineTriggerRule
+    - NewSubstationOutgoingLineFeasibilityRule
+    - ScopeValidationResult
+    - AccessPointCapacityCheck
+    - OriginalSupplyCapacityCheck
+    - LoadTransferPlan
+    - NewSubstationOutgoingLineDecision
+    - RankedConnectionSchemeSet
+    - NoAvailableConnectionSchemeConclusion
+    steps:
+    - name: 汇总失败证据
+      function: ''
+      description: 编排层聚合步骤，不由单独函数执行；汇总范围校验失败原因、现有电源点校核失败约束、原电源校核失败原因、负荷划接不可行原因和新出线不可行原因，作为生成无可用方案结论的输入。
+      next: 生成无可用方案结论
+      sla: 判定进入无方案终态后即时完成
+    - name: 生成无可用方案结论
+      function: generate_no_available_scheme_conclusion
+      description: 生成包含失败阶段、失败约束、已搜索半径、已搜索变电站范围、解释说明和建议人工复核动作的无可用方案结论。
+      next: 流程结束
+      sla: 失败证据汇总后即时完成
+    - name: 流程结束
+      function: ''
+      description: 无可用接入方案终态处理完成。

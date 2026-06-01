@@ -1,0 +1,15 @@
+[
+  {
+    "rule_id": "EAC_DEFAULT",
+    "max_feeder_historical_load_rate": 0.8,
+    "max_feeder_current_load_rate": 0.8,
+    "feeder_capacity_operator": "gte",
+    "feeder_capacity_multiplier": 1.0,
+    "min_spare_bay_count": 2,
+    "max_connected_user_count": 50,
+    "max_line_loss_rate_after_connection": 0.07,
+    "transformer_capacity_operator": "gte",
+    "transformer_capacity_multiplier": 1.0,
+    "max_transformer_load_rate": 0.8
+  }
+]

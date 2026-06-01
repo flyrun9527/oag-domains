@@ -1,0 +1,14 @@
+[
+  {
+    "rule_id": "LTR_DEFAULT",
+    "overload_threshold": 0.8,
+    "preserve_existing_tie_relationship": true,
+    "receiver_selection_priority": [
+      "available_capacity_kva",
+      "current_load_rate"
+    ],
+    "target_feeder_max_load_rate_after_transfer": 0.8,
+    "target_transformer_max_load_rate_after_transfer": 0.8,
+    "feeder_transfer_search_radius_m": 2000
+  }
+]

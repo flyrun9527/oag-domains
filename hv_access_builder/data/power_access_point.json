@@ -1,0 +1,189 @@
+[
+  {
+    "access_point_id": "AP001",
+    "device_type": "杆塔",
+    "coordinate": {
+      "lng": 121.252,
+      "lat": 31.381
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F001",
+    "busbar_id": "BUS001",
+    "substation_id": "SS001",
+    "incoming_source_id": "MT001",
+    "available_bay_count": 0,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "嘉定路杆塔#12"
+  },
+  {
+    "access_point_id": "AP002",
+    "device_type": "环网柜",
+    "coordinate": {
+      "lng": 121.248,
+      "lat": 31.379
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F001",
+    "busbar_id": "BUS001",
+    "substation_id": "SS001",
+    "incoming_source_id": "MT001",
+    "available_bay_count": 3,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "博乐路环网柜"
+  },
+  {
+    "access_point_id": "AP003",
+    "device_type": "开关站",
+    "coordinate": {
+      "lng": 121.253,
+      "lat": 31.383
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F002",
+    "busbar_id": "BUS001",
+    "substation_id": "SS001",
+    "incoming_source_id": "MT001",
+    "available_bay_count": 4,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "城中路开关站"
+  },
+  {
+    "access_point_id": "AP004",
+    "device_type": "杆塔",
+    "coordinate": {
+      "lng": 121.255,
+      "lat": 31.385
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F003",
+    "busbar_id": "BUS002",
+    "substation_id": "SS001",
+    "incoming_source_id": "MT002",
+    "available_bay_count": 0,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "嘉定新城杆塔#8"
+  },
+  {
+    "access_point_id": "AP005",
+    "device_type": "环网柜",
+    "coordinate": {
+      "lng": 121.185,
+      "lat": 31.362
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F004",
+    "busbar_id": "BUS003",
+    "substation_id": "SS002",
+    "incoming_source_id": "MT003",
+    "available_bay_count": 2,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "安亭路环网柜"
+  },
+  {
+    "access_point_id": "AP006",
+    "device_type": "开关站",
+    "coordinate": {
+      "lng": 121.183,
+      "lat": 31.358
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F005",
+    "busbar_id": "BUS004",
+    "substation_id": "SS002",
+    "incoming_source_id": "MT004",
+    "available_bay_count": 5,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "墨玉路开关站"
+  },
+  {
+    "access_point_id": "AP007",
+    "device_type": "杆塔",
+    "coordinate": {
+      "lng": 121.26,
+      "lat": 31.39
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F002",
+    "busbar_id": "BUS001",
+    "substation_id": "SS001",
+    "incoming_source_id": "MT001",
+    "available_bay_count": 0,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "嘉罗路杆塔#3"
+  },
+  {
+    "access_point_id": "AP008",
+    "device_type": "环网柜",
+    "coordinate": {
+      "lng": 121.247,
+      "lat": 31.376
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F006",
+    "busbar_id": "BUS002",
+    "substation_id": "SS001",
+    "incoming_source_id": "MT002",
+    "available_bay_count": 3,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "平城路环网柜"
+  },
+  {
+    "access_point_id": "AP009",
+    "device_type": "开关站",
+    "coordinate": {
+      "lng": 121.25,
+      "lat": 31.374
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F006",
+    "busbar_id": "BUS002",
+    "substation_id": "SS001",
+    "incoming_source_id": "MT002",
+    "available_bay_count": 4,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "塔城路开关站"
+  },
+  {
+    "access_point_id": "AP010",
+    "device_type": "杆塔",
+    "coordinate": {
+      "lng": 121.245,
+      "lat": 31.382
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F007",
+    "busbar_id": "BUS001",
+    "substation_id": "SS001",
+    "incoming_source_id": "MT001",
+    "available_bay_count": 0,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "清河路杆塔#5"
+  },
+  {
+    "access_point_id": "AP011",
+    "device_type": "环网柜",
+    "coordinate": {
+      "lng": 121.251,
+      "lat": 31.384
+    },
+    "distance_to_receiving_point_m": 0,
+    "feeder_id": "F007",
+    "busbar_id": "BUS001",
+    "substation_id": "SS001",
+    "incoming_source_id": "MT001",
+    "available_bay_count": 2,
+    "is_available": true,
+    "current_operation_status": "运行",
+    "name": "新成路环网柜"
+  }
+]

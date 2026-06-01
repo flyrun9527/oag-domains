@@ -1,0 +1,15 @@
+[
+  {
+    "original_supply_info_id": "OSI_R003",
+    "request_id": "R003",
+    "original_access_point_id": "AP005",
+    "original_feeder_id": "F004",
+    "original_transformer_id": "MT003",
+    "original_substation_id": "SS002",
+    "original_busbar_id": "BUS003",
+    "existing_contract_capacity_kva": 3000,
+    "incremental_capacity_kva": 5000,
+    "post_expansion_capacity_kva": 8000,
+    "original_supply_mode": "单电源"
+  }
+]

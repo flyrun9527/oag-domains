@@ -1,0 +1,13 @@
+[
+  {
+    "rule_id": "NSOL_TRIGGER",
+    "config_enabled": true,
+    "single_route_capacity_threshold_kva": 10000,
+    "trigger_when_capacity_exceeds_threshold": true,
+    "require_no_available_existing_access_point": true,
+    "require_no_feeder_transfer_candidate_within_radius": false,
+    "feeder_transfer_candidate_radius_m": 2000,
+    "require_no_transformer_transfer_candidate_in_substation": false,
+    "trigger_logic": "capacity_or_no_existing_source"
+  }
+]

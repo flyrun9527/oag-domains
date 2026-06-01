@@ -1,0 +1,12 @@
+[
+  {
+    "rule_id": "CSR_10KV",
+    "allowed_business_types": [
+      "新装",
+      "增容",
+      "临时"
+    ],
+    "required_supply_voltage_kv": 10,
+    "max_total_receiving_transformer_capacity_kva": 20000
+  }
+]

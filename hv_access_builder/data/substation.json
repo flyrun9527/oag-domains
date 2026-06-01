@@ -1,0 +1,61 @@
+[
+  {
+    "substation_id": "SS001",
+    "name": "嘉定变电站",
+    "coordinate": {
+      "lng": 121.25,
+      "lat": 31.38
+    },
+    "distance_to_receiving_point_m": 0,
+    "spare_outgoing_bay_count": 11,
+    "incoming_source_ids": [
+      "MT001",
+      "MT002"
+    ],
+    "busbar_ids": [
+      "BUS001",
+      "BUS002"
+    ],
+    "transformer_ids": [
+      "MT001",
+      "MT002"
+    ],
+    "outgoing_bay_ids": [
+      "BAY_F001",
+      "BAY_F002",
+      "BAY_F003",
+      "BAY_F006",
+      "BAY_F007"
+    ],
+    "voltage_level": "110kV/10kV",
+    "total_capacity_kva": 63000
+  },
+  {
+    "substation_id": "SS002",
+    "name": "安亭变电站",
+    "coordinate": {
+      "lng": 121.18,
+      "lat": 31.36
+    },
+    "distance_to_receiving_point_m": 0,
+    "spare_outgoing_bay_count": 6,
+    "incoming_source_ids": [
+      "MT003",
+      "MT004"
+    ],
+    "busbar_ids": [
+      "BUS003",
+      "BUS004"
+    ],
+    "transformer_ids": [
+      "MT003",
+      "MT004"
+    ],
+    "outgoing_bay_ids": [
+      "BAY_F004",
+      "BAY_F005"
+    ],
+    "voltage_level": "110kV/10kV",
+    "total_capacity_kva": 50000
+  }
+]

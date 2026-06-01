@@ -1,0 +1,82 @@
+[
+  {
+    "rule_id": "SR001",
+    "user_importance_level": "特级",
+    "load_level": "一级",
+    "user_requested_mode": "",
+    "required_supply_mode": "多电源(3路含应急)",
+    "minimum_route_count": 3,
+    "minimum_source_count": 3,
+    "source_independence_requirement": "none"
+  },
+  {
+    "rule_id": "SR002",
+    "user_importance_level": "一级",
+    "load_level": "一级",
+    "user_requested_mode": "",
+    "required_supply_mode": "双电源",
+    "minimum_route_count": 2,
+    "minimum_source_count": 2,
+    "source_independence_requirement": "different_substation"
+  },
+  {
+    "rule_id": "SR003",
+    "user_importance_level": "二级",
+    "load_level": "一级",
+    "user_requested_mode": "",
+    "required_supply_mode": "双回路",
+    "minimum_route_count": 2,
+    "minimum_source_count": 2,
+    "source_independence_requirement": "different_busbar"
+  },
+  {
+    "rule_id": "SR004",
+    "user_importance_level": "一级",
+    "load_level": "二级",
+    "user_requested_mode": "",
+    "required_supply_mode": "双电源",
+    "minimum_route_count": 2,
+    "minimum_source_count": 2,
+    "source_independence_requirement": "different_substation"
+  },
+  {
+    "rule_id": "SR005",
+    "user_importance_level": "二级",
+    "load_level": "二级",
+    "user_requested_mode": "",
+    "required_supply_mode": "双回路",
+    "minimum_route_count": 2,
+    "minimum_source_count": 2,
+    "source_independence_requirement": "different_busbar"
+  },
+  {
+    "rule_id": "SR006",
+    "user_importance_level": "临时",
+    "load_level": "二级",
+    "user_requested_mode": "",
+    "required_supply_mode": "双回路",
+    "minimum_route_count": 2,
+    "minimum_source_count": 2,
+    "source_independence_requirement": "different_busbar"
+  },
+  {
+    "rule_id": "SR007",
+    "user_importance_level": "非重要",
+    "load_level": "三级",
+    "user_requested_mode": "",
+    "required_supply_mode": "单电源",
+    "minimum_route_count": 1,
+    "minimum_source_count": 1,
+    "source_independence_requirement": "none"
+  },
+  {
+    "rule_id": "SR008",
+    "user_importance_level": "二级",
+    "load_level": "三级",
+    "user_requested_mode": "",
+    "required_supply_mode": "单电源",
+    "minimum_route_count": 1,
+    "minimum_source_count": 1,
+    "source_independence_requirement": "none"
+  }
+]

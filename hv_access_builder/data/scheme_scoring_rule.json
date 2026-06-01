@@ -1,0 +1,21 @@
+[
+  {
+    "rule_id": "SSR_DEFAULT",
+    "distance_weight": 0.35,
+    "available_capacity_weight": 0.35,
+    "reliability_weight": 0.3,
+    "source_count_reliability_scores": {
+      "1": 60,
+      "2": 85,
+      "3": 95
+    },
+    "operation_mode_reliability_scores": {
+      "单电源": 60,
+      "双回路": 85,
+      "双电源": 95,
+      "多电源(3路含应急)": 98
+    },
+    "max_output_count": 3,
+    "retain_best_per_operation_mode": true
+  }
+]

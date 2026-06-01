@@ -1,0 +1,134 @@
+[
+  {
+    "feeder_id": "F001",
+    "substation_id": "SS001",
+    "busbar_id": "BUS001",
+    "historical_max_load_rate": 0.62,
+    "current_load_rate": 0.62,
+    "available_capacity_kva": 7200,
+    "connected_user_count": 28,
+    "line_loss_rate_after_connection": 0.04,
+    "neighbor_feeder_ids": [
+      "F002",
+      "F007"
+    ],
+    "section_switch_ids": [],
+    "tie_switch_ids": [
+      "FTS001",
+      "FTS005"
+    ],
+    "name": "嘉定变921线"
+  },
+  {
+    "feeder_id": "F002",
+    "substation_id": "SS001",
+    "busbar_id": "BUS001",
+    "historical_max_load_rate": 0.75,
+    "current_load_rate": 0.75,
+    "available_capacity_kva": 4800,
+    "connected_user_count": 42,
+    "line_loss_rate_after_connection": 0.055,
+    "neighbor_feeder_ids": [
+      "F001",
+      "F003"
+    ],
+    "section_switch_ids": [],
+    "tie_switch_ids": [
+      "FTS001",
+      "FTS002"
+    ],
+    "name": "嘉定变922线"
+  },
+  {
+    "feeder_id": "F003",
+    "substation_id": "SS001",
+    "busbar_id": "BUS002",
+    "historical_max_load_rate": 0.85,
+    "current_load_rate": 0.85,
+    "available_capacity_kva": 2100,
+    "connected_user_count": 48,
+    "line_loss_rate_after_connection": 0.068,
+    "neighbor_feeder_ids": [
+      "F002",
+      "F006"
+    ],
+    "section_switch_ids": [],
+    "tie_switch_ids": [
+      "FTS002",
+      "FTS004"
+    ],
+    "name": "嘉定变923线"
+  },
+  {
+    "feeder_id": "F004",
+    "substation_id": "SS002",
+    "busbar_id": "BUS003",
+    "historical_max_load_rate": 0.78,
+    "current_load_rate": 0.78,
+    "available_capacity_kva": 5500,
+    "connected_user_count": 35,
+    "line_loss_rate_after_connection": 0.05,
+    "neighbor_feeder_ids": [
+      "F005"
+    ],
+    "section_switch_ids": [],
+    "tie_switch_ids": [
+      "FTS003"
+    ],
+    "name": "安亭变921线"
+  },
+  {
+    "feeder_id": "F005",
+    "substation_id": "SS002",
+    "busbar_id": "BUS004",
+    "historical_max_load_rate": 0.45,
+    "current_load_rate": 0.45,
+    "available_capacity_kva": 12000,
+    "connected_user_count": 15,
+    "line_loss_rate_after_connection": 0.03,
+    "neighbor_feeder_ids": [
+      "F004"
+    ],
+    "section_switch_ids": [],
+    "tie_switch_ids": [
+      "FTS003"
+    ],
+    "name": "安亭变922线"
+  },
+  {
+    "feeder_id": "F006",
+    "substation_id": "SS001",
+    "busbar_id": "BUS002",
+    "historical_max_load_rate": 0.58,
+    "current_load_rate": 0.58,
+    "available_capacity_kva": 6500,
+    "connected_user_count": 22,
+    "line_loss_rate_after_connection": 0.035,
+    "neighbor_feeder_ids": [
+      "F003"
+    ],
+    "section_switch_ids": [],
+    "tie_switch_ids": [
+      "FTS004"
+    ],
+    "name": "嘉定变924线"
+  },
+  {
+    "feeder_id": "F007",
+    "substation_id": "SS001",
+    "busbar_id": "BUS001",
+    "historical_max_load_rate": 0.52,
+    "current_load_rate": 0.52,
+    "available_capacity_kva": 8500,
+    "connected_user_count": 18,
+    "line_loss_rate_after_connection": 0.03,
+    "neighbor_feeder_ids": [
+      "F001"
+    ],
+    "section_switch_ids": [],
+    "tie_switch_ids": [
+      "FTS005"
+    ],
+    "name": "嘉定变925线"
+  }
+]

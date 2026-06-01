@@ -1,0 +1,79 @@
+[
+  {
+    "outgoing_bay_id": "BAY_F001",
+    "substation_id": "SS001",
+    "busbar_id": "BUS001",
+    "transformer_id": "MT001",
+    "voltage_kv": 10,
+    "is_available": true,
+    "current_status": "备用",
+    "reserved_for_project_id": "",
+    "operation_status": "可用"
+  },
+  {
+    "outgoing_bay_id": "BAY_F002",
+    "substation_id": "SS001",
+    "busbar_id": "BUS001",
+    "transformer_id": "MT001",
+    "voltage_kv": 10,
+    "is_available": true,
+    "current_status": "备用",
+    "reserved_for_project_id": "",
+    "operation_status": "可用"
+  },
+  {
+    "outgoing_bay_id": "BAY_F003",
+    "substation_id": "SS001",
+    "busbar_id": "BUS002",
+    "transformer_id": "MT002",
+    "voltage_kv": 10,
+    "is_available": true,
+    "current_status": "备用",
+    "reserved_for_project_id": "",
+    "operation_status": "可用"
+  },
+  {
+    "outgoing_bay_id": "BAY_F004",
+    "substation_id": "SS002",
+    "busbar_id": "BUS003",
+    "transformer_id": "MT003",
+    "voltage_kv": 10,
+    "is_available": true,
+    "current_status": "备用",
+    "reserved_for_project_id": "",
+    "operation_status": "可用"
+  },
+  {
+    "outgoing_bay_id": "BAY_F005",
+    "substation_id": "SS002",
+    "busbar_id": "BUS004",
+    "transformer_id": "MT004",
+    "voltage_kv": 10,
+    "is_available": true,
+    "current_status": "备用",
+    "reserved_for_project_id": "",
+    "operation_status": "可用"
+  },
+  {
+    "outgoing_bay_id": "BAY_F006",
+    "substation_id": "SS001",
+    "busbar_id": "BUS002",
+    "transformer_id": "MT002",
+    "voltage_kv": 10,
+    "is_available": true,
+    "current_status": "备用",
+    "reserved_for_project_id": "",
+    "operation_status": "可用"
+  },
+  {
+    "outgoing_bay_id": "BAY_F007",
+    "substation_id": "SS001",
+    "busbar_id": "BUS001",
+    "transformer_id": "MT001",
+    "voltage_kv": 10,
+    "is_available": true,
+    "current_status": "备用",
+    "reserved_for_project_id": "",
+    "operation_status": "可用"
+  }
+]

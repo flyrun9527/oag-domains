@@ -1,0 +1,57 @@
+[
+  {
+    "transformer_id": "MT001",
+    "substation_id": "SS001",
+    "busbar_id": "BUS001",
+    "available_capacity_kva": 11025,
+    "current_load_rate": 0.65,
+    "historical_max_load_rate": 0.65,
+    "connected_feeder_ids": [
+      "F001",
+      "F002",
+      "F007"
+    ],
+    "name": "嘉定变#1主变",
+    "spare_bay_count": 3
+  },
+  {
+    "transformer_id": "MT002",
+    "substation_id": "SS001",
+    "busbar_id": "BUS002",
+    "available_capacity_kva": 8820,
+    "current_load_rate": 0.72,
+    "historical_max_load_rate": 0.72,
+    "connected_feeder_ids": [
+      "F003",
+      "F006"
+    ],
+    "name": "嘉定变#2主变",
+    "spare_bay_count": 1
+  },
+  {
+    "transformer_id": "MT003",
+    "substation_id": "SS002",
+    "busbar_id": "BUS003",
+    "available_capacity_kva": 4500,
+    "current_load_rate": 0.82,
+    "historical_max_load_rate": 0.82,
+    "connected_feeder_ids": [
+      "F004"
+    ],
+    "name": "安亭变#1主变",
+    "spare_bay_count": 2
+  },
+  {
+    "transformer_id": "MT004",
+    "substation_id": "SS002",
+    "busbar_id": "BUS004",
+    "available_capacity_kva": 11250,
+    "current_load_rate": 0.55,
+    "historical_max_load_rate": 0.55,
+    "connected_feeder_ids": [
+      "F005"
+    ],
+    "name": "安亭变#2主变",
+    "spare_bay_count": 4
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "config_id": "CFG_DEFAULT",
+    "request_id": "",
+    "allowed_source_device_types": [
+      "杆塔",
+      "环网柜",
+      "开关站"
+    ],
+    "add_redline_boundary_device": true,
+    "enable_new_substation_outgoing_line": true,
+    "pms_preselected_source_type": "",
+    "created_by": "seed",
+    "created_at": "2026-06-01"
+  }
+]

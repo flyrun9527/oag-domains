@@ -1,0 +1,22 @@
+[
+  {
+    "rule_id": "RBD_RING",
+    "add_redline_boundary_device": true,
+    "connection_form": "环网柜",
+    "min_single_route_capacity_kva": 0,
+    "max_single_route_capacity_kva": 10000,
+    "boundary_device_type": "环网柜",
+    "min_spare_bay_count": 2,
+    "construction_location_requirement": "红线边界"
+  },
+  {
+    "rule_id": "RBD_SWITCH",
+    "add_redline_boundary_device": true,
+    "connection_form": "开关站",
+    "min_single_route_capacity_kva": 10000,
+    "max_single_route_capacity_kva": 999999,
+    "boundary_device_type": "开关站",
+    "min_spare_bay_count": 2,
+    "construction_location_requirement": "红线边界"
+  }
+]
