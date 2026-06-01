@@ -205,11 +205,14 @@ ontology 中声明的字段向上暴露对象语义。对象的 `source.id_field
 `oag distill` 入口：
 
 ```bash
-uv run oag distill run ./raw_docs --output domains/new_domain --phase 3
+uv run oag distill run ./raw_docs --output domains/new_domain
 uv run oag distill status domains/new_domain/state
 ```
 
-这个工具依赖 OAG 的元模型 schema 做校验，但不属于在线 Agent runtime。
+LLM 配置从 `domains/tools/.env` 读取，字段为 `LLM_API_KEY`、`LLM_API_URL` 和
+`LLM_MODEL`；该文件不会提交到仓库。新版本按“任务闭环→建模蓝图→ontology→审查修复”
+运行，默认执行到 `--phase 4` 并输出 `ontology.yaml`。这个工具依赖 OAG 的元模型 schema
+做校验，但不属于在线 Agent runtime。
 
 ## 本地检查
 
