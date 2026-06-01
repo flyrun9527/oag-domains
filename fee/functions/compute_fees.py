@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 from collections import defaultdict
-from oag.ontology.store import Store
+from typing import Any
+
+from oag.ontology.repository import ObjectRepository
 
 
-def _int(v) -> int:
+def _int(v: Any) -> int:
     if v is None:
         return 0
     if isinstance(v, (int, float)):
@@ -14,7 +17,7 @@ def _int(v) -> int:
         return 0
 
 
-def _float(v) -> float:
+def _float(v: Any) -> float:
     if v is None:
         return 0.0
     if isinstance(v, (int, float)):
@@ -25,42 +28,38 @@ def _float(v) -> float:
         return 0.0
 
 
-def _str(v) -> str | None:
+def _str(v: Any) -> str | None:
     return str(v) if v is not None else None
 
 
-def compute_fees(store: Store, vehicle_types: str = "1,2,3,4,11,12,13,14,15,16") -> dict:
-    vcs = [int(x.strip()) for x in vehicle_types.split(",")]
+def compute_fees(store: ObjectRepository,
+                 vehicle_types: str = "1,2,3,4,11,12,13,14,15,16") -> dict:
+    vcs = [int(x.strip()) for x in str(vehicle_types).split(",") if x.strip()]
 
     units = store.query("TollUnit")
     rates = store.query("BaseRate")
     discounts = store.query("SpecialTimeDiscount")
 
-    store.execute_write("DELETE FROM province_rate_param")
-
-    # rate_code -> {vc -> vc_rate}
     rate_map: dict[str, dict[int, float]] = defaultdict(dict)
-    for r in rates:
-        rate_map[_str(r.get("rate_code"))][_int(r.get("vc"))] = _float(r.get("vc_rate"))
+    for rate in rates:
+        rate_map[_str(rate.get("rate_code"))][_int(rate.get("vehicle_type"))] = _float(rate.get("vc_rate"))
 
-    # unit_id -> [discount records]
     discount_by_unit: dict[str, list[dict]] = defaultdict(list)
-    for d in discounts:
-        uid = _str(d.get("toll_interval_id"))
-        if uid:
-            discount_by_unit[uid].append(d)
+    for discount in discounts:
+        unit_id = _str(discount.get("toll_interval_id"))
+        if unit_id:
+            discount_by_unit[unit_id].append(discount)
 
-    params_created = 0
+    rows = []
     r3_errors = 0
-
     for unit in units:
         unit_id = _str(unit.get("toll_interval_id"))
         rate_code = _str(unit.get("rate_code"))
         charge_length = _int(unit.get("charge_length"))
 
         vc_rates = rate_map.get(rate_code)
-        if vc_rates is None:
-            r3_errors += 1
+        if not vc_rates:
+            r3_errors += len(vcs)
             continue
 
         for vc in vcs:
@@ -69,18 +68,7 @@ def compute_fees(store: Store, vehicle_types: str = "1,2,3,4,11,12,13,14,15,16")
                 r3_errors += 1
                 continue
 
-            # R1: base fee
-            try:
-                rate_code_val = int(rate_code)
-            except (ValueError, TypeError):
-                rate_code_val = 0
-
-            if rate_code_val < 50:
-                fee = round(vc_rate * charge_length)
-            else:
-                fee = round(vc_rate)
-
-            # R2: mfee/efee with discount
+            fee = _base_fee(rate_code, vc_rate, charge_length)
             full_day = _find_full_day_discount(discount_by_unit.get(unit_id, []), vc)
             if full_day:
                 cpc = _int(full_day.get("cpc_discount"))
@@ -93,21 +81,45 @@ def compute_fees(store: Store, vehicle_types: str = "1,2,3,4,11,12,13,14,15,16")
                 efee = round(fee * 0.95)
                 rate_source = "default"
 
-            store.execute_write(
-                "INSERT INTO province_rate_param "
-                "(toll_interval_id, vehicle_type, fee, mfee, efee, rate_source) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                [unit_id, vc, fee, mfee, efee, rate_source],
-            )
-            params_created += 1
+            rows.append({
+                "param_id": f"{unit_id}:{vc}",
+                "toll_interval_id": unit_id,
+                "vehicle_type": vc,
+                "fee": fee,
+                "mfee": mfee,
+                "efee": efee,
+                "rate_source": rate_source,
+            })
 
-    return {"params_created": params_created, "r3_errors": r3_errors}
+    _replace_all(store, "ProvinceRateParam", rows)
+    return {"params_created": len(rows), "r3_errors": r3_errors}
+
+
+def _base_fee(rate_code: str | None, vc_rate: float, charge_length: int) -> int:
+    try:
+        rate_code_val = int(rate_code or "0")
+    except (ValueError, TypeError):
+        rate_code_val = 0
+    if rate_code_val < 50:
+        return round(vc_rate * charge_length)
+    return round(vc_rate)
 
 
 def _find_full_day_discount(discounts: list[dict], vc: int) -> dict | None:
-    for d in discounts:
-        if _int(d.get("start_hour")) == 0 and _int(d.get("end_hour")) == 24:
-            v_type = _str(d.get("vehicle_type"))
-            if v_type == str(vc):
-                return d
+    for discount in discounts:
+        if _int(discount.get("start_hour")) == 0 and _int(discount.get("end_hour")) == 24:
+            if _str(discount.get("vehicle_type")) == str(vc):
+                return discount
     return None
+
+
+def _replace_all(store: ObjectRepository, object_type: str, rows: list[dict]):
+    adapter = store.adapter_for(object_type)
+    replace_all = getattr(adapter, "replace_all", None)
+    if callable(replace_all):
+        replace_all(rows)
+        return
+    for row in store.query(object_type):
+        store.delete_record(object_type, row[store.ontology.get_id_column(object_type)])
+    for row in rows:
+        store.insert_record(object_type, row)
