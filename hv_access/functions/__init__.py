@@ -188,6 +188,58 @@ def _get_request(store: ObjectRepository, request_id: str = "", **kw) -> dict:
     return {"error": f"未找到申请 {request_id}"}
 
 
+def _validate_source_requirement(store: ObjectRepository, request_id: str = "", **kw) -> dict:
+    req = _get_request(store, request_id)
+    if "error" in req:
+        return req
+
+    load_level = req.get("load_level", "")
+    importance_level = req.get("importance_level", "")
+    rows = store.query("SourceRequirement", filters={
+        "load_level": load_level,
+        "importance_level": importance_level,
+    }, limit=1)
+    if not rows:
+        return {
+            "error": "未找到电源结构规则",
+            "request_id": request_id,
+            "load_level": load_level,
+            "importance_level": importance_level,
+        }
+
+    required = rows[0].get("source_structure", "")
+    declared = (
+        req.get("target_source_structure")
+        or req.get("source_structure")
+        or req.get("original_source_structure")
+        or ""
+    )
+    passed = int(not declared or declared == required)
+    message = (
+        f"电源结构满足规则要求: {required}"
+        if passed
+        else f"电源结构冲突: 申请声明为{declared}，规则要求为{required}"
+    )
+    record = {
+        "check_id": _gen_id("SRC"),
+        "request_id": request_id,
+        "request_type": req.get("request_type", ""),
+        "load_level": load_level,
+        "importance_level": importance_level,
+        "declared_source_structure": declared,
+        "required_source_structure": required,
+        "passed": passed,
+        "message": message,
+    }
+    store.insert_record("SourceRequirementCheck", record)
+    return {
+        "check": record,
+        "requirement": rows[0],
+        "conflict": not bool(passed),
+        "next_action": "" if passed else f"需按{required}补充电源点/回路，不能按{declared}直接完成",
+    }
+
+
 def _get_access_points(store: ObjectRepository, lng: float = 0, lat: float = 0, radius_m: float = 1000, **kw) -> list:
     lng, lat, radius_m = float(lng), float(lat), float(radius_m)
     results = []
@@ -269,6 +321,117 @@ def _search_sources(store: ObjectRepository, request_id: str = "", point_types: 
         "target_feeders": 5,
         "point_ids": ",".join(p["point_id"] for p in found),
         "points": found,
+    }
+
+
+def _source_pair_satisfies(required: str, original_feeder: dict, candidate_feeder: dict) -> bool:
+    if required == "单电源":
+        return True
+    if not original_feeder or not candidate_feeder:
+        return False
+    if original_feeder.get("feeder_id") == candidate_feeder.get("feeder_id"):
+        return False
+    if required == "双回路":
+        return original_feeder.get("busbar_id") != candidate_feeder.get("busbar_id")
+    if required == "双电源":
+        return (
+            original_feeder.get("substation_id") != candidate_feeder.get("substation_id")
+            or original_feeder.get("busbar_id") != candidate_feeder.get("busbar_id")
+        )
+    return False
+
+
+def _source_capacity_ok(point: dict, feeder: dict, transformer: dict | None, capacity_kva: float) -> tuple[bool, list[str]]:
+    reasons = []
+    if feeder.get("max_load_rate", 0) >= 0.8:
+        reasons.append(f"馈线负载率{feeder.get('max_load_rate', 0):.0%}≥80%")
+    if feeder.get("openable_capacity_kva", 0) < capacity_kva:
+        reasons.append(f"馈线可开放容量{feeder.get('openable_capacity_kva', 0)}kVA<{capacity_kva}kVA")
+    if point.get("point_type") in ("环网柜", "开关站") and point.get("spare_intervals", 0) < 2:
+        reasons.append(f"备用间隔{point.get('spare_intervals', 0)}<2")
+    if transformer:
+        if transformer.get("openable_capacity_kva", 0) < capacity_kva:
+            reasons.append(f"主变可开放容量{transformer.get('openable_capacity_kva', 0)}kVA<{capacity_kva}kVA")
+        if transformer.get("load_rate", 0) >= 0.8:
+            reasons.append(f"主变负载率{transformer.get('load_rate', 0):.0%}≥80%")
+    return not reasons, reasons
+
+
+def _search_supplementary_sources(store: ObjectRepository, request_id: str = "", search_radius_m: float = 2000, **kw) -> dict:
+    req = _get_request(store, request_id)
+    if "error" in req:
+        return req
+    if req.get("request_type") != "ExpandRequest":
+        return {"error": "search_supplementary_sources 仅适用于增容申请"}
+
+    original_point = store.query_by_id("AccessPoint", req.get("original_point_id", ""))
+    if not original_point:
+        return {"error": f"原电源点 {req.get('original_point_id', '')} 不存在"}
+    original_feeder = store.query_by_id("Feeder", original_point.get("feeder_id", ""))
+    if not original_feeder:
+        return {"error": f"原电源点 {original_point.get('point_id', '')} 缺少馈线信息"}
+
+    source_checks = store.query("SourceRequirementCheck", filters={"request_id": request_id})
+    if not source_checks:
+        source_check_result = _validate_source_requirement(store, request_id)
+        source_check = source_check_result.get("check", {})
+    else:
+        source_check = source_checks[-1]
+    required = source_check.get("required_source_structure") or req.get("target_source_structure", "")
+    declared = source_check.get("declared_source_structure") or req.get("target_source_structure", "")
+    if required == declared or required == "单电源":
+        return {
+            "request_id": request_id,
+            "required_source_structure": required,
+            "supplement_required": False,
+            "candidates": [],
+            "message": "当前电源结构不需要补充电源点/回路",
+        }
+
+    search_radius_m = float(search_radius_m)
+    capacity = _to_float(req.get("capacity_kva"))
+    lng, lat = req.get("lng", 0), req.get("lat", 0)
+    candidates = []
+
+    for point in store.query("AccessPoint"):
+        if point.get("point_id") == original_point.get("point_id"):
+            continue
+        dist = _haversine(lng, lat, point.get("lng", 0), point.get("lat", 0))
+        if dist > search_radius_m:
+            continue
+        feeder = store.query_by_id("Feeder", point.get("feeder_id", ""))
+        if not feeder or not _source_pair_satisfies(required, original_feeder, feeder):
+            continue
+        transformer = store.query_by_id("MainTransformer", feeder.get("transformer_id", ""))
+        capacity_ok, reasons = _source_capacity_ok(point, feeder, transformer, capacity)
+        if not capacity_ok:
+            continue
+        candidates.append({
+            "point_id": point.get("point_id", ""),
+            "point_name": point.get("name", ""),
+            "feeder_id": feeder.get("feeder_id", ""),
+            "busbar_id": feeder.get("busbar_id", ""),
+            "substation_id": feeder.get("substation_id", ""),
+            "transformer_id": feeder.get("transformer_id", ""),
+            "distance_m": round(dist, 1),
+            "openable_capacity_kva": feeder.get("openable_capacity_kva", 0),
+            "transformer_openable_capacity_kva": transformer.get("openable_capacity_kva", 0) if transformer else 0,
+            "reasons": reasons if reasons else ["满足补充电源结构和容量约束"],
+        })
+
+    candidates.sort(key=lambda row: row["distance_m"])
+    return {
+        "request_id": request_id,
+        "original_point_id": original_point.get("point_id", ""),
+        "original_feeder_id": original_feeder.get("feeder_id", ""),
+        "required_source_structure": required,
+        "declared_source_structure": declared,
+        "supplement_required": True,
+        "search_radius_m": search_radius_m,
+        "candidates_found": len(candidates),
+        "candidate_point_ids": ",".join(row["point_id"] for row in candidates),
+        "candidates": candidates,
+        "message": "找到可补充回路/电源点" if candidates else "搜索半径内未找到满足补充电源结构的候选点",
     }
 
 
@@ -358,6 +521,95 @@ def _filter_sources(store: ObjectRepository, request_id: str = "", point_ids: st
         "passed": len(passed_points),
         "failed": len(failed_points),
         "results": results,
+    }
+
+
+def _latest_by_request(rows: list[dict]) -> dict | None:
+    return rows[-1] if rows else None
+
+
+def _verify_transfer_result(store: ObjectRepository, request_id: str = "", **kw) -> dict:
+    req = _get_request(store, request_id)
+    if "error" in req:
+        return req
+    if req.get("request_type") != "ExpandRequest":
+        return {"error": "verify_transfer_result 仅适用于增容申请"}
+
+    point_id = req.get("original_point_id", "")
+    point = store.query_by_id("AccessPoint", point_id)
+    if not point:
+        return {"error": f"原电源点 {point_id} 不存在"}
+
+    feeder = store.query_by_id("Feeder", point.get("feeder_id", ""))
+    if not feeder:
+        return {"error": f"原电源点 {point_id} 缺少馈线信息"}
+
+    transformer = store.query_by_id("MainTransformer", feeder.get("transformer_id", ""))
+    required_capacity = _to_float(req.get("capacity_kva"))
+    feeder_transfers = store.query("FeederLoadTransfer", filters={"request_id": request_id})
+    transformer_transfers = store.query("TransformerLoadTransfer", filters={"request_id": request_id})
+    latest_feeder_transfer = _latest_by_request(feeder_transfers)
+    latest_transformer_transfer = _latest_by_request(transformer_transfers)
+
+    feeder_openable_after = feeder.get("openable_capacity_kva", 0)
+    if latest_feeder_transfer and latest_feeder_transfer.get("source_feeder_id") == feeder.get("feeder_id"):
+        feeder_openable_after += latest_feeder_transfer.get("transfer_capacity_kva", 0)
+    feeder_resolved = feeder_openable_after >= required_capacity
+
+    transformer_openable_after = transformer.get("openable_capacity_kva", 0) if transformer else 0
+    transformer_load_after = transformer.get("load_rate", 0) if transformer else 1
+    if transformer and latest_transformer_transfer and latest_transformer_transfer.get("source_transformer_id") == transformer.get("transformer_id"):
+        transformer_openable_after += latest_transformer_transfer.get("transfer_capacity_kva", 0)
+        transformer_load_after = latest_transformer_transfer.get("source_load_rate_after", transformer_load_after)
+    transformer_resolved = transformer_openable_after >= required_capacity and transformer_load_after < 0.8
+
+    source_checks = store.query("SourceRequirementCheck", filters={"request_id": request_id})
+    if not source_checks:
+        source_check_result = _validate_source_requirement(store, request_id)
+        source_check = source_check_result.get("check", {})
+    else:
+        source_check = source_checks[-1]
+    source_requirement_passed = bool(source_check.get("passed"))
+
+    remaining = []
+    if not feeder_resolved:
+        remaining.append(f"馈线可开放容量复核不足: {feeder_openable_after}kVA<{required_capacity}kVA")
+    if not transformer_resolved:
+        remaining.append(f"主变容量/负载率复核不足: 可开放{transformer_openable_after}kVA, 负载率{transformer_load_after:.0%}")
+    if not source_requirement_passed:
+        remaining.append(
+            f"电源结构冲突: 申请为{source_check.get('declared_source_structure')}，"
+            f"规则要求{source_check.get('required_source_structure')}"
+        )
+
+    if not remaining:
+        next_action = "可形成增容方案"
+    elif not source_requirement_passed:
+        next_action = f"按{source_check.get('required_source_structure')}补充电源点/回路"
+    else:
+        next_action = "考虑变电站新出线"
+
+    record = {
+        "verification_id": _gen_id("TV"),
+        "request_id": request_id,
+        "point_id": point_id,
+        "required_capacity_kva": required_capacity,
+        "feeder_id": feeder.get("feeder_id", ""),
+        "transformer_id": transformer.get("transformer_id", "") if transformer else "",
+        "feeder_resolved": int(feeder_resolved),
+        "transformer_resolved": int(transformer_resolved),
+        "source_requirement_passed": int(source_requirement_passed),
+        "passed": int(not remaining),
+        "remaining_issues": "; ".join(remaining),
+        "next_action": next_action,
+    }
+    store.insert_record("TransferVerification", record)
+    return {
+        "verification": record,
+        "feeder_openable_capacity_after_kva": feeder_openable_after,
+        "transformer_openable_capacity_after_kva": transformer_openable_after,
+        "transformer_load_rate_after": round(transformer_load_after, 3),
+        "source_requirement_check": source_check,
     }
 
 
@@ -710,8 +962,11 @@ def register(registry: FunctionRegistry, store: ObjectRepository, ontology: Onto
         "get_feeder_tie_switches": lambda **kw: _get_feeder_tie_switches(store, **kw),
         "get_transformer_tie_switches": lambda **kw: _get_transformer_tie_switches(store, **kw),
         "get_request": lambda **kw: _get_request(store, **kw),
+        "validate_source_requirement": lambda **kw: _validate_source_requirement(store, **kw),
         "search_sources": lambda **kw: _search_sources(store, **kw),
+        "search_supplementary_sources": lambda **kw: _search_supplementary_sources(store, **kw),
         "filter_sources": lambda **kw: _filter_sources(store, **kw),
+        "verify_transfer_result": lambda **kw: _verify_transfer_result(store, **kw),
         "compose_plans": lambda **kw: _compose_plans(store, **kw),
         "score_plans": lambda **kw: _score_plans(store, **kw),
         "finalize_plans": lambda **kw: _finalize_plans(store, **kw),

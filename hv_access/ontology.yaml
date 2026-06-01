@@ -271,6 +271,49 @@ objects:
       total_score: {type: float, description: "综合评分"}
       status: {type: str, description: "状态: candidate/scored/final/dropped"}
 
+  SourceRequirementCheck:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: check_id
+    summary: "电源结构要求校验"
+    description: "validate_source_requirement 产出。对比申请目标电源结构与 SourceRequirement 规则要求，显式记录是否冲突。"
+    properties:
+      check_id: {type: str, required: true, description: "校验编号"}
+      request_id: {type: str, description: "关联申请编号"}
+      request_type: {type: str, description: "申请类型: AccessRequest/ExpandRequest"}
+      load_level: {type: str, description: "负荷等级"}
+      importance_level: {type: str, description: "重要性等级"}
+      declared_source_structure: {type: str, description: "申请声明/目标电源结构"}
+      required_source_structure: {type: str, description: "规则要求电源结构"}
+      passed: {type: int, description: "是否通过: 1=通过 0=冲突"}
+      message: {type: str, description: "校验结论"}
+
+  TransferVerification:
+    kind: entity
+    data_source: agent_generated
+    mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: verification_id
+    summary: "划接后复核结果"
+    description: "verify_transfer_result 产出。综合原电源点、馈线划接、主变划接和电源结构校验，判断增容是否可闭环。"
+    properties:
+      verification_id: {type: str, required: true, description: "复核编号"}
+      request_id: {type: str, description: "关联申请编号"}
+      point_id: {type: str, description: "原接入点编号"}
+      required_capacity_kva: {type: float, description: "增容后总容量(kVA)"}
+      feeder_id: {type: str, description: "原馈线编号"}
+      transformer_id: {type: str, description: "原主变编号"}
+      feeder_resolved: {type: int, description: "馈线容量问题是否解决"}
+      transformer_resolved: {type: int, description: "主变容量/负载问题是否解决"}
+      source_requirement_passed: {type: int, description: "电源结构要求是否通过"}
+      passed: {type: int, description: "整体复核是否通过"}
+      remaining_issues: {type: str, description: "仍未解决的问题(分号分隔)"}
+      next_action: {type: str, description: "建议下一步"}
+
   FeederLoadTransfer:
     kind: entity
     data_source: agent_generated
@@ -362,6 +405,14 @@ links:
     cardinality: "0..n"
     description: 增容申请对应的方案
 
+  request_has_source_checks:
+    source: ExpandRequest
+    target: SourceRequirementCheck
+    join: {source_key: request_id, target_key: request_id}
+    link_type: validates
+    cardinality: "0..n"
+    description: 增容申请的电源结构校验记录
+
   request_has_feeder_transfers:
     source: AccessRequest
     target: FeederLoadTransfer
@@ -377,6 +428,14 @@ links:
     link_type: contains
     cardinality: "0..n"
     description: 主变负荷划接建议
+
+  request_has_transfer_verifications:
+    source: ExpandRequest
+    target: TransferVerification
+    join: {source_key: request_id, target_key: request_id}
+    link_type: validates
+    cardinality: "0..n"
+    description: 增容申请的划接后复核记录
 
   request_has_new_feeder:
     source: AccessRequest
@@ -436,6 +495,18 @@ functions:
       load_level: {type: str, description: "负荷等级: 一级/二级/三级"}
       importance_level: {type: str, description: "重要性等级"}
 
+  validate_source_requirement:
+    summary: "校验申请电源结构是否满足规则要求"
+    description: |
+      根据申请的 load_level 和 importance_level 查询 SourceRequirement，
+      对比 AccessRequest.source_structure 或 ExpandRequest.target_source_structure。
+      若声明结构与规则要求不一致，必须在最终结论中说明冲突，不能直接判定增容完成。
+    group: "规则查询"
+    function_type: business
+    writes_to: [SourceRequirementCheck]
+    params:
+      request_id: {type: str, description: "申请编号"}
+
   # ----- 申请管理 -----
   get_request:
     summary: "查询接入申请详情"
@@ -466,6 +537,18 @@ functions:
     params:
       request_id: {type: str, description: "申请编号(AccessRequest)"}
       point_types: {type: str, default: "", description: "指定设备类型过滤(逗号分隔，可选)"}
+
+  search_supplementary_sources:
+    summary: "增容时搜索补充电源点/回路"
+    description: |
+      仅适用于 ExpandRequest。当 validate_source_requirement 判断申请目标电源结构低于规则要求时，
+      以原电源点为第一路，搜索可形成双回路/双电源的补充接入点。
+      例如原申请为单电源但规则要求双回路时，返回不同母线且容量约束满足的候选接入点。
+    group: "方案设计"
+    function_type: get
+    params:
+      request_id: {type: str, description: "增容申请编号"}
+      search_radius_m: {type: float, default: 2000, description: "搜索半径(米)，默认2km"}
 
   filter_sources:
     summary: "套用7条硬约束筛选电源点(F1-F7)"
@@ -572,6 +655,17 @@ functions:
       source_transformer_id: {type: str, description: "超载主变编号"}
       required_capacity_kva: {type: float, description: "需转移容量(kVA)"}
 
+  verify_transfer_result:
+    summary: "划接后复核增容约束"
+    description: |
+      对增容申请复核原接入点在馈线划接、主变划接后的容量约束、负载率约束和电源结构要求。
+      若仍存在容量缺口或电源结构冲突，返回 remaining_issues 和 next_action，不能视为完整处理完成。
+    group: "负荷划接"
+    function_type: business
+    writes_to: [TransferVerification]
+    params:
+      request_id: {type: str, description: "申请编号"}
+
   # ----- 变电站新出线(与现有电源点接入并列的另一种接入方式) -----
   new_feeder:
     summary: "变电站新出线方案设计"
@@ -669,6 +763,10 @@ workflows:
       - name: 确认申请
         function: get_request
         description: "查看增容申请，确认原电源点和增容量"
+        next: 校验电源结构
+      - name: 校验电源结构
+        function: validate_source_requirement
+        description: "根据负荷等级和重要性校验目标电源结构，若与规则冲突需提示并补充对应回路/电源"
         next: 校验原电源
       - name: 校验原电源
         function: filter_sources
@@ -676,7 +774,18 @@ workflows:
         next: {通过: 出方案, 馈线超载: 馈线划接, 主变超载: 主变划接}
       - name: 馈线划接
         function: transfer_feeder_load
+        next: 划接后复核
       - name: 主变划接
         function: transfer_transformer_load
+        next: 划接后复核
+      - name: 划接后复核
+        function: verify_transfer_result
+        description: "复核划接是否解决F2/F6/F7，并检查电源结构冲突；未通过时继续补充回路或新出线"
+        next: {通过: 出方案, 电源结构冲突: 补充电源点, 容量仍不足: 变电站新出线}
+      - name: 补充电源点
+        function: search_supplementary_sources
+        description: "当规则要求双回路/双电源但原申请为单电源时，按新装逻辑搜索补充电源点"
+      - name: 变电站新出线
+        function: new_feeder
       - name: 出方案
         description: "增容可行，原电源点继续使用"
