@@ -391,9 +391,27 @@ class DistillerPipeline:
         fixed = dict(raw)
         context = self._review_context(raw)
         issues = review.get("issues") or []
+        fixed_dir = self.state_dir / "fixed_sections"
+        fixed_dir.mkdir(parents=True, exist_ok=True)
+        fixed_summary: dict[str, Any] = {"sections": {}, "issues": len(issues)}
         for section in ("objects", *SECTIONS):
             section_issues = _issues_for_section(issues, section)
             if not section_issues:
+                fixed_summary["sections"][section] = {
+                    "status": "unchanged",
+                    "issues": 0,
+                }
+                continue
+            section_path = fixed_dir / f"{section}.yaml"
+            if section_path.exists():
+                log.info("  using cached fixed section %s", section)
+                section_raw = _load_yaml(section_path.read_text(encoding="utf-8"))
+                fixed[section] = section_raw.get(section) or {}
+                fixed_summary["sections"][section] = {
+                    "status": "cached",
+                    "issues": len(section_issues),
+                    "path": str(section_path),
+                }
                 continue
             log.info("  fixing %s (%d issues)", section, len(section_issues))
             yaml_text = _dump_yaml({section: fixed.get(section) or {}})
@@ -409,12 +427,22 @@ class DistillerPipeline:
             )
             section_raw = _load_yaml(result)
             fixed[section] = section_raw.get(section) or {}
+            section_path.write_text(
+                _dump_yaml({section: fixed[section]}),
+                encoding="utf-8",
+            )
+            fixed_summary["sections"][section] = {
+                "status": "fixed",
+                "issues": len(section_issues),
+                "path": str(section_path),
+            }
 
         normalized = self._normalize(fixed)
         final_yaml = _dump_yaml(normalized)
         Ontology.model_validate(yaml.safe_load(final_yaml))
         (self.state_dir / "reviewed.yaml").write_text(final_yaml, encoding="utf-8")
         write_json(self.state_dir / "fixed_sections.json", normalized)
+        write_json(self.state_dir / "fixed_sections_summary.json", fixed_summary)
         return final_yaml
 
     def _normalize(self, raw: dict[str, Any]) -> dict[str, Any]:
@@ -449,6 +477,7 @@ class DistillerPipeline:
             ("Phase 2 sections", "sections.json"),
             ("Phase 2 assembled ontology", "assembled.yaml"),
             ("Phase 3 review", "review.json"),
+            ("Phase 4 fixed sections", "fixed_sections_summary.json"),
             ("Phase 4 reviewed ontology", "reviewed.yaml"),
             ("Generation log", "generation_log.json"),
         ]
