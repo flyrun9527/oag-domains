@@ -128,6 +128,15 @@ def _gen_id(prefix=""):
     return prefix + uuid.uuid4().hex[:8].upper()
 
 
+def _to_float(value: Any, default: float = 0) -> float:
+    if value in (None, ""):
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def _apply_filters(rows: list[dict], filters: dict[str, Any] | None) -> list[dict]:
     result = list(rows)
     for key, value in (filters or {}).items():
@@ -167,14 +176,8 @@ def _apply_window(rows: list[dict], limit: int | None,
 
 
 # ============================================================
-# Interface wrappers (get_xxx)
+# Interface wrappers
 # ============================================================
-
-def _simple_getter(store: ObjectRepository, object_type: str, id_field: str, **kw) -> dict:
-    id_val = kw.get(id_field, "")
-    row = store.query_by_id(object_type, id_val)
-    return row if row else {"error": f"未找到 {object_type} {id_val}"}
-
 
 def _get_request(store: ObjectRepository, request_id: str = "", **kw) -> dict:
     for rtype in ("AccessRequest", "ExpandRequest"):
@@ -543,6 +546,7 @@ def _finalize_plans(store: ObjectRepository, request_id: str = "", **kw) -> dict
 
 def _transfer_feeder_load(store: ObjectRepository, request_id: str = "", source_feeder_id: str = "",
                           required_capacity_kva: float = 0, **kw) -> dict:
+    required_capacity_kva = _to_float(required_capacity_kva)
     source = store.query_by_id("Feeder", source_feeder_id)
     if not source:
         return {"error": f"馈线 {source_feeder_id} 不存在"}
@@ -593,6 +597,7 @@ def _transfer_feeder_load(store: ObjectRepository, request_id: str = "", source_
 
 def _transfer_transformer_load(store: ObjectRepository, request_id: str = "", source_transformer_id: str = "",
                                required_capacity_kva: float = 0, **kw) -> dict:
+    required_capacity_kva = _to_float(required_capacity_kva)
     source = store.query_by_id("MainTransformer", source_transformer_id)
     if not source:
         return {"error": f"主变 {source_transformer_id} 不存在"}
@@ -701,10 +706,6 @@ def register(registry: FunctionRegistry, store: ObjectRepository, ontology: Onto
     registry.register_adapter("runtime_memory", RuntimeMemoryAdapter.factory(domain_dir))
 
     fn_map = {
-        "get_substation": lambda **kw: _simple_getter(store, "Substation", "substation_id", **kw),
-        "get_main_transformer": lambda **kw: _simple_getter(store, "MainTransformer", "transformer_id", **kw),
-        "get_busbar": lambda **kw: _simple_getter(store, "Busbar", "busbar_id", **kw),
-        "get_feeder": lambda **kw: _simple_getter(store, "Feeder", "feeder_id", **kw),
         "get_access_points": lambda **kw: _get_access_points(store, **kw),
         "get_feeder_tie_switches": lambda **kw: _get_feeder_tie_switches(store, **kw),
         "get_transformer_tie_switches": lambda **kw: _get_transformer_tie_switches(store, **kw),

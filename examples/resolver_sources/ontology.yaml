@@ -56,6 +56,10 @@ objects:
   InvestigationNote:
     kind: entity
     summary: 默认 SQLite 表对象，用来对比 resolver 对象
+    source:
+      type: memory
+      id_field: note_id
+      capabilities: [query, count, mutate]
     data_source: agent_generated
     mutability: mutable
     properties:

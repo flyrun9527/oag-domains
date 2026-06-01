@@ -6,7 +6,52 @@ from typing import Any
 from oag.ontology.registry import FunctionRegistry
 from oag.ontology.repository import ObjectRepository
 from oag.ontology.schema import Ontology
-from oag.ontology.store import Store
+
+
+class MemoryAdapter:
+    def __init__(self, id_field: str):
+        self.id_field = id_field
+        self.rows: list[dict] = []
+
+    def query(self, object_type: str, filters: dict[str, Any] | None = None,
+              limit: int | None = None, order_by: str | None = None,
+              offset: int | None = None) -> list[dict]:
+        rows = _apply_filters(self.rows, filters)
+        rows = _apply_order(rows, order_by)
+        return _apply_window([dict(row) for row in rows], limit, offset)
+
+    def count(self, object_type: str,
+              filters: dict[str, Any] | None = None) -> int:
+        return len(_apply_filters(self.rows, filters))
+
+    def query_by_id(self, object_type: str, id_value: Any) -> dict | None:
+        rows = self.query(object_type, {self.id_field: id_value}, limit=1)
+        return rows[0] if rows else None
+
+    def search_text(self, keyword: str, object_types: list[str] | None = None,
+                    limit: int = 20) -> list[dict]:
+        return []
+
+    def insert_record(self, object_type: str, data: dict) -> dict:
+        self.rows.append(dict(data))
+        return {"inserted": 1}
+
+    def update_record(self, object_type: str, id_value: Any, data: dict) -> dict:
+        updated = 0
+        for row in self.rows:
+            if row.get(self.id_field) == id_value:
+                row.update(dict(data))
+                updated += 1
+                break
+        return {"updated": updated}
+
+    def delete_record(self, object_type: str, id_value: Any) -> dict:
+        before = len(self.rows)
+        self.rows = [row for row in self.rows if row.get(self.id_field) != id_value]
+        return {"deleted": before - len(self.rows)}
+
+    def table_count(self, object_type: str) -> int:
+        return len(self.rows)
 
 
 class AccountBalanceSqlViewAdapter:
@@ -150,15 +195,18 @@ class CustomerRiskResolver:
         return rows[0] if rows else None
 
 
-def register(registry: FunctionRegistry, store: Store, ontology: Ontology):
+def register(registry: FunctionRegistry, repository: ObjectRepository, ontology: Ontology):
     sql_view_adapter = AccountBalanceSqlViewAdapter()
 
     def sql_view_adapter_factory(**kw):
         return sql_view_adapter
 
-    registry.register_adapter("sql_view", sql_view_adapter_factory)
+    def memory_adapter_factory(source, **kw):
+        return MemoryAdapter(source.id_field or "id")
 
-    repository = ObjectRepository(ontology, store, registry)
+    registry.register_adapter("sql_view", sql_view_adapter_factory)
+    registry.register_adapter("memory", memory_adapter_factory)
+
     risks = CustomerRiskResolver(repository)
     registry.register_resolver("customer_risk_view", risks)
 
