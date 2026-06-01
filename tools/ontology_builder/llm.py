@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import time
 from pathlib import Path
 from typing import Any
 
@@ -64,6 +63,7 @@ class DistillerLLM:
         self.client = OpenAI(
             api_key=self.config["api_key"],
             base_url=self.config["api_url"],
+            max_retries=0,
         )
         self.model = self.config["model"]
         self.usage = {"prompt_tokens": 0, "completion_tokens": 0, "calls": 0}
@@ -75,7 +75,6 @@ class DistillerLLM:
         user: str,
         *,
         json_mode: bool = False,
-        max_retries: int = 3,
         temperature: float = 0.1,
     ) -> str:
         payload: dict[str, Any] = {
@@ -89,43 +88,33 @@ class DistillerLLM:
         if json_mode:
             payload["response_format"] = {"type": "json_object"}
 
-        last_error: Exception | None = None
-        for attempt in range(max_retries):
-            try:
-                started = time.time()
-                response = self.client.chat.completions.create(**payload)
-                elapsed = time.time() - started
-                text = response.choices[0].message.content or ""
+        import time
+        started = time.time()
+        response = self.client.chat.completions.create(**payload)
+        elapsed = time.time() - started
+        text = response.choices[0].message.content or ""
 
-                usage = response.usage
-                prompt_tokens = usage.prompt_tokens if usage else 0
-                completion_tokens = usage.completion_tokens if usage else 0
-                self.usage["prompt_tokens"] += prompt_tokens
-                self.usage["completion_tokens"] += completion_tokens
-                self.usage["calls"] += 1
-                self._call_log.append({
-                    "prompt_chars": len(system) + len(user),
-                    "completion_chars": len(text),
-                    "prompt_tokens": prompt_tokens,
-                    "completion_tokens": completion_tokens,
-                    "elapsed_seconds": round(elapsed, 2),
-                })
-                log.info(
-                    "LLM call #%d finished: %d chars -> %d chars in %.1fs",
-                    self.usage["calls"],
-                    len(system) + len(user),
-                    len(text),
-                    elapsed,
-                )
-                return text
-            except Exception as exc:  # pragma: no cover - network behavior
-                last_error = exc
-                if attempt >= max_retries - 1:
-                    break
-                wait = 2 ** attempt
-                log.warning("LLM call failed: %s; retrying in %ss", exc, wait)
-                time.sleep(wait)
-        raise RuntimeError(f"LLM call failed after {max_retries} attempts: {last_error}")
+        usage = response.usage
+        prompt_tokens = usage.prompt_tokens if usage else 0
+        completion_tokens = usage.completion_tokens if usage else 0
+        self.usage["prompt_tokens"] += prompt_tokens
+        self.usage["completion_tokens"] += completion_tokens
+        self.usage["calls"] += 1
+        self._call_log.append({
+            "prompt_chars": len(system) + len(user),
+            "completion_chars": len(text),
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "elapsed_seconds": round(elapsed, 2),
+        })
+        log.info(
+            "LLM call #%d finished: %d chars -> %d chars in %.1fs",
+            self.usage["calls"],
+            len(system) + len(user),
+            len(text),
+            elapsed,
+        )
+        return text
 
     def call_json(self, system: str, user: str, **kwargs: Any) -> dict[str, Any]:
         text = self.call(system, user, json_mode=True, **kwargs)

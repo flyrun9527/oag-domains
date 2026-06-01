@@ -16,10 +16,12 @@ from .llm import DistillerLLM
 from .prompts import (
     BLUEPRINT_SYSTEM,
     BLUEPRINT_USER,
-    CHUNK_EXTRACT_SYSTEM,
-    CHUNK_EXTRACT_USER,
     FIX_SECTION_SYSTEM,
     FIX_SECTION_USER,
+    LOOP_DISCOVERY_SYSTEM,
+    LOOP_DISCOVERY_USER,
+    LOOP_MODEL_SYSTEM,
+    LOOP_MODEL_USER,
     OBJECTS_USER,
     REVIEW_SECTION_SYSTEM,
     REVIEW_SECTION_USER,
@@ -149,8 +151,9 @@ class DistillerPipeline:
         if up_to_phase <= 0:
             return self.state_dir / "documents.json"
 
-        extractions = self._phase1_extract_chunks(docs_state)
-        blueprint = self._phase1_blueprint(docs_state, extractions)
+        task_loops = self._phase1_discover_loops(docs_state)
+        loop_models = self._phase1_model_loops(docs_state, task_loops)
+        blueprint = self._phase1_blueprint(docs_state, task_loops, loop_models)
         if up_to_phase <= 1:
             return self.state_dir / "blueprint.json"
 
@@ -193,25 +196,28 @@ class DistillerPipeline:
         write_json(path, state)
         return state
 
-    def _phase1_extract_chunks(self, docs_state: dict[str, Any]) -> list[dict[str, Any]]:
-        out_dir = self.state_dir / "extractions"
+    def _phase1_discover_loops(self, docs_state: dict[str, Any]) -> list[dict[str, Any]]:
+        task_loops_path = self.state_dir / "task_loops.json"
+        if task_loops_path.exists():
+            log.info("Phase 1a: using cached task_loops.json")
+            return read_json(task_loops_path)
+        out_dir = self.state_dir / "loop_discovery"
         out_dir.mkdir(parents=True, exist_ok=True)
         chunks = docs_state.get("chunks") or []
         if not chunks:
             raise ValueError("documents.json has no chunks")
-        system = CHUNK_EXTRACT_SYSTEM.format(modeling_guide=read_modeling_guide())
         document_map = _document_map(docs_state)
-        results = []
-        log.info("Phase 1a: extracting modeling candidates from %d chunks", len(chunks))
+        per_chunk = []
+        log.info("Phase 1a: discovering task loops from %d chunks", len(chunks))
         for chunk in chunks:
             path = out_dir / _chunk_file_name(chunk)
             if path.exists():
-                results.append(read_json(path))
+                per_chunk.append(read_json(path))
                 continue
             log.info("  extracting %s (%d chars)", chunk["chunk_id"], chunk["chars"])
             result = self.llm.call_json(
-                system,
-                CHUNK_EXTRACT_USER.format(
+                LOOP_DISCOVERY_SYSTEM,
+                LOOP_DISCOVERY_USER.format(
                     document_map=document_map,
                     chunk_id=chunk["chunk_id"],
                     doc_path=chunk["doc_path"],
@@ -221,26 +227,93 @@ class DistillerPipeline:
                 temperature=0.05,
             )
             write_json(path, result)
-            results.append(result)
-        write_json(self.state_dir / "extractions.json", results)
-        return results
+            per_chunk.append(result)
 
-    def _phase1_blueprint(self, docs_state: dict[str, Any], extractions: list[dict[str, Any]]) -> dict[str, Any]:
+        task_loops = []
+        for result in per_chunk:
+            for loop in result.get("task_loops") or []:
+                item = dict(loop)
+                item.setdefault("source_chunk_id", result.get("chunk_id", ""))
+                task_loops.append(item)
+        write_json(task_loops_path, task_loops)
+        return task_loops
+
+    def _phase1_model_loops(
+        self,
+        docs_state: dict[str, Any],
+        task_loops: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        path = self.state_dir / "loop_models.json"
+        if path.exists():
+            log.info("Phase 1b: using cached loop_models.json")
+            return read_json(path)
+        out_dir = self.state_dir / "loop_models"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        chunks_by_id = {
+            chunk["chunk_id"]: chunk
+            for chunk in docs_state.get("chunks") or []
+        }
+        system = LOOP_MODEL_SYSTEM.format(modeling_guide=read_modeling_guide())
+        models = []
+        log.info("Phase 1b: modeling %d task loops", len(task_loops))
+        for index, loop in enumerate(task_loops, start=1):
+            file_path = out_dir / f"loop_{index:03d}.json"
+            if file_path.exists():
+                models.append(read_json(file_path))
+                continue
+            evidence = self._loop_evidence(loop, chunks_by_id)
+            log.info("  modeling loop %d: %s", index, loop.get("name", ""))
+            model = self.llm.call_json(
+                system,
+                LOOP_MODEL_USER.format(
+                    task_loop=json.dumps(loop, ensure_ascii=False, indent=2),
+                    evidence=evidence,
+                ),
+                temperature=0.05,
+            )
+            write_json(file_path, model)
+            models.append(model)
+        write_json(path, models)
+        return models
+
+    def _phase1_blueprint(
+        self,
+        docs_state: dict[str, Any],
+        task_loops: list[dict[str, Any]],
+        loop_models: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         path = self.state_dir / "blueprint.json"
         if path.exists():
-            log.info("Phase 1b: using cached blueprint.json")
+            log.info("Phase 1c: using cached blueprint.json")
             return read_json(path)
-        log.info("Phase 1b: synthesizing global task-loop blueprint")
+        log.info("Phase 1c: synthesizing global blueprint from loop models")
         blueprint = self.llm.call_json(
             BLUEPRINT_SYSTEM,
             BLUEPRINT_USER.format(
                 document_map=_document_map(docs_state),
-                extractions=_compact_json(extractions, limit=34_000),
+                task_loops=_compact_json(task_loops, limit=10_000),
+                loop_models=_compact_json(loop_models, limit=24_000),
             ),
             temperature=0.05,
         )
         write_json(path, blueprint)
         return blueprint
+
+    def _loop_evidence(
+        self,
+        loop: dict[str, Any],
+        chunks_by_id: dict[str, dict[str, Any]],
+    ) -> str:
+        chunk_id = loop.get("source_chunk_id")
+        chunk = chunks_by_id.get(chunk_id)
+        if chunk:
+            return (
+                f"chunk_id: {chunk['chunk_id']}\n"
+                f"document: {chunk['doc_path']}\n"
+                f"title: {chunk['title']}\n\n"
+                f"{chunk['content']}"
+            )
+        return "未找到闭环来源 chunk；请只根据 task_loop 本身建模。"
 
     def _phase2_generate_sections(self, blueprint: dict[str, Any]) -> dict[str, Any]:
         path = self.state_dir / "sections.json"
@@ -369,7 +442,8 @@ class DistillerPipeline:
         lines = [f"State directory: {self.state_dir}", ""]
         checks = [
             ("Phase 0 documents", "documents.json"),
-            ("Phase 1 chunk extractions", "extractions.json"),
+            ("Phase 1 task loops", "task_loops.json"),
+            ("Phase 1 loop models", "loop_models.json"),
             ("Phase 1 blueprint", "blueprint.json"),
             ("Phase 2 sections", "sections.json"),
             ("Phase 2 assembled ontology", "assembled.yaml"),
