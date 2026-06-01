@@ -31,7 +31,7 @@
   {
     "group": "增容接入",
     "items": [
-      {"prompt": "R003时代商超要从3000kVA增容到8000kVA，原电源点AP005，能做吗？", "desc": "增容流程：get_request→识别ExpandRequest→跳过search→filter(AP005)→判断结果"},
+      {"prompt": "R003时代商超要从3000kVA增容到8000kVA，原电源点AP005，能做吗？", "desc": "增容流程：get_request→validate→filter(AP005)→transfer→verify→supplement(AP006)→compose(point_ids)→score→finalize"},
       {"prompt": "时代商超增容，原线路F004负载率78%，增容5000kVA后能行吗？", "desc": "检验F1约束(80%)和F2约束(可开放容量)"}
     ]
   },

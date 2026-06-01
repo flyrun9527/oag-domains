@@ -163,7 +163,8 @@ def register(registry, repository, ontology):
 - 需要为对象提供复杂数据源时，用 `registry.register_resolver(name, resolver)` 注册
   resolver；resolver 至少实现 `query(...)`，可选实现 `count`、`query_by_id`、
   `search_text`、`insert_record`、`update_record`、`delete_record`。
-- 写入或有副作用的函数应在 ontology 中声明 `writes_to` 或 `function_type: business`。
+- 写入或有副作用的函数应在 ontology 中声明 `writes_to` 或 `function_type: business`；
+  runtime 会结合写入目标对象的 `data_source` 和 `mutability` 判断是否需要用户确认。
 - 复杂函数应补充 `usage_prompt`，说明何时调用、调用前置条件和副作用。
 
 ## data/
@@ -257,4 +258,7 @@ uv run pytest
 - 多表视图、外部 API 或算法生成对象建议用 `source.type: resolver`，把数据获取细节封装在
   resolver 内，不要暴露成 LLM 需要理解的多步查询过程。
 - Agent 生成或用户确认的数据建议标记 `agent_generated` 或 `human_confirmed`。
+- `data_source: agent_generated` 且 `mutability: append_only` 适合作为 Agent 生成的中间产物
+  或候选结果，新增写入可由 runtime 直接放行；需要人工确认边界、可修改结果或外部系统写入
+  时，应使用更严格的来源和可变性建模。
 - workflow 步骤要保持可执行，每一步最好对应一个明确函数或人工决策点。
