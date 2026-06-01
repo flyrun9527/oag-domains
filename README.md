@@ -4,7 +4,8 @@
 本体定义、初始化数据、业务函数实现和示例问题。
 
 如果你要理解 `ontology.yaml` 的完整字段、语义和运行时行为，请先看
-[metamodel-spec.md](metamodel-spec.md)。本 README 只说明领域仓库如何组织、如何维护、
+[metamodel-spec.md](metamodel-spec.md)。如果你要从业务文档设计一个新领域，请先看
+[modeling-guide.md](modeling-guide.md)。本 README 只说明领域仓库如何组织、如何维护、
 如何在根项目中加载验证。
 
 ## 当前领域
