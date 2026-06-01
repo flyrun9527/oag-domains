@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 import math
+from pathlib import Path
 from typing import Any
 
 from oag.ontology.registry import FunctionRegistry
+from oag.ontology.repository import ObjectRepository
 from oag.ontology.schema import Ontology
-from oag.ontology.store import Store
 
 DATA_FILES = {
     "RoadSegment": "road_segment.json",
@@ -35,6 +36,110 @@ DATA_FILES = {
 }
 
 
+class RuntimeMemoryAdapter:
+    """Writable in-memory adapter for drone runtime products."""
+
+    def __init__(self, ontology: Ontology, object_type: str,
+                 source, domain_dir: Path):
+        self.ontology = ontology
+        self.object_type = object_type
+        self.source = source
+        self.domain_dir = domain_dir
+        self.id_field = source.id_field or ontology.get_id_column(object_type)
+        self.rows = self._load_seed()
+
+    @classmethod
+    def factory(cls, domain_dir: str | Path):
+        base_dir = Path(domain_dir).resolve()
+
+        def build(ontology: Ontology, object_type: str, source, **kwargs):
+            return cls(ontology, object_type, source, base_dir)
+
+        return build
+
+    def query(self, object_type: str, filters: dict[str, Any] | None = None,
+              limit: int | None = None, order_by: str | None = None,
+              offset: int | None = None) -> list[dict]:
+        rows = _apply_filters([dict(row) for row in self.rows], filters)
+        rows = _apply_order(rows, order_by)
+        return _apply_window(rows, limit, offset)
+
+    def count(self, object_type: str,
+              filters: dict[str, Any] | None = None) -> int:
+        return len(self.query(object_type, filters))
+
+    def query_by_id(self, object_type: str, id_value: Any) -> dict | None:
+        if not self.id_field:
+            return None
+        rows = self.query(object_type, {self.id_field: id_value}, limit=1)
+        return rows[0] if rows else None
+
+    def search_text(self, keyword: str, object_types: list[str] | None = None,
+                    limit: int = 20) -> list[dict]:
+        if not keyword:
+            return []
+        obj_def = self.ontology.objects[self.object_type]
+        text_cols = [name for name, prop in obj_def.properties.items() if prop.type == "str"]
+        results = []
+        for row in self.rows:
+            matched = [
+                col for col in text_cols
+                if row.get(col) and keyword in str(row[col])
+            ]
+            if matched:
+                record = dict(row)
+                record["_object_type"] = self.object_type
+                record["_matched_field"] = ", ".join(matched)
+                results.append(record)
+            if len(results) >= limit:
+                break
+        return results
+
+    def insert_record(self, object_type: str, data: dict) -> dict:
+        self.rows.append(self._project(data))
+        return {"inserted": 1}
+
+    def update_record(self, object_type: str, id_value: Any, data: dict) -> dict:
+        if not self.id_field:
+            raise ValueError(f"{object_type} 没有声明 id 字段，不能 update")
+        updated = 0
+        patch = self._project(data)
+        for row in self.rows:
+            if row.get(self.id_field) == id_value:
+                row.update({k: v for k, v in patch.items() if k != self.id_field})
+                updated += 1
+                break
+        return {"updated": updated}
+
+    def delete_record(self, object_type: str, id_value: Any) -> dict:
+        if not self.id_field:
+            raise ValueError(f"{object_type} 没有声明 id 字段，不能 delete")
+        before = len(self.rows)
+        self.rows = [row for row in self.rows if row.get(self.id_field) != id_value]
+        return {"deleted": before - len(self.rows)}
+
+    def table_count(self, object_type: str) -> int:
+        return len(self.rows)
+
+    def _load_seed(self) -> list[dict]:
+        raw = self.source.config.get("seed_path")
+        if not raw:
+            return []
+        path = Path(raw)
+        if not path.is_absolute():
+            path = self.domain_dir / path
+        if not path.exists():
+            return []
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            data = data.get("data", data.get("items", []))
+        return [self._project(row) for row in data]
+
+    def _project(self, data: dict) -> dict:
+        valid = set(self.ontology.objects[self.object_type].properties.keys())
+        return {key: value for key, value in data.items() if key in valid}
+
+
 def _haversine(lng1, lat1, lng2, lat2):
     lng1, lat1, lng2, lat2 = float(lng1), float(lat1), float(lng2), float(lat2)
     R = 6371
@@ -44,7 +149,45 @@ def _haversine(lng1, lat1, lng2, lat2):
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-def _get_event(store: Store, event_id: str = "", **kw) -> dict:
+def _apply_filters(rows: list[dict], filters: dict[str, Any] | None) -> list[dict]:
+    result = list(rows)
+    for key, value in (filters or {}).items():
+        field, op = key.split("__", 1) if "__" in key else (key, "eq")
+        if op == "gt":
+            result = [row for row in result if row.get(field) > value]
+        elif op == "gte":
+            result = [row for row in result if row.get(field) >= value]
+        elif op == "lt":
+            result = [row for row in result if row.get(field) < value]
+        elif op == "lte":
+            result = [row for row in result if row.get(field) <= value]
+        elif op == "ne":
+            result = [row for row in result if row.get(field) != value]
+        elif op == "like":
+            result = [row for row in result if value in str(row.get(field, ""))]
+        else:
+            result = [row for row in result if row.get(field) == value]
+    return result
+
+
+def _apply_order(rows: list[dict], order_by: str | None) -> list[dict]:
+    if not order_by:
+        return rows
+    reverse = order_by.startswith("-")
+    field = order_by.lstrip("-")
+    return sorted(rows, key=lambda row: row.get(field), reverse=reverse)
+
+
+def _apply_window(rows: list[dict], limit: int | None,
+                  offset: int | None) -> list[dict]:
+    if offset:
+        rows = rows[offset:]
+    if limit:
+        rows = rows[:limit]
+    return rows
+
+
+def _get_event(store: ObjectRepository, event_id: str = "", **kw) -> dict:
     for etype in ("DisasterEvent", "AccidentEvent"):
         row = store.query_by_id(etype, event_id)
         if row:
@@ -53,7 +196,7 @@ def _get_event(store: Store, event_id: str = "", **kw) -> dict:
     return {"error": f"未找到事件 {event_id}"}
 
 
-def _get_affected_facilities(store: Store, event_id: str = "", radius_km: float = 5, **kw) -> dict:
+def _get_affected_facilities(store: ObjectRepository, event_id: str = "", radius_km: float = 5, **kw) -> dict:
     event = _get_event(store, event_id)
     if "error" in event:
         return event
@@ -74,7 +217,7 @@ def _get_affected_facilities(store: Store, event_id: str = "", radius_km: float 
     return results
 
 
-def _get_depots_in_range(store: Store, lng: float = 0, lat: float = 0, radius_km: float = 100, **kw) -> list:
+def _get_depots_in_range(store: ObjectRepository, lng: float = 0, lat: float = 0, radius_km: float = 100, **kw) -> list:
     results = []
     for row in store.query("EmergencyDepot"):
         dist = _haversine(lng, lat, row.get("lng", 0), row.get("lat", 0))
@@ -84,7 +227,7 @@ def _get_depots_in_range(store: Store, lng: float = 0, lat: float = 0, radius_km
     return sorted(results, key=lambda x: x["distance_km"])
 
 
-def _get_rescue_teams_in_range(store: Store, lng: float = 0, lat: float = 0, radius_km: float = 100, **kw) -> list:
+def _get_rescue_teams_in_range(store: ObjectRepository, lng: float = 0, lat: float = 0, radius_km: float = 100, **kw) -> list:
     results = []
     for row in store.query("RescueTeam"):
         if not row.get("available"):
@@ -96,7 +239,7 @@ def _get_rescue_teams_in_range(store: Store, lng: float = 0, lat: float = 0, rad
     return sorted(results, key=lambda x: x["distance_km"])
 
 
-def _get_drones_in_range(store: Store, lng: float = 0, lat: float = 0, radius_km: float = 50, **kw) -> list:
+def _get_drones_in_range(store: ObjectRepository, lng: float = 0, lat: float = 0, radius_km: float = 50, **kw) -> list:
     results = []
     bases = {b["base_id"]: b for b in store.query("DroneBase")}
     for drone in store.query("Drone"):
@@ -113,13 +256,16 @@ def _get_drones_in_range(store: Store, lng: float = 0, lat: float = 0, radius_km
     return sorted(results, key=lambda x: x["distance_km"])
 
 
-def _simple_getter(store: Store, object_type: str, id_field: str, **kw) -> dict:
+def _simple_getter(store: ObjectRepository, object_type: str, id_field: str, **kw) -> dict:
     id_val = kw.get(id_field, "")
     row = store.query_by_id(object_type, id_val)
     return row if row else {"error": f"未找到 {object_type} {id_val}"}
 
 
-def register(registry: FunctionRegistry, store: Store, ontology: Ontology):
+def register(registry: FunctionRegistry, store: ObjectRepository, ontology: Ontology):
+    domain_dir = Path(__file__).resolve().parent.parent
+    registry.register_adapter("runtime_memory", RuntimeMemoryAdapter.factory(domain_dir))
+
     fn_map = {
         "get_event": lambda **kw: _get_event(store, **kw),
         "get_affected_facilities": lambda **kw: _get_affected_facilities(store, **kw),

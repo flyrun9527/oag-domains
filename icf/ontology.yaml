@@ -10,6 +10,11 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: subsystem_id
+      config:
+        path: data/subsystem.json
     summary: "分系统/组件(受控设备)"
     description: "受控分系统或组件。通过 Tango/HTTP 接口交互。请用 get_subsystem 查询。"
     properties:
@@ -25,6 +30,11 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: beam_id
+      config:
+        path: data/beam_line.json
     summary: "束线(共60条)"
     description: |
       激光束线。共60条，各分系统按束线编号独立控制。
@@ -39,6 +49,11 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: door_id
+      config:
+        path: data/shield_door.json
     summary: "中子屏蔽门"
     description: "靶场中子屏蔽门。安全联锁的核心对象，发射前必须锁闭，后处理后打开。"
     properties:
@@ -50,6 +65,11 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: counter_id
+      config:
+        path: data/personnel_counter.json
     summary: "人员进出计数器"
     description: "靶场/能库人员进出计数。安全联锁要求人员计数归零。"
     properties:
@@ -62,6 +82,11 @@ objects:
     kind: entity
     data_source: external_api
     mutability: read_only
+    source:
+      type: json_file
+      id_field: device_id
+      config:
+        path: data/vacuum_status.json
     summary: "真空/钛泵状态"
     description: "多程放大系统钛泵和靶室真空度。安全联锁监测对象。"
     properties:
@@ -78,6 +103,11 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: mission_id
+      config:
+        seed_path: data/launch_mission.json
     summary: "发射任务(一次发射的全生命周期)"
     description: |
       一次激光发射任务实例。从参数下发到后处理结束的完整生命周期。
@@ -109,6 +139,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: node_id
     summary: "流程节点执行记录"
     description: |
       单个流程节点的执行记录。每个节点对应一条控制指令下发及结果。
@@ -141,6 +174,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: check_id
     summary: "准备就绪检查(AND汇合点)"
     description: |
       发射准备完成的AND汇合检查(文档第6.22节)。全部9项必须就绪:
@@ -166,6 +202,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: event_id
     summary: "安全联锁事件"
     description: |
       安全联锁触发/解除记录(文档第3节)。
@@ -188,6 +227,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: action_id
     summary: "紧急操作记录"
     description: |
       异常处理操作记录(文档第3节)。四种场景:
@@ -208,6 +250,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: measurement_id
     summary: "能量测量数据"
     description: "发射后的能量数据采集结果。包括预放能量、主放能量等。"
     properties:
@@ -224,6 +269,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: data_id
     summary: "激光参数采集数据"
     description: "发射后的激光参数采集结果。包括种子源/二倍频/测量取样的激光参数。"
     properties:
@@ -238,6 +286,9 @@ objects:
     kind: entity
     data_source: agent_generated
     mutability: append_only
+    source:
+      type: runtime_memory
+      id_field: reservation_id
     summary: "分系统服务预约"
     description: "每次流程执行前需预约各分系统服务，避免与其他流程产生权限冲突(文档第3节)。"
     status_transitions:
@@ -259,6 +310,11 @@ objects:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
+    source:
+      type: json_file
+      id_field: node_name
+      config:
+        path: data/node_definition.json
     summary: "流程节点定义(控制指令+参数+时长+前置条件)"
     description: "全部流程节点的标准定义(文档第6节)。包含对接分系统、控制指令、输入输出参数、调用方式、前置条件和预期执行时长。"
     properties:
@@ -277,6 +333,11 @@ objects:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
+    source:
+      type: json_file
+      id_field: edge_id
+      config:
+        path: data/flow_edge.json
     summary: "流程链路定义(节点间DAG依赖)"
     description: "定义流程节点之间的前后依赖关系(文档第5节)。用于构建流程DAG，支持并行链路和AND汇合。"
     properties:
@@ -291,6 +352,11 @@ objects:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
+    source:
+      type: json_file
+      id_field: subsystem_type
+      config:
+        path: data/subsystem_config.json
     summary: "分系统配置清单(16类)"
     description: "所有对接分系统/组件的配置信息(文档第2节)。"
     properties:
@@ -304,6 +370,11 @@ objects:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
+    source:
+      type: json_file
+      id_field: node_name
+      config:
+        path: data/timeout_rule.json
     summary: "节点超时规则"
     description: "各节点的超时阈值配置。超过响应时间应判定节点执行失败(文档第3节)。"
     properties:
@@ -315,6 +386,11 @@ objects:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
+    source:
+      type: json_file
+      id_field: condition_id
+      config:
+        path: data/interlock_condition.json
     summary: "安全联锁条件表"
     description: "安全联锁的进入条件、触发条件和解除条件(文档第3节)。"
     properties:
