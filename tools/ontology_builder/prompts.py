@@ -11,169 +11,193 @@ def read_modeling_guide() -> str:
 def read_metamodel_spec() -> str:
     path = Path(__file__).resolve().parents[2] / "metamodel-spec.md"
     text = path.read_text(encoding="utf-8")
-    return text[:30_000]
+    return text[:24_000]
+
+
+CHUNK_EXTRACT_SYSTEM = """\
+你是 OAG 本体建模素材抽取器。你只处理一个文档 chunk，不做最终设计。
+
+建模方法论:
+{modeling_guide}
+
+输出必须是 JSON。不要输出 Markdown。
+"""
+
+
+CHUNK_EXTRACT_USER = """\
+全局文档地图:
+{document_map}
+
+当前 chunk:
+- chunk_id: {chunk_id}
+- document: {doc_path}
+- title: {title}
+
+内容:
+{content}
+
+请只基于当前 chunk 抽取结构化候选材料。不要补全文档没有写的内容。
+
+JSON 结构:
+{{
+  "chunk_id": "{chunk_id}",
+  "task_loops": [
+    {{"name": "任务闭环", "trigger": "入口", "steps": ["步骤"], "final_outputs": ["输出"], "basis": "原文依据"}}
+  ],
+  "object_candidates": [
+    {{"name": "PascalCase", "layer": "fact|rule|entry|process_output|final_output", "summary": "摘要", "key_fields": ["字段"], "basis": "原文依据"}}
+  ],
+  "gateways": [
+    {{"name": "关口", "kind": "validation|approval|review|threshold|state_transition|sla", "must_be_deterministic": true, "suggested_object": "对象", "suggested_function": "函数", "basis": "原文依据"}}
+  ],
+  "function_candidates": [
+    {{"name": "snake_case", "kind": "query|lookup|business|gateway", "why_exposed": "为何需要专用函数", "inputs": ["参数"], "writes_to": ["对象"], "basis": "原文依据"}}
+  ],
+  "rule_candidates": [
+    {{"name": "snake_case", "applies_to": ["对象"], "result_field": "字段", "conditions_summary": "条件到结果", "basis": "原文依据"}}
+  ],
+  "workflow_candidates": [
+    {{"name": "snake_case", "trigger": "触发", "steps": ["步骤"], "basis": "原文依据"}}
+  ],
+  "terms": [
+    {{"name": "术语", "meaning": "含义", "basis": "原文依据"}}
+  ],
+  "open_questions": ["当前 chunk 暴露但无法确定的问题"]
+}}
+"""
 
 
 BLUEPRINT_SYSTEM = """\
-你是 OAG 本体建模架构师。你要把业务文档转成可执行的 ontology 设计蓝图。
+你是 OAG 本体建模架构师。你要把多个 chunk 的抽取结果综合成领域建模蓝图。
 
-你必须遵循下面的建模方法论，尤其是:
-- 从任务闭环开始，而不是从名词列表开始。
-- 对象分为事实对象、规则对象、入口对象、过程产物对象、终态输出对象。
-- 识别业务关口: 必须/不得/通过后/审批后/复核后/超时/不通过则。
-- 函数只在承载跨对象查询、规则口径、业务动作或关键关口时暴露。
-- prompt 只能导航，关键约束应下沉到 schema、规则、函数返回或 validator 建议。
+你必须:
+- 从任务闭环开始综合，而不是简单合并名词。
+- 合并同义/近义对象和函数。
+- 找出跨 chunk 的关口依赖和流程顺序。
+- 过滤纯 query(Object,id) getter 噪音。
+- 保留 open_questions，标注需要人工确认的缺口。
 
-{modeling_guide}
+输出必须是 JSON。不要输出 Markdown。
 """
 
 
 BLUEPRINT_USER = """\
-请阅读以下业务文档，输出领域建模蓝图 JSON。
+文档地图:
+{document_map}
 
-文档:
-{documents}
+chunk 抽取结果:
+{extractions}
 
-输出 JSON，结构必须为:
+请综合为领域建模蓝图 JSON:
 {{
   "domain_name": "snake_case_name",
   "domain_description": "一句领域说明",
   "task_loops": [
-    {{
-      "name": "任务闭环名称",
-      "trigger": "入口/触发条件",
-      "steps": ["步骤1", "步骤2"],
-      "final_outputs": ["输出"]
-    }}
+    {{"name": "任务闭环名称", "trigger": "入口/触发条件", "steps": ["步骤"], "final_outputs": ["输出"], "basis": ["依据"]}}
   ],
   "object_candidates": [
-    {{
-      "name": "PascalCase",
-      "layer": "fact|rule|entry|process_output|final_output",
-      "summary": "一行摘要",
-      "key_fields": ["建议字段"],
-      "source_basis": "来源文档或条款"
-    }}
+    {{"name": "PascalCase", "layer": "fact|rule|entry|process_output|final_output", "summary": "一行摘要", "key_fields": ["建议字段"], "basis": ["依据"]}}
   ],
   "gateways": [
-    {{
-      "name": "关口名称",
-      "kind": "validation|approval|review|threshold|state_transition|sla",
-      "must_be_deterministic": true,
-      "suggested_object": "可选关口对象",
-      "suggested_function": "可选关口函数",
-      "basis": "原文依据"
-    }}
+    {{"name": "关口名称", "kind": "validation|approval|review|threshold|state_transition|sla", "must_be_deterministic": true, "suggested_object": "可选对象", "suggested_function": "可选函数", "basis": ["依据"]}}
   ],
   "function_candidates": [
-    {{
-      "name": "snake_case",
-      "kind": "query|lookup|business|gateway",
-      "why_exposed": "为什么不是通用 query",
-      "inputs": ["参数"],
-      "writes_to": ["对象名"],
-      "basis": "原文依据"
-    }}
+    {{"name": "snake_case", "kind": "query|lookup|business|gateway", "why_exposed": "为什么不是通用 query", "inputs": ["参数"], "writes_to": ["对象名"], "basis": ["依据"]}}
   ],
   "rule_candidates": [
-    {{
-      "name": "snake_case",
-      "applies_to": ["对象名"],
-      "result_field": "字段",
-      "conditions_summary": "条件到结果摘要",
-      "basis": "原文依据"
-    }}
+    {{"name": "snake_case", "applies_to": ["对象名"], "result_field": "字段", "conditions_summary": "条件到结果摘要", "basis": ["依据"]}}
   ],
   "workflow_candidates": [
-    {{
-      "name": "snake_case",
-      "trigger": "触发条件",
-      "steps": ["步骤"],
-      "basis": "原文依据"
-    }}
+    {{"name": "snake_case", "trigger": "触发条件", "steps": ["步骤"], "basis": ["依据"]}}
   ],
   "open_questions": ["文档不足或需要人工确认的问题"]
 }}
-
-要求:
-- 不要为了覆盖文档名词而堆对象。
-- 纯 query(Object,id) 的 getter 不要列为必须函数。
-- 对强约束和流程关口要明确说明如何确定性落地。
 """
 
 
-ONTOLOGY_SYSTEM = """\
-你是 OAG ontology.yaml 生成器。请根据建模蓝图和原始文档生成一份可加载的 ontology.yaml。
+SECTION_SYSTEM = """\
+你是 OAG ontology.yaml 分层生成器。你一次只生成一个 ontology section。
 
 OAG 元模型规范摘录:
 {metamodel_spec}
 
-建模要求:
-- 顶层必须包含 name, description, objects, links, functions, rules, workflows。
-- 对象名 PascalCase；属性名、函数名、关系名、规则名、workflow 名 snake_case。
-- 每个对象至少有一个 required: true 字段作为业务主键。
-- 每个对象声明 kind, data_source, mutability, source, summary, description, properties。
-- 默认 source:
-  - 事实/规则/入口种子数据: type: json_file, id_field: 主键, config.path: data/<snake_name>.json
-  - agent_generated 过程产物或终态输出: type: runtime_memory, id_field: 主键
-- business 函数如果写入对象，必须声明 writes_to。
-- 强约束尽量表达为 rules、preconditions、effects、status_transitions 或 usage_prompt。
+通用要求:
+- 只输出 YAML，不要 Markdown。
+- 输出必须是 YAML mapping。
+- 对象名 PascalCase；字段、函数、规则、关系、workflow 名 snake_case。
 - 不要生成纯 query(Object,id) 薄包装函数，除非它有跨对象、空间、状态过滤或业务口径。
 """
 
 
-ONTOLOGY_USER = """\
+OBJECTS_USER = """\
 建模蓝图:
 {blueprint}
 
-原始文档摘要:
-{document_summaries}
-
-请输出完整 ontology.yaml，不要 Markdown 代码块。
+请生成 YAML，且只包含顶层 name、description、objects。
+要求:
+- 每个 object 有 kind、data_source、mutability、source、summary、description、properties。
+- 每个 object 至少一个 required: true 的主键字段。
+- 事实/规则/入口种子数据默认 source.type=json_file。
+- agent_generated 过程产物/终态输出默认 source.type=runtime_memory。
 """
 
 
-REVIEW_SYSTEM = """\
-你是 OAG ontology 审查器。请审查 ontology.yaml 是否符合元模型和建模方法论。
-只输出 JSON。不要输出 Markdown。
+SECTION_USER = """\
+当前已生成的对象摘要:
+{object_summary}
+
+当前已生成的函数摘要:
+{function_summary}
+
+建模蓝图:
+{blueprint}
+
+请生成 YAML，且只包含顶层 {section}。
 """
 
 
-REVIEW_USER = """\
-请审查下面的 ontology.yaml。
+REVIEW_SECTION_SYSTEM = """\
+你是 OAG ontology section 审查器。你只审查一个 section。
+输出 JSON，不要 Markdown。
+"""
 
-检查重点:
-- YAML 是否结构完整。
-- 是否从任务闭环建模，而不是简单名词堆砌。
-- 对象是否有 data_source/mutability/source/properties/主键。
-- business 函数是否有 writes_to。
-- 关口是否下沉到对象、函数、规则、preconditions/effects 或 usage_prompt。
-- 是否存在明显的纯 query getter 噪音。
 
-ontology.yaml:
-{ontology_yaml}
+REVIEW_SECTION_USER = """\
+section: {section}
 
-输出 JSON:
+相关上下文:
+{context}
+
+YAML:
+{yaml_text}
+
+请输出 JSON:
 {{
   "issues": [
-    {{"severity": "error|warning", "path": "位置", "message": "问题", "suggestion": "建议"}}
+    {{"severity": "error|warning", "path": "{section}.xxx", "message": "问题", "suggestion": "建议"}}
   ],
   "summary": "简短总结"
 }}
 """
 
 
-FIX_SYSTEM = """\
-你是 OAG ontology 修复器。请根据审查问题修复 YAML。只输出完整 YAML，不要 Markdown。
+FIX_SECTION_SYSTEM = """\
+你是 OAG ontology section 修复器。你只修复一个 section。
+只输出修复后的 YAML mapping，不要 Markdown。
 """
 
 
-FIX_USER = """\
-原始 YAML:
-{ontology_yaml}
+FIX_SECTION_USER = """\
+section: {section}
 
-审查问题:
+相关上下文:
+{context}
+
+原始 YAML:
+{yaml_text}
+
+需要修复的问题:
 {issues}
 
-请输出修复后的完整 ontology.yaml。
+请只输出包含顶层 {section} 的 YAML。
 """

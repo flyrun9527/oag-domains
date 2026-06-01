@@ -210,9 +210,10 @@ uv run oag distill status domains/new_domain/state
 ```
 
 LLM 配置从 `domains/tools/.env` 读取，字段为 `LLM_API_KEY`、`LLM_API_URL` 和
-`LLM_MODEL`；该文件不会提交到仓库。新版本按“任务闭环→建模蓝图→ontology→审查修复”
-运行，默认执行到 `--phase 4` 并输出 `ontology.yaml`。这个工具依赖 OAG 的元模型 schema
-做校验，但不属于在线 Agent runtime。
+`LLM_MODEL`；该文件不会提交到仓库。Builder 按“文档切块→局部抽取→全局任务闭环蓝图
+→分层生成 ontology→分段审查修复”运行，默认执行到 `--phase 4` 并输出 `ontology.yaml`。
+每次 LLM 调用只处理一个文档 chunk 或一个 ontology section，避免把完整大文件一次性塞给
+模型。这个工具依赖 OAG 的元模型 schema 做校验，但不属于在线 Agent runtime。
 
 ## 本地检查
 
