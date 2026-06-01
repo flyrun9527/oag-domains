@@ -620,6 +620,23 @@ def _verify_transfer_result(store: ObjectRepository, request_id: str = "", **kw)
 def _compose_plans(store: ObjectRepository, request_id: str = "", source_structure: str = "",
                    point_ids: str = "", **kw) -> dict:
     constrained_ids = [pid.strip() for pid in point_ids.split(",") if pid.strip()] if point_ids else []
+    req = _get_request(store, request_id)
+    if (
+        req.get("request_type") == "ExpandRequest"
+        and source_structure in ("双电源", "双回路")
+        and not constrained_ids
+    ):
+        original_point_id = req.get("original_point_id", "")
+        return {
+            "error": "增容双回路/双电源方案必须指定 point_ids",
+            "request_id": request_id,
+            "source_structure": source_structure,
+            "hint": (
+                f"请传入原电源点+补充电源点，例如 point_ids=\"{original_point_id},AP006\"。"
+                "不要对增容申请使用全量电源点重新组合。"
+            ),
+        }
+
     if constrained_ids:
         passed = []
         missing = []
@@ -636,7 +653,6 @@ def _compose_plans(store: ObjectRepository, request_id: str = "", source_structu
     if not passed:
         return {"error": "无可用电源点，无法组合方案"}
 
-    req = _get_request(store, request_id)
     if "error" not in req:
         for point in passed:
             point["distance_m"] = round(_haversine(

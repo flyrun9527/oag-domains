@@ -584,6 +584,7 @@ functions:
       双回路: 来自不同线路，可来自同一变电站的不同母线。
       若传入 point_ids，则只在指定接入点内组合方案；增容补充双回路时应传原电源点+补充电源点，
       例如 R003 应传 AP005,AP006，不能使用全量电源点重新组合。
+      对 ExpandRequest 组合双回路/双电源时，point_ids 为必需参数；漏传会返回错误。
     group: "方案设计"
     function_type: business
     writes_to: [AccessPlan]
