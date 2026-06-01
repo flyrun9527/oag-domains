@@ -582,7 +582,8 @@ functions:
       单电源: 选取不同线路中距离最近的接入点;
       双电源: 来自不同线路，需来自两个不同变电站或同一变电站不同母线;
       双回路: 来自不同线路，可来自同一变电站的不同母线。
-      若已指定 preferred_point_types，仅推荐该类型。
+      若传入 point_ids，则只在指定接入点内组合方案；增容补充双回路时应传原电源点+补充电源点，
+      例如 R003 应传 AP005,AP006，不能使用全量电源点重新组合。
     group: "方案设计"
     function_type: business
     writes_to: [AccessPlan]
@@ -593,6 +594,7 @@ functions:
     params:
       request_id: {type: str, description: "申请编号"}
       source_structure: {type: str, description: "电源结构: 单电源/双电源/双回路"}
+      point_ids: {type: str, default: "", description: "限定参与组合的接入点编号(逗号分隔，可选)"}
 
   score_plans:
     summary: "三维加权评分(距离40%+容量30%+可靠性30%)"
@@ -785,7 +787,17 @@ workflows:
       - name: 补充电源点
         function: search_supplementary_sources
         description: "当规则要求双回路/双电源但原申请为单电源时，按新装逻辑搜索补充电源点"
+        next: 组合方案
       - name: 变电站新出线
         function: new_feeder
+      - name: 组合方案
+        function: compose_plans
+        description: "增容补充电源点时必须传 point_ids=原电源点,补充电源点，只组合该申请实际使用的电源点"
+        next: 评分
+      - name: 评分
+        function: score_plans
+        next: 输出方案
+      - name: 输出方案
+        function: finalize_plans
       - name: 出方案
         description: "增容可行，原电源点继续使用"

@@ -617,10 +617,34 @@ def _verify_transfer_result(store: ObjectRepository, request_id: str = "", **kw)
 # compose_plans
 # ============================================================
 
-def _compose_plans(store: ObjectRepository, request_id: str = "", source_structure: str = "", **kw) -> dict:
-    passed = store.query("AccessPoint")
+def _compose_plans(store: ObjectRepository, request_id: str = "", source_structure: str = "",
+                   point_ids: str = "", **kw) -> dict:
+    constrained_ids = [pid.strip() for pid in point_ids.split(",") if pid.strip()] if point_ids else []
+    if constrained_ids:
+        passed = []
+        missing = []
+        for pid in constrained_ids:
+            point = store.query_by_id("AccessPoint", pid)
+            if point:
+                passed.append(point)
+            else:
+                missing.append(pid)
+        if missing:
+            return {"error": f"接入点不存在: {','.join(missing)}"}
+    else:
+        passed = store.query("AccessPoint")
     if not passed:
         return {"error": "无可用电源点，无法组合方案"}
+
+    req = _get_request(store, request_id)
+    if "error" not in req:
+        for point in passed:
+            point["distance_m"] = round(_haversine(
+                req.get("lng", 0),
+                req.get("lat", 0),
+                point.get("lng", 0),
+                point.get("lat", 0),
+            ), 1)
 
     passed.sort(key=lambda x: x.get("distance_m", 9999))
     plans = []
@@ -674,12 +698,23 @@ def _compose_plans(store: ObjectRepository, request_id: str = "", source_structu
             if len(plans) >= 15:
                 break
 
+    if constrained_ids and not plans:
+        return {
+            "request_id": request_id,
+            "source_structure": source_structure,
+            "point_ids": ",".join(constrained_ids),
+            "plans_generated": 0,
+            "plans": [],
+            "error": "指定接入点无法满足电源结构组合要求",
+        }
+
     for plan in plans:
         store.insert_record("AccessPlan", plan)
 
     return {
         "request_id": request_id,
         "source_structure": source_structure,
+        "point_ids": ",".join(constrained_ids),
         "plans_generated": len(plans),
         "plans": plans,
     }
