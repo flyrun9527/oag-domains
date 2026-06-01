@@ -428,6 +428,7 @@ class DistillerPipeline:
         normalized.setdefault("workflows", {})
         if not normalized["objects"]:
             raise ValueError("Generated ontology has no objects")
+        _normalize_schema_shapes(normalized)
         return normalized
 
     def _review_context(self, raw: dict[str, Any]) -> str:
@@ -474,3 +475,76 @@ class DistillerPipeline:
                 f"{usage.get('completion_tokens', 0):,} completion tokens"
             )
         return "\n".join(lines)
+
+
+def _normalize_schema_shapes(raw: dict[str, Any]) -> None:
+    """Coerce common LLM YAML shapes into the strict OAG metamodel shape."""
+
+    for obj in (raw.get("objects") or {}).values():
+        props = obj.get("properties")
+        if isinstance(props, list):
+            obj["properties"] = {
+                str(prop.get("name")): {k: v for k, v in prop.items() if k != "name"}
+                for prop in props
+                if isinstance(prop, dict) and prop.get("name")
+            }
+
+    for link in (raw.get("links") or {}).values():
+        join = link.get("join")
+        if isinstance(join, list):
+            merged_join: dict[str, Any] = {}
+            for item in join:
+                if isinstance(item, dict):
+                    merged_join.update(item)
+            join = merged_join
+            link["join"] = join
+        if isinstance(join, dict):
+            link["join"] = {
+                str(key): _stringify_join_value(value)
+                for key, value in join.items()
+            }
+
+    for fn in (raw.get("functions") or {}).values():
+        params = fn.get("params")
+        if isinstance(params, list):
+            fn["params"] = {
+                str(param.get("name")): {k: v for k, v in param.items() if k != "name"}
+                for param in params
+                if isinstance(param, dict) and param.get("name")
+            }
+
+    for rule in (raw.get("rules") or {}).values():
+        conditions = rule.get("conditions")
+        if isinstance(conditions, list):
+            rule["conditions"] = [
+                _normalize_rule_condition(condition)
+                for condition in conditions
+                if isinstance(condition, dict)
+            ]
+
+
+def _stringify_join_value(value: Any) -> str:
+    if isinstance(value, list):
+        return ",".join(str(item) for item in value)
+    if isinstance(value, dict):
+        return json.dumps(value, ensure_ascii=False, sort_keys=True)
+    return str(value)
+
+
+def _normalize_rule_condition(condition: dict[str, Any]) -> dict[str, Any]:
+    if condition.get("field"):
+        return condition
+
+    normalized = {
+        "field": "__compound__",
+        "operator": "all" if "all" in condition else "any" if "any" in condition else "eq",
+        "value": condition.get("all", condition.get("any", condition.get("value"))),
+        "result": condition.get("result"),
+    }
+    if normalized["value"] is None:
+        normalized["value"] = {
+            key: value
+            for key, value in condition.items()
+            if key not in {"result", "priority"}
+        }
+    return normalized
