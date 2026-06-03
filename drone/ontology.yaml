@@ -118,14 +118,16 @@ objects:
       model: {type: str, description: "型号"}
       weight_kg: {type: float, description: "空机重量(kg)"}
       max_takeoff_weight_kg: {type: float, description: "最大起飞重量(kg)"}
-      category: {type: str, description: "类别: 微型/轻型/小型/中型/大型(S3第二条)"}
+      category: {type: str, description: "类别: 微型/轻型/小型/中型/大型(S3第六十二条)"}
+      operation_class: {type: str, description: "运行分类: 开放类/特定类/审定类(S4第92.7条)"}
       payload_types: {type: str, description: "可搭载载荷类型(逗号分隔)"}
       endurance_min: {type: int, description: "续航时间(分钟)"}
       max_range_km: {type: float, description: "最大航程(km)"}
       base_id: {type: str, description: "所属基地编号"}
       status: {type: str, description: "状态: 可用/任务中/维护中/故障"}
-      registration_code: {type: str, description: "实名登记编码(S3第十条)"}
-      airworthiness_cert: {type: str, description: "适航证编号(中大型需要，S3第十二条)"}
+      registration_code: {type: str, description: "实名登记编码(S3第十条,S4第92.205条)"}
+      airworthiness_cert: {type: str, description: "适航证编号(中大型需要，S3第八条,S4第92.453条)"}
+      has_efence: {type: int, description: "是否安装电子围栏: 1=是 0=否(S4第92.613条)"}
 
   DroneOperator:
     kind: entity
@@ -136,9 +138,11 @@ objects:
     properties:
       operator_id: {type: str, required: true, description: "操控员编号"}
       name: {type: str, description: "姓名"}
-      license_type: {type: str, description: "执照类型: 无需执照/操控员执照(S3第十六条)"}
-      license_categories: {type: str, description: "执照类别等级(逗号分隔)"}
-      has_bvlos_rating: {type: int, description: "是否有超视距等级: 1=是 0=否"}
+      license_type: {type: str, description: "执照类型: 无需执照/小型执照/中型执照/大型执照(S3第十六条,S4第92.53条)"}
+      license_categories: {type: str, description: "执照类别等级(逗号分隔，如飞机/旋翼飞行器)"}
+      has_bvlos_rating: {type: int, description: "是否有超视距等级: 1=是 0=否(S4第92.53条d款)"}
+      has_instructor_rating: {type: int, description: "是否有教员等级: 1=是 0=否(S4第92.53条e款)"}
+      license_expiry: {type: str, description: "执照有效期(6年，S4第92.61条)"}
       affiliated_team_id: {type: str, description: "所属队伍编号"}
       available: {type: int, description: "是否可用: 1=是 0=否"}
 
@@ -162,11 +166,13 @@ objects:
     data_source: external_api
     mutability: read_only
     summary: "空域区划(管制/适飞/禁飞)"
-    description: 空域区划。S3第二十条至第二十四条。请用 get_airspace_zone 查询。
+    description: |
+      空域区划。管制空域包括真高120m以上、空中禁区/限制区、军用超低空飞行空域、机场周边等(S3第十九条)。
+      管制空域外为微型/轻型/小型无人机适飞空域(S3第十九条)。
     properties:
       zone_id: {type: str, required: true, description: "空域编号"}
       name: {type: str, description: "名称"}
-      zone_type: {type: str, description: "类型: 管制空域/适飞空域/禁飞区"}
+      zone_type: {type: str, description: "类型: 管制空域/适飞空域/禁飞区/临时管制"}
       altitude_limit_m: {type: int, description: "高度限制(米)，适飞空域120m"}
       responsible_authority: {type: str, description: "管辖机构"}
       restrictions: {type: str, description: "限制说明"}
@@ -176,15 +182,18 @@ objects:
     data_source: external_api
     mutability: read_only
     summary: "气象预警信息"
-    description: "气象预警信息。预警级别由高到低: 红色→橙色→黄色→蓝色(S1第3.1节)。"
+    description: |
+      气象预警信息。预警级别由高到低: 红色(一级)→橙色(二级)→黄色(三级)→蓝色(四级)(S1第3.1节)。
+      气象灾害包括台风、暴雨、低温雨雪冰冻、大雾、大风、海啸、海冰等(S1第3.1节)。
     properties:
       warning_id: {type: str, required: true, description: "预警编号"}
-      warning_type: {type: str, description: "预警类型: 台风/暴雨/低温雨雪冰冻/大雾/大风"}
+      warning_type: {type: str, description: "预警类型: 台风/暴雨/低温雨雪冰冻/大雾/大风/寒潮/风暴潮/海冰/海啸/沙尘暴/地质灾害"}
       warning_level: {type: str, description: "预警级别: 红色/橙色/黄色/蓝色"}
       affected_area_desc: {type: str, description: "影响区域描述"}
       affected_segment_ids: {type: str, description: "受影响路段编号(逗号分隔)"}
       issued_by: {type: str, description: "发布机构"}
       issued_time: {type: str, description: "发布时间"}
+      expected_wind_level: {type: int, description: "预计风力等级(台风预警时)"}
       status: {type: str, description: "状态: 生效中/已解除"}
 
   # ============================================================
@@ -196,13 +205,15 @@ objects:
     data_source: agent_generated
     mutability: append_only
     summary: "自然灾害事件"
-    description: 自然灾害导致的公路交通突发事件。涉及设施损伤，需要 inspect_facility 检查评估。
+    description: |
+      自然灾害导致的公路交通突发事件。涉及设施损伤，需要 inspect_facility 检查评估。
+      灾害类型包括暴雨山洪、地震地质灾害、低温雨雪冰冻等(S1公路交通突发事件应急预案第1.4节)。
     status_transitions:
       进行中: [已终止]
     properties:
       event_id: {type: str, required: true, description: "事件编号"}
-      disaster_type: {type: str, description: "灾害类型: 地震/暴雨/泥石流/滑坡/崩塌/冰雪/洪水"}
-      event_level: {type: str, description: "事件级别: I/II/III/IV(S1第1.4节)"}
+      disaster_type: {type: str, description: "灾害类型: 地震/暴雨/泥石流/滑坡/崩塌/冰雪/洪水/大风"}
+      event_level: {type: str, description: "事件级别: I/II/III/IV(特别重大/重大/较大/一般)"}
       event_time: {type: str, description: "发生时间"}
       location_desc: {type: str, description: "位置描述"}
       lng: {type: float, description: "经度"}
@@ -257,7 +268,9 @@ objects:
     data_source: agent_generated
     mutability: append_only
     summary: "抢通方案"
-    description: 抢通方案。技术选用依据《公路交通应急抢通技术规程》。
+    description: |
+      抢通方案。技术选用依据《公路交通应急抢通技术规程》。
+      抢通原则: 随断即抢、随抢即通; 先通后补、先干后支(技术规程)。
     status_transitions:
       candidate: [executing, dropped]
       executing: [completed, dropped]
@@ -364,6 +377,8 @@ objects:
       operator_id: {type: str, description: "指派操控员编号"}
       payload_types: {type: str, description: "搭载载荷类型(逗号分隔)"}
       planned_area_desc: {type: str, description: "计划侦测区域描述"}
+      flight_altitude_m: {type: int, description: "计划飞行高度(米)"}
+      is_bvlos: {type: int, description: "是否超视距运行: 1=是 0=否"}
       status: {type: str, description: "状态: 计划中/审批中/执行中/数据处理/完成/取消"}
 
   ComplianceCheck:
@@ -373,7 +388,8 @@ objects:
     summary: "合规检查记录(出动前)"
     description: |
       无人机出动前合规检查。check_compliance 产出。
-      校验: 无人机登记/适航(S3第十条/十二条)、操控员资质(S3第十六条)、空域合规(S3第二十条)、载荷合规。
+      校验: 无人机登记(S3第十条)/适航(S3第八条,S4 D章)、操控员资质(S3第十六条,S4第92.51条)、
+      空域合规(S3第十九条,S4第92.511条)、载荷合规、电子围栏(S4第92.613条)。
     properties:
       check_id: {type: str, required: true, description: "检查编号"}
       mission_id: {type: str, description: "关联任务编号"}
@@ -381,6 +397,7 @@ objects:
       operator_compliance: {type: str, description: "操控员合规: 通过/不通过"}
       airspace_compliance: {type: str, description: "空域合规: 通过/不通过"}
       payload_compliance: {type: str, description: "载荷合规: 通过/不通过"}
+      efence_compliance: {type: str, description: "电子围栏合规: 通过/不通过/不适用"}
       overall_result: {type: str, description: "总体结果: 通过/不通过"}
       issues: {type: str, description: "不通过项说明"}
 
@@ -389,15 +406,18 @@ objects:
     data_source: agent_generated
     mutability: append_only
     summary: "飞行审批记录"
-    description: 飞行审批记录。常规审批提前1日(S3第二十五条); 应急快速审批提前30分钟(S3第二十九条)。
+    description: |
+      飞行审批记录。常规审批提前1日12时前申请(S3第二十六条);
+      应急快速审批提前30分钟(S3第二十九条); 特别紧急可随时申请(S3第二十九条)。
+      适飞空域内微型/轻型无需申请(S3第三十一条)。
     status_transitions:
       待审批: [已批准, 已拒绝]
     properties:
       approval_id: {type: str, required: true, description: "审批编号"}
       mission_id: {type: str, description: "关联任务编号"}
-      approval_type: {type: str, description: "审批类型: 常规/应急快速/特别紧急"}
+      approval_type: {type: str, description: "审批类型: 常规/应急快速/特别紧急/无需审批"}
       approval_status: {type: str, description: "审批状态: 待审批/已批准/已拒绝"}
-      approval_authority: {type: str, description: "审批机构"}
+      approval_authority: {type: str, description: "审批机构(分区/管制区/国家级，S3第二十八条)"}
       conditions: {type: str, description: "附加条件"}
 
   ReconData:
@@ -420,7 +440,9 @@ objects:
     data_source: agent_generated
     mutability: append_only
     summary: "防御响应记录"
-    description: "防御响应记录。预警级别→防御响应级别(S1第3.3节): 红色→一级、橙色→二级、黄色→三级、蓝色→四级。"
+    description: |
+      防御响应记录。预警级别→防御响应级别(S1第3.3节): 红色→一级、橙色→二级、黄色→三级、蓝色→四级。
+      防御措施包括: 响应、巡查、管控三阶段(S1第3.3节)。
     status_transitions:
       进行中: [已转应急, 已终止]
     properties:
@@ -428,6 +450,8 @@ objects:
       warning_id: {type: str, description: "关联预警编号"}
       response_level: {type: str, description: "防御响应级别: 一级/二级/三级/四级"}
       measures_taken: {type: str, description: "已采取措施"}
+      patrol_status: {type: str, description: "巡查状态: 常规/加密/暂停"}
+      control_status: {type: str, description: "管控状态: 正常/限行/封闭"}
       status: {type: str, description: "状态: 进行中/已转应急/已终止"}
 
   EventReport:
@@ -437,12 +461,14 @@ objects:
     summary: "灾情信息报告(首报/续报/终报)"
     description: |
       灾情信息报告。信息报送要素(S1第4.2节): 事件时间地点、影响范围损害程度、人员伤亡、发展趋势、已采取措施。
+      重特大事件按国家规定时限报告(S1第4.2节)。
     properties:
       report_id: {type: str, required: true, description: "报告编号"}
       event_id: {type: str, description: "关联事件编号"}
       report_type: {type: str, description: "报告类型: 首报/续报/终报"}
       event_summary: {type: str, description: "事件概况"}
       damage_scope: {type: str, description: "影响范围及损害程度"}
+      casualty_info: {type: str, description: "人员伤亡失踪情况"}
       trend_analysis: {type: str, description: "发展趋势分析"}
       measures_taken: {type: str, description: "已采取措施"}
       next_plan: {type: str, description: "下一步工作计划"}
@@ -470,7 +496,9 @@ objects:
     data_source: human_confirmed
     mutability: read_only
     summary: "事件分级标准(I~IV级)"
-    description: 公路交通突发事件分级标准。依据S1第1.4节。
+    description: |
+      公路交通突发事件分级标准。依据S1第1.4节及公路交通突发事件应急预案第4.1节。
+      分为特别重大(I)、重大(II)、较大(III)、一般(IV)四级。
     properties:
       level: {type: str, required: true, description: "级别: I/II/III/IV"}
       level_name: {type: str, description: "名称: 特别重大/重大/较大/一般"}
@@ -512,7 +540,9 @@ objects:
     data_source: human_confirmed
     mutability: read_only
     summary: "响应级别规则(事件级别→响应要求)"
-    description: 应急响应级别规则。依据S1第4.3节。
+    description: |
+      应急响应级别规则。依据S1第4.3节。
+      一级: 部主要领导主持; 二级: 分管部领导主持; 三级: 牵头司局主持; 四级: 司局负责人主持。
     properties:
       event_level: {type: str, required: true, description: "事件级别: I/II/III/IV"}
       response_level: {type: str, description: "响应级别: 一级/二级/三级/四级"}
@@ -520,26 +550,49 @@ objects:
       time_limit_hours: {type: int, description: "处理时限(小时)"}
       termination_condition: {type: str, description: "终止条件"}
 
+  DefenseResponseRule:
+    kind: rule_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "防御响应启动条件(预警→防御级别)"
+    description: |
+      台风及其他极端天气防御响应启动条件。依据S1附件。
+      台风: 一级=16级以上/二级=14级以上/三级=12级以上/四级=8级以上。
+    properties:
+      rule_id: {type: str, required: true, description: "规则编号"}
+      weather_type: {type: str, description: "气象类型: 台风/冬季大风/风暴潮/海冰/海啸/寒潮"}
+      defense_level: {type: str, description: "防御响应级别: 一级/二级/三级/四级"}
+      trigger_condition: {type: str, description: "启动条件"}
+      key_measures: {type: str, description: "重点措施"}
+
   DroneClassRule:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
-    summary: "无人机分类标准(S3第二条)"
-    description: 无人机按最大起飞重量分为微型/轻型/小型/中型/大型。
+    summary: "无人机分类标准(S3第六十二条)"
+    description: |
+      无人机按性能指标分为微型/轻型/小型/中型/大型(S3第二条、第六十二条)。
+      微型: 空机<0.25kg,真高≤50m,速度≤40km/h; 轻型: 空机≤4kg且最大起飞≤7kg,速度≤100km/h;
+      小型: 空机≤15kg且最大起飞≤25kg; 中型: 最大起飞≤150kg; 大型: 最大起飞>150kg。
     properties:
       category: {type: str, required: true, description: "类别"}
       max_takeoff_weight_range: {type: str, description: "最大起飞重量范围"}
       characteristics: {type: str, description: "性能特征"}
-      registration_required: {type: int, description: "需实名登记: 1=是 0=否"}
-      airworthiness_required: {type: int, description: "需适航许可: 1=是 0=否"}
-      insurance_required: {type: int, description: "需投保责任保险: 1=是 0=否"}
+      registration_required: {type: int, description: "需实名登记: 1=是 0=否(S3第十条)"}
+      airworthiness_required: {type: int, description: "需适航许可: 1=是 0=否(S3第八条，仅中大型)"}
+      license_required: {type: int, description: "操控员需执照: 1=是 0=否(S3第十六条/十七条)"}
+      insurance_required: {type: int, description: "需投保责任保险: 1=是 0=否(S3第十二条)"}
+      efence_required: {type: int, description: "需电子围栏: 1=是 0=否(S4第92.613条)"}
 
   OperatorLicenseRule:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
-    summary: "操控员资质要求(S3第十六条)"
-    description: 不同类别无人机和运行方式对操控员的资质要求。
+    summary: "操控员资质要求(S3第十六条,S4 B章)"
+    description: |
+      不同类别无人机和运行方式对操控员的资质要求。
+      微型/轻型: 无需执照(S3第十七条); 小型/中型/大型: 需操控员执照(S3第十六条,S4第92.53条)。
+      超视距运行需超视距等级(S4第92.51条c款)。
     properties:
       rule_id: {type: str, required: true, description: "规则编号"}
       drone_category: {type: str, description: "无人机类别"}
@@ -553,8 +606,11 @@ objects:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
-    summary: "空域使用规则(S3第三章)"
-    description: 不同空域类型的使用条件和限制。
+    summary: "空域使用规则(S3第三章,S4 E章)"
+    description: |
+      不同空域类型的使用条件和限制。
+      管制空域: 需经空中交通管理机构批准(S3第十九条); 适飞空域: 微型/轻型/小型无需申请(S3第三十一条)。
+      融合飞行条件见S3第二十二条。
     properties:
       rule_id: {type: str, required: true, description: "规则编号"}
       airspace_type: {type: str, description: "空域类型: 管制空域/适飞空域/禁飞区"}
@@ -567,11 +623,14 @@ objects:
     kind: rule_table
     data_source: human_confirmed
     mutability: read_only
-    summary: "飞行审批规则(S3第二十五条/二十九条)"
-    description: 飞行活动审批要求，含常规审批和应急快速审批。
+    summary: "飞行审批规则(S3第二十六条/二十九条)"
+    description: |
+      飞行活动审批要求。常规: 飞行前1日12时前申请、21时前批复(S3第二十六条)。
+      应急: 起飞前30分钟申请、10分钟前批复(S3第二十九条)。特别紧急: 随时申请(S3第二十九条)。
+      适飞空域内微型/轻型: 无需申请(S3第三十一条)。
     properties:
       rule_id: {type: str, required: true, description: "规则编号"}
-      scenario: {type: str, description: "场景: 常规飞行/应急抢险/特别紧急"}
+      scenario: {type: str, description: "场景: 常规飞行/应急抢险/特别紧急/适飞空域免申请"}
       approval_authority: {type: str, description: "审批机构"}
       advance_time_required: {type: str, description: "提前申请时间"}
       response_time: {type: str, description: "批复时限"}
@@ -594,12 +653,29 @@ objects:
   # 法规查询表（lookup_table）
   # ============================================================
 
+  S1Regulation:
+    kind: lookup_table
+    data_source: human_confirmed
+    mutability: read_only
+    summary: "S1交通运输综合应急预案及公路/水路/道路运输预案原文"
+    description: |
+      《交通运输综合应急预案》及其附属5项预案(公路/水路/道路运输/公路水运工程/城市公交)关键条款。
+      涵盖: 事件分级、响应程序、防御响应、信息报告、总结评估等。
+    properties:
+      article_number: {type: str, required: true, description: "条号(如S1-4.3.1)"}
+      plan_name: {type: str, description: "所属预案名称"}
+      chapter: {type: str, description: "所属章节"}
+      content: {type: str, description: "条文内容"}
+      keywords: {type: str, description: "关键词(逗号分隔)"}
+
   S3Regulation:
     kind: lookup_table
     data_source: human_confirmed
     mutability: read_only
-    summary: "S3暂行条例原文"
-    description: 《无人驾驶航空器飞行管理暂行条例》原文条目。
+    summary: "S3无人驾驶航空器飞行管理暂行条例原文"
+    description: |
+      《无人驾驶航空器飞行管理暂行条例》(国令第761号,2024年1月1日施行)原文条目。
+      六章63条: 总则、民用无人机及操控员管理、空域和飞行活动管理、监督管理和应急处置、法律责任、附则。
     properties:
       article_number: {type: str, required: true, description: "条号"}
       chapter: {type: str, description: "所属章节"}
@@ -610,8 +686,11 @@ objects:
     kind: lookup_table
     data_source: human_confirmed
     mutability: read_only
-    summary: "S4 CCAR-92原文"
-    description: 《民用无人驾驶航空器运行安全管理规则》原文条目。
+    summary: "S4 CCAR-92民用无人驾驶航空器运行安全管理规则原文"
+    description: |
+      《民用无人驾驶航空器运行安全管理规则》(CCAR-92,2024年1月1日施行)原文条目。
+      含: A章总则、B章操控员管理、C章登记管理、D章适航管理、E章空中交通管理、F章运行管理、M章法律责任。
+      运行分类: 开放类/特定类/审定类(第92.7条)。
     properties:
       section_number: {type: str, required: true, description: "条号"}
       chapter: {type: str, description: "所属章节"}
@@ -715,6 +794,14 @@ links:
     cardinality: "0..1"
     description: 预警触发防御响应
 
+  defense_may_escalate_to_event:
+    source: DefenseResponse
+    target: DisasterEvent
+    join: {source_key: response_id, target_key: event_id}
+    link_type: causal
+    cardinality: "0..1"
+    description: 防御响应期间灾害发生时转为应急响应(S1第3.3.4节)
+
   disaster_has_reports:
     source: DisasterEvent
     target: EventReport
@@ -730,6 +817,22 @@ links:
     link_type: contains
     cardinality: "0..n"
     description: 事故事件下的事故报告
+
+  recon_data_enables_inspection:
+    source: ReconData
+    target: FacilityInspection
+    join: {source_key: event_id, target_key: event_id}
+    link_type: enables
+    cardinality: "0..n"
+    description: 侦测数据辅助设施检查评估
+
+  inspection_enables_plan:
+    source: FacilityInspection
+    target: ClearancePlan
+    join: {source_key: event_id, target_key: event_id}
+    link_type: enables
+    cardinality: "0..n"
+    description: 检查评估结果驱动抢通方案生成(II/III级损伤)
 
 functions:
   get_event:
@@ -872,6 +975,14 @@ functions:
     params:
       event_level: {type: str, description: "事件级别: I/II/III/IV"}
 
+  lookup_defense_response_rule:
+    summary: "查防御响应启动条件"
+    group: "规则查询"
+    function_type: lookup
+    params:
+      weather_type: {type: str, default: "", description: "气象类型(可选)"}
+      defense_level: {type: str, default: "", description: "防御级别(可选)"}
+
   lookup_drone_class:
     summary: "查无人机分类标准"
     group: "规则查询"
@@ -908,6 +1019,16 @@ functions:
     params:
       payload_type: {type: str, default: "", description: "载荷类型(可选)"}
       scenario: {type: str, default: "", description: "适用场景关键词(可选)"}
+
+  lookup_regulation:
+    summary: "查法规条文"
+    description: "查询S1/S3/S4法规原文条目"
+    group: "规则查询"
+    function_type: lookup
+    params:
+      regulation: {type: str, description: "法规: S1/S3/S4"}
+      article_number: {type: str, default: "", description: "条号(可选)"}
+      keyword: {type: str, default: "", description: "关键词(可选)"}
 
   generate_clearance_plans:
     summary: "生成候选抢通方案"
@@ -1044,7 +1165,7 @@ functions:
 
   check_compliance:
     summary: "无人机出动前合规检查"
-    description: "四维合规校验: 无人机登记/适航、操控员资质、空域合规、载荷合规"
+    description: "五维合规校验: 无人机登记/适航、操控员资质、空域合规、载荷合规、电子围栏"
     group: "无人机侦测"
     function_type: business
     writes_to: [ComplianceCheck]
@@ -1057,7 +1178,9 @@ functions:
 
   request_flight_approval:
     summary: "提交飞行审批"
-    description: "常规审批提前1日(S3第二十五条); 应急快速审批提前30分钟(S3第二十九条)"
+    description: |
+      常规: 飞行前1日12时前申请(S3第二十六条); 应急: 起飞前30分钟(S3第二十九条);
+      特别紧急: 随时申请(S3第二十九条); 适飞空域微型/轻型: 无需申请(S3第三十一条)。
     group: "无人机侦测"
     function_type: business
     writes_to: [FlightApproval]
@@ -1098,7 +1221,7 @@ functions:
 
   trigger_defense_response:
     summary: "触发防御响应"
-    description: "根据预警级别启动防御响应(S1第3.3节)"
+    description: "根据预警级别启动防御响应(S1第3.3节)，含响应、巡查、管控三阶段"
     group: "预警与防御"
     function_type: business
     writes_to: [DefenseResponse]
@@ -1167,17 +1290,37 @@ rules:
       - {field: warning_level, operator: eq, value: "蓝色", result: "四级"}
 
   drone_weight_classification:
-    description: "按最大起飞重量分类无人机(S3第二条)"
+    description: "按性能指标分类无人机(S3第六十二条)"
     rule_type: classification
     applies_to: [Drone]
     result_field: category
-    source: "S3第二条"
+    source: "S3第六十二条"
     conditions:
       - {field: max_takeoff_weight_kg, operator: lte, value: 0.25, result: "微型"}
       - {field: max_takeoff_weight_kg, operator: lte, value: 7, result: "轻型"}
       - {field: max_takeoff_weight_kg, operator: lte, value: 25, result: "小型"}
       - {field: max_takeoff_weight_kg, operator: lte, value: 150, result: "中型"}
       - {field: max_takeoff_weight_kg, operator: gt, value: 150, result: "大型"}
+
+  drone_license_requirement:
+    description: "无人机类别→操控员执照要求(S3第十六条/十七条)"
+    rule_type: classification
+    applies_to: [Drone]
+    result_field: license_required
+    source: "S3第十六条、第十七条"
+    conditions:
+      - {field: category, operator: in, value: ["微型", "轻型"], result: "无需执照"}
+      - {field: category, operator: eq, value: "小型", result: "小型操控员执照"}
+      - {field: category, operator: eq, value: "中型", result: "中型操控员执照"}
+      - {field: category, operator: eq, value: "大型", result: "大型操控员执照"}
+
+  defense_may_escalate:
+    description: "防御响应期间发生灾害→转应急响应(S1第3.3.4节)"
+    rule_type: classification
+    applies_to: [DefenseResponse]
+    result_field: status
+    conditions:
+      - {field: status, operator: eq, value: "进行中", result: "若发生较大及以上事件则已转应急"}
 
 workflows:
   emergency_response:
@@ -1186,7 +1329,7 @@ workflows:
     involves_objects: [DisasterEvent, FacilityInspection, ClearancePlan, ResourceDispatch, TrafficControl, TrafficEvaluation]
     steps:
       - name: 启动应急响应
-        description: "接报→疏散→安全措施→上报"
+        description: "接报→疏散→安全措施→上报(S1第4.1节)"
         sla: "接报后30分钟"
       - {name: 无人机侦测, function: plan_recon_mission, next: 设施检查}
       - {name: 设施检查, function: inspect_facility, next: 事件评估}
@@ -1224,4 +1367,9 @@ workflows:
     involves_objects: [WeatherWarning, DefenseResponse]
     steps:
       - {name: 启动防御响应, function: trigger_defense_response, next: 加密巡检}
-      - {name: 加密巡检, function: intensify_patrol}
+      - name: 加密巡检
+        function: intensify_patrol
+        description: "对高风险路段、桥梁、隧道、高边坡加密巡查频次"
+        next: 持续监控
+      - name: 持续监控
+        description: "持续跟踪预警变化，预警解除则终止响应，灾害发生则转应急响应(S1第3.3.4节)"
