@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from oag.ontology.repository import ObjectRepository
+from oag_ontology.repository import ObjectRepository
 
 
 def _int(v: Any) -> int:

@@ -37,7 +37,7 @@ domains/tools/ontology_builder/
 
 它不是业务领域，不包含 `ontology.yaml`，不会被根项目挂载为 `/d/{domain}`。
 
-OAG 通过 `oag.ontology.loader.load_domain(domain_dir)` 加载领域：
+OAG 通过 `oag_ontology.loader.load_domain(domain_dir)` 加载领域：
 
 1. 读取 `ontology.yaml`。
 2. 注册内置 `json_file` 和 `sqlite_table` adapter。

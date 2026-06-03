@@ -3,9 +3,9 @@ from __future__ import annotations
 import sqlite3
 from typing import Any
 
-from oag.ontology.registry import FunctionRegistry
-from oag.ontology.repository import ObjectRepository
-from oag.ontology.schema import Ontology
+from oag_ontology.registry import FunctionRegistry
+from oag_ontology.repository import ObjectRepository
+from oag_ontology.schema import Ontology
 
 
 class MemoryAdapter:
