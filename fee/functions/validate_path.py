@@ -1,6 +1,6 @@
 from __future__ import annotations
 import math
-from oag.ontology.store import Store
+from oag_ontology.store import Store
 
 
 def _int(v) -> int:

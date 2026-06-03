@@ -3,10 +3,9 @@ from __future__ import annotations
 import sqlite3
 from typing import Any
 
-from oag.ontology.registry import FunctionRegistry
-from oag.ontology.repository import ObjectRepository
-from oag.ontology.schema import Ontology
-from oag.ontology.store import Store
+from oag_ontology.registry import FunctionRegistry
+from oag_ontology.schema import Ontology
+from oag_ontology.store import Store
 
 
 class AccountBalanceSqlViewAdapter:
@@ -118,7 +117,7 @@ class AccountBalanceSqlViewAdapter:
 class CustomerRiskResolver:
     """Resolver composed from two other resolvers."""
 
-    def __init__(self, repository: ObjectRepository):
+    def __init__(self, repository: Store):
         self.repository = repository
 
     def query(self, filters: dict[str, Any] | None = None,
@@ -158,8 +157,7 @@ def register(registry: FunctionRegistry, store: Store, ontology: Ontology):
 
     registry.register_adapter("sql_view", sql_view_adapter_factory)
 
-    repository = ObjectRepository(ontology, store, registry)
-    risks = CustomerRiskResolver(repository)
+    risks = CustomerRiskResolver(store)
     registry.register_resolver("customer_risk_view", risks)
 
 

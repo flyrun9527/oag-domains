@@ -4,9 +4,9 @@ import json
 import math
 from typing import Any
 
-from oag.ontology.registry import FunctionRegistry
-from oag.ontology.schema import Ontology
-from oag.ontology.store import Store
+from oag_ontology.registry import FunctionRegistry
+from oag_ontology.schema import Ontology
+from oag_ontology.store import Store
 
 DATA_FILES = {
     "RoadSegment": "road_segment.json",

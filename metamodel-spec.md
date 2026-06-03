@@ -2,7 +2,7 @@
 
 > 本文档描述 OAG（Ontology Augmented Generation）系统的本体元模型——即如何用 YAML 定义一个业务领域的本体，以及每个构造的语义、字段和运行时行为。
 >
-> 元模型定义在 `agent/oag/ontology/schema.py`，领域本体定义在 `domains/<name>/ontology.yaml`。
+> 元模型定义在 `oag_ontology/schema.py`，领域本体定义在 `domains/<name>/ontology.yaml`。
 
 ---
 

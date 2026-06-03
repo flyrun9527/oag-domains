@@ -1,5 +1,5 @@
 from __future__ import annotations
-from oag.ontology.store import Store
+from oag_ontology.store import Store
 
 
 def _int(v) -> int:

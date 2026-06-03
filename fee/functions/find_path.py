@@ -2,7 +2,7 @@ from __future__ import annotations
 import heapq
 import math
 from collections import defaultdict
-from oag.ontology.store import Store
+from oag_ontology.store import Store
 
 
 def find_path(store: Store, en_station_id: str = "", ex_station_id: str = "",
